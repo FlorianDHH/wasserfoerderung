@@ -85,11 +85,25 @@ button,input,select{font:inherit;color:inherit}
 .trkleg>button[aria-pressed="true"]{background:#0190b3;border-color:#0190b3;color:#fff;font-weight:600}
 .trkbar{display:inline-block;width:12px;height:12px;flex:none;border-radius:2px;background:repeating-linear-gradient(45deg,#d7191c 0 3px,#fff 3px 6px);border:1.5px solid #d7191c;box-sizing:border-box}
 .trkbar.lk{border-color:#111}
+.layermenu .lmfile{font-size:12px;color:var(--vg-cyan);padding:2px 10px 8px;cursor:pointer;text-decoration:underline}
+.wsmk{width:22px;height:22px;border-radius:50%;background:#0a62c9;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);color:#fff;font:700 10px/18px Arial,sans-serif;text-align:center;box-sizing:border-box}
+.wsmk.beh{border-radius:4px;background:#0a8fc9}.wsmk.ueh{background:#0a62c9;border-color:#ffd400}.wsmk.off{background:#1b7f3b}.wsmk.bad{background:#8a8f98}
+.wsmk + b{position:absolute;left:24px;top:3px;font:700 11px/1 Arial,sans-serif;color:#0a3f8a;white-space:nowrap;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
+.leaflet-marker-icon.wsz-hide .wsmk + b{display:none}
+.trkpop .btnroute{display:block;width:100%;margin:6px 0 4px;min-height:38px;border:0;border-radius:8px;background:#6a1b9a;color:#fff;font-weight:700;cursor:pointer}
+.navbox{position:fixed;z-index:640;left:max(10px,env(safe-area-inset-left,0px));right:calc(max(12px,env(safe-area-inset-right,0px)) + 52px);top:calc(env(safe-area-inset-top,0px) + 104px);max-width:460px;background:var(--surface);color:var(--fg);border-radius:12px;box-shadow:var(--shadow);border-left:5px solid #6a1b9a;padding:8px 10px;font-size:13px;line-height:1.3}
+.navbox b{display:block;font-size:14px}.navbox .nr{display:flex;gap:8px;align-items:center;margin-top:6px}
+.navbox .nr a{flex:1;text-align:center;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--fg);font-weight:700;text-decoration:none}
+.navbox .nr button{border:0;border-radius:8px;background:var(--surface-2);color:var(--fg);font-weight:700;padding:8px 12px;cursor:pointer}
+body.nav .trkleg{top:calc(env(safe-area-inset-top,0px) + 230px)} body.nav.maponly .trkleg{top:auto}
+.trkpop .btnws{display:block;width:100%;margin-top:6px;min-height:38px;border:0;border-radius:8px;background:#0a62c9;color:#fff;font-weight:700;cursor:pointer}
 body.maponly .sheet{display:none}
-body.maponly .trkleg{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}
+.leaflet-top.leaflet-left{top:calc(env(safe-area-inset-top,0px) + 60px);left:max(0px,env(safe-area-inset-left,0px))}
+.leaflet-top.leaflet-left .leaflet-control-attribution{margin:0 0 0 10px;border-radius:6px;font-size:10px;line-height:1.35;max-width:calc(100vw - 84px);background:rgba(255,255,255,.78);color:#333}
+body.maponly .trkleg{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 142px);max-height:calc(100vh - 330px);overflow:auto}
 .mapbar{position:fixed;z-index:600;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--surface);color:var(--fg);border-radius:14px;box-shadow:var(--shadow);padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:13px;max-width:560px;margin:0 auto}
 .mapbar>span{color:var(--muted)}.mapbar>div{display:flex;gap:8px}
-.mapbar button{flex:1;min-height:44px;border-radius:10px;border:0;font:700 15px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;background:var(--vg-blue);color:#fff}
+.mapbar button{flex:1;min-height:44px;border-radius:10px;border:0;font:700 14px/1.05 var(--f-display);hyphens:manual;padding:4px 6px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;background:var(--vg-blue);color:#fff}
 .mapbar #mapPlan{flex:none;padding:0 14px;background:var(--surface-2);color:var(--fg)}
 .rpmk{position:relative;display:inline-block;width:14px;height:14px;flex:none}.rpmk i{position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#e30613;border:1.5px solid #fff;box-shadow:0 0 0 1px #e30613;box-sizing:border-box}
 .rpmk b{position:absolute;left:15px;top:-2px;font:700 12px/1 Arial,sans-serif;color:#e30613;white-space:nowrap;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
@@ -278,9 +292,10 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
 <div class="results" id="results" hidden></div>
 <div class="layermenu" id="layerMenu" hidden role="menu"></div>
 <div class="trkleg" id="trkLeg" hidden></div>
+<div class="navbox" id="navBox" hidden></div>
 <div class="mapbar" id="mapBar" hidden>
-  <span>Weg, Schranke oder Rettungspunkt antippen für Details</span>
-  <div><button type="button" id="rpNear">Nächster Rettungspunkt</button><button type="button" id="mapPlan">Planen …</button></div>
+  <span>Weg, Schranke, Rettungspunkt oder Wasserstelle antippen für Details</span>
+  <div><button type="button" id="rpNear">Nächster Rettungs&shy;punkt</button><button type="button" id="wsNear">Nächste Wasser&shy;stelle</button><button type="button" id="mapPlan">Planen</button></div>
 </div>
 
 <div class="fab">
@@ -687,13 +702,17 @@ const TW_HINTS=["Trinkwasserschutz: Feuerwehr-Systemtrenner B-FW am Standrohr bz
   "Schieber und Strahlrohre langsam bedienen: Druckstöße können Trinkwasserleitungen zerstören. Behälter nur von oben befüllen."];
 
 /* ---------- Karte ---------- */
-const map=L.map("map",{zoomControl:false,attributionControl:true}).setView([50.272,7.842],14);
+const map=L.map("map",{zoomControl:false,attributionControl:false}).setView([50.272,7.842],14);
+// Quellenangabe oben links, damit sie nicht vom Bedienblatt verdeckt wird
+map.attributionControl=L.control.attribution({position:"topleft",prefix:'<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>'}).addTo(map);
+const OSM_DATA_ATTR='Daten © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL) · <a href="https://openstreetmap.org/fixthemap" target="_blank" rel="noopener">Fehler melden</a>';
+map.attributionControl.addAttribution(OSM_DATA_ATTR); // Wege, Rettungspunkte, Routing und Suche nutzen OSM-Daten
 const YEAR=new Date().getFullYear();
 const RLP_ATTR=`© GeoBasis-DE / LVermGeoRP (${YEAR}), dl-de/by-2-0`;
 const rlpWms=(layer,o={})=>L.tileLayer.wms(`https://geo4.service24.rlp.de/wms/${layer}.fcgi`,{layers:layer,format:"image/png",version:"1.3.0",maxZoom:19,attribution:RLP_ATTR,...o});
 const MAPS=[
-  {id:"osm",name:"Straßenkarte",sub:"OpenStreetMap",layer:L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a>'})},
-  {id:"topo",name:"Topografisch",sub:"OpenTopoMap, Höhenlinien",layer:L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap, SRTM · © OpenTopoMap"})},
+  {id:"osm",name:"Straßenkarte",sub:"OpenStreetMap",layer:L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:OSM_DATA_ATTR})},
+  {id:"topo",name:"Topografisch",sub:"OpenTopoMap, Höhenlinien",layer:L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:'Karte © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA), SRTM'})},
   {id:"dtk",name:"Topo-Karte RLP",sub:"amtlich, DTK25/50/100 · nur Rheinland-Pfalz",layer:L.layerGroup([rlpWms("rp_dtk100",{maxZoom:11}),rlpWms("rp_dtk50",{minZoom:12,maxZoom:13}),rlpWms("rp_dtk25",{minZoom:14})])},
   {id:"dop",name:"Luftbild RLP",sub:"amtlich, 20 cm · nur Rheinland-Pfalz",layer:rlpWms("rp_dop20")},
   {id:"bkg",name:"TopPlusOpen",sub:"Bundesamt für Kartographie, ganz Deutschland",layer:L.tileLayer("https://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web/default/WEBMERCATOR/{z}/{y}/{x}.png",{maxZoom:18,attribution:`© BKG (${YEAR}), dl-de/by-2-0`})},
@@ -716,10 +735,14 @@ async function probeMap(id){
 function renderLayerMenu(){
   $("layerMenu").innerHTML=`<b>Kartenart</b>`+MAPS.map(m=>`<button type="button" data-id="${m.id}" aria-pressed="${m.id===mapId}"><span>${m.name}</span><small>${m.blocked?"⚠ hier gesperrt (Kartendienst lehnt Zugriff ab)":m.sub}</small></button>`).join("")
     +`<b>Zusatz-Ebenen</b><button type="button" data-ov="trk" aria-pressed="${TRK.on}"><span>${TRK.on?"✓ ":""}Waldwege (OSM)</span><small>nach Befahrbarkeit eingefärbt, Schranken · ab Zoom ${TRK_MINZ}</small></button>`
+    +`<button type="button" data-ov="ws" aria-pressed="${WS.on}"><span>${WS.on?"✓ ":""}Wasserentnahmestellen (eigene)</span><small>${WS.list.length? WS.list.length+" Stellen geladen"+(WS.srv?" (Server-Datei)":" (auf diesem Gerät)") : "noch keine Daten – Datei laden"}</small></button>`
+    +`<label class="lmfile">Wasserstellen-Datei laden (JSON/CSV) …<input type="file" id="wsImport" accept=".json,.csv,.txt,.geojson,application/json,text/csv" hidden></label>`
     +`<button type="button" data-ov="rp" aria-pressed="${TRK.rp}"><span>${TRK.rp?"✓ ":""}Rettungspunkte Forst (OSM)</span><small>Anfahrpunkte für Rettungsfahrzeuge mit Nummer · ab Zoom ${TRK_MINZ}</small></button>`;
   $("layerMenu").querySelectorAll("button[data-id]").forEach(b=>b.onclick=()=>{ setMap(b.dataset.id); $("layerMenu").hidden=true; });
   $("layerMenu").querySelector("button[data-ov=trk]").onclick=()=>{ trkToggle(!TRK.on); $("layerMenu").hidden=true; };
   $("layerMenu").querySelector("button[data-ov=rp]").onclick=()=>{ rpToggle(!TRK.rp); $("layerMenu").hidden=true; };
+  $("layerMenu").querySelector("button[data-ov=ws]").onclick=()=>{ if(!WS.list.length){ $("wsImport").click(); return; } wsToggle(!WS.on); $("layerMenu").hidden=true; };
+  $("wsImport").onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(f) wsImportFile(f); $("layerMenu").hidden=true; };
 }
 
 /* ---------- Zusatz-Ebene Waldwege (OpenStreetMap über Overpass) ---------- */
@@ -739,7 +762,8 @@ function rpHtml(el){ const t=el.tags, ll=`${el.lat.toFixed(5)},${el.lon.toFixed(
     +(t.name||t.description?`<br>${esc(t.name||t.description)}`:"")
     +(t.note?`<br><small>${esc(t.note)}</small>`:"")+(t.check_date?`<br><small>Vor Ort geprüft: ${esc(t.check_date.split("-").reverse().join("."))}</small>`:"")
     +`<br><small>Koordinaten (WGS84): ${ll}</small>`
-    +`<br><a href="https://www.google.com/maps/dir/?api=1&destination=${ll}" target="_blank" rel="noopener">Navigation in Google Maps</a>`
+    +`<button type="button" class="btnroute" data-lat="${el.lat}" data-lon="${el.lon}" data-label="${esc("Rettungspunkt "+(t.ref||""))}">Route in der App berechnen</button>`
+    +`<a href="https://www.google.com/maps/dir/?api=1&destination=${ll}" target="_blank" rel="noopener">Navigation in Google Maps</a>`
     +`<br><small>Bei Notruf 112 die Nummer des Rettungspunkts nennen. Daten aus OpenStreetMap, Lage vor Ort prüfen.</small></div>`; }
 function trkClass(tg){
   if(tg.tracktype){ const g=+String(tg.tracktype).replace(/\D/g,""); if(g>=1&&g<=5) return g>=4?4:g; }
@@ -852,19 +876,20 @@ function trkRefresh(){
   clearTimeout(trkT); trkT=setTimeout(()=>{ const b=map.getBounds(); trkLoad(b.getSouth(),b.getWest(),b.getNorth(),b.getEast()); },450);
 }
 function trkLegend(){
-  const el=$("trkLeg"); el.hidden=!ovAny(); if(!ovAny()) return;
+  const el=$("trkLeg"); const any=ovAny()||WS.on; el.hidden=!any; if(!any) return;
   const z=map.getZoom(), what=TRK.on&&TRK.rp?"Waldwege und Rettungspunkte":TRK.on?"Waldwege":"Rettungspunkte";
   const st=TRK.busy? `${what} werden geladen … (beim ersten Mal bis zu 1 Minute)` : TRK.err? `${what} konnten nicht geladen werden (Internet?). Karte verschieben zum erneuten Versuch.`
     : z<TRK_MINZ? `Zum Anzeigen näher heranzoomen (ab Zoom ${TRK_MINZ}).` : TRK.tooBig? "Ausschnitt zu groß, bitte näher heranzoomen." : "";
   const mini=store.get("lwf.legmin",false)===true;
-  el.innerHTML=`<div class="th"><button type="button" id="trkMin" class="tmin" aria-expanded="${!mini}"><b>${TRK.on?"Waldwege":"Rettungspunkte"}</b> <span>${mini?"▸ Legende":"▾"}</span></button><button type="button" id="trkX" aria-label="Zusatz-Ebenen ausblenden">×</button></div>`
+  el.innerHTML=`<div class="th"><button type="button" id="trkMin" class="tmin" aria-expanded="${!mini}"><b>${TRK.on?"Waldwege":TRK.rp?"Rettungspunkte":"Wasserstellen"}</b> <span>${mini?"▸ Legende":"▾"}</span></button><button type="button" id="trkX" aria-label="Zusatz-Ebenen ausblenden">×</button></div>`
     +(mini? (st?`<div class="ts">${st}</div>`:"") : (TRK.on? [1,2,3,4,0].map(k=>`<div class="tr"><i style="border-top:4px ${TRK_CLS[k].dash?"dashed":"solid"} ${TRK_CLS[k].c}"></i>${TRK_CLS[k].t}</div>`).join("")
       +`<div class="tr"><span class="trkbar"></span>Schranke / Tor (antippen)</div>` : "")
     +(TRK.rp?`<div class="tr"><span class="rpmk"><i></i></span>Rettungspunkt Forst (antippen)</div>`:"")
+    +(WS.on?`<div class="tr"><span class="wsmk" style="width:16px;height:16px;font-size:8px;line-height:12px">H</span>Hydrant · <span class="wsmk beh" style="width:16px;height:16px;font-size:8px;line-height:12px">B</span>Behälter</div>`:"")
     +(st?`<div class="ts">${st}</div>`:"")
     +(TRK.on&&!MAPONLY?`<button type="button" id="trkInfo" aria-pressed="${TRK.info}">${TRK.info?"Weg-Info an: Weg antippen":"Weg-Info: Weg antippen"}</button>`:""));
   $("trkMin").onclick=e=>{ e.stopPropagation(); store.set("lwf.legmin",!mini); trkLegend(); };
-  $("trkX").onclick=e=>{ e.stopPropagation(); trkToggle(false); rpToggle(false); };
+  $("trkX").onclick=e=>{ e.stopPropagation(); trkToggle(false); rpToggle(false); wsToggle(false); };
   if($("trkInfo")) $("trkInfo").onclick=e=>{ e.stopPropagation(); TRK.info=!TRK.info; if(!TRK.info) map.closePopup(); trkLegend(); if(TRK.info) toast("Weg antippen für Details. Punkte setzen ist so lange pausiert."); };
   L.DomEvent.disableClickPropagation(el);
 }
@@ -891,6 +916,136 @@ function trkInfoAt(ll,quiet){
   L.popup({maxWidth:260}).setLatLng(ll).setContent(trkWayHtml(best.tags)).on("remove",()=>map.removeLayer(hl)).openOn(map);
 }
 map.on("moveend zoomend",trkRefresh);
+
+/* ---------- Eigene Wasserentnahmestellen (z. B. Export aus wasserkarte.info) ---------- */
+const WS={list:[], srv:false, on:false, ms:new Map()};
+const gWs=L.layerGroup();
+const wsKind=t=>{ t=(t||"").toLowerCase();
+  return /überflur|ueberflur/.test(t)?"ue": /hydrant/.test(t)?"uf": /teich|see|bach|fluss|gewässer|offen|weiher|saugstelle/.test(t)?"off": /behälter|zisterne|tank|becken|brunnen/.test(t)?"beh":"beh"; };
+const WS_SYM={uf:["H",""],ue:["Ü","ueh"],beh:["B","beh"],off:["O","off"]};
+function wsNorm(o){
+  const num=v=>{ const n=typeof v==="number"? v : deNum(v); return isFinite(n)&&n>0? n : undefined; };
+  const lat=num(o.lat??o.latitude??o.Breitengrad??o.breitengrad??o.y), lon=num(o.lon??o.lng??o.longitude??o.Längengrad??o.laengengrad??o.x);
+  if(!(lat>40&&lat<60&&lon>0&&lon<20)) return null;
+  const typ=o.typ||o.Typ||o.type||o.Art||"Wasserentnahmestelle";
+  return {id:String(o.id??o.ID??o.Nr??`${lat.toFixed(5)},${lon.toFixed(5)}`), name:o.name||o.Name||o.Bezeichnung||"", typ, k:wsKind(typ), lat, lon,
+    dn:num(o.dn??o.DN??o["Nenndurchmesser (mm)"]), zufluss:num(o.zufluss??o.Zufluss??o["Zufluss (l/min)"]??o.leistung), kap:num(o.kapazitaet??o.Kapazität??o["Kapazität (m³)"]),
+    anschl:o.anschluesse||o.Anschlüsse||"", ganz:o.ganzjaehrig||o.Ganzjährig||"", frost:o.frostsicher||o.Frostsicher||"", status:o.status||o.Status||"",
+    speis:/^Status/.test(o.anspeisung||"")?"":(o.anspeisung||""), saugh:num(o.saughoehe), note:o.anmerkung||o.Anmerkungen||o.Bemerkung||"", zufahrt:o.zufahrt||o.Zufahrt||"", gepr:o.geprueft||o.Überprüft||""};
+}
+function wsParse(txt,name){
+  if(/\.(json|geojson)$/i.test(name)||/^\s*[\[{]/.test(txt)){
+    const j=JSON.parse(txt);
+    const arr=Array.isArray(j)? j : j.type==="FeatureCollection"? j.features.map(f=>({...f.properties,lon:f.geometry&&f.geometry.coordinates[0],lat:f.geometry&&f.geometry.coordinates[1]})) : (j.wasserstellen||[]);
+    return arr.map(wsNorm).filter(Boolean);
+  }
+  const rows=parseCsvRows(txt); if(rows.length<2) return [];
+  const h=rows[0].map(x=>x.trim());
+  return rows.slice(1).map(r=>wsNorm(Object.fromEntries(h.map((k,i)=>[k,(r[i]||"").trim()])))).filter(Boolean);
+}
+function wsSet(list,srv){
+  const m=new Map(); list.forEach(w=>m.set(w.id,w)); WS.list=[...m.values()]; WS.srv=srv;
+  gWs.clearLayers(); WS.ms.clear();
+  for(const w of WS.list){
+    const [sym,cls]=WS_SYM[w.k]||WS_SYM.beh, bad=w.status&&!/verwendbar|ok|in ordnung/i.test(w.status);
+    const m=L.marker([w.lat,w.lon],{icon:L.divIcon({className:"",html:`<div class="wsmk ${cls}${bad?" bad":""}">${sym}</div><b>${esc(w.id)}</b>`,iconSize:[22,22],iconAnchor:[11,11]}),keyboard:false});
+    m.bindPopup(()=>wsHtml(w),{maxWidth:280}); m.on("click",ev=>L.DomEvent.stopPropagation(ev));
+    WS.ms.set(w.id,m); gWs.addLayer(m);
+  }
+  wsLabels(); renderLayerMenu();
+}
+/* ---------- Route in der App (Routenplaner routing.openstreetmap.de, Pkw-Profil) ---------- */
+const gNav=L.layerGroup().addTo(map);
+function getPos(){ return new Promise(res=>{
+  if(locM) return res(locM.getLatLng());
+  if(!navigator.geolocation) return res(null);
+  navigator.geolocation.getCurrentPosition(p=>{ const ll=L.latLng(p.coords.latitude,p.coords.longitude);
+    locM=L.circleMarker(ll,{radius:8,color:"#fff",weight:3,fillColor:getVar("--water"),fillOpacity:1}).addTo(map); res(ll); },
+    ()=>res(null),{enableHighAccuracy:true,timeout:9000,maximumAge:60000}); }); }
+function navShow(html){ const el=$("navBox"); el.innerHTML=html; el.hidden=!html; document.body.classList.toggle("nav",!!html);
+  const x=$("navX"); if(x) x.onclick=navClear; L.DomEvent.disableClickPropagation(el); }
+function navClear(){ navSeq++; gNav.clearLayers(); navShow(""); }
+let navSeq=0;
+async function routeTo(lat,lon,label){
+  const seq=++navSeq; map.closePopup(); gNav.clearLayers();
+  const g=`https://www.google.com/maps/dir/?api=1&destination=${lat.toFixed(5)},${lon.toFixed(5)}`;
+  const gl=`<a href="${g}" target="_blank" rel="noopener">In Google Maps öffnen</a>`;
+  navShow(`<b>Route zu ${esc(label)}</b>Standort wird bestimmt …<div class="nr">${gl}<button type="button" id="navX">Schließen</button></div>`);
+  let from=await getPos(), src="deinem Standort"; if(seq!==navSeq) return;
+  if(!from){ from=map.getCenter(); src="der Kartenmitte (kein GPS)"; }
+  if(map.distance(from,[lat,lon])<30){ navShow(`<b>${esc(label)}</b>Du bist bereits am Ziel.<div class="nr">${gl}<button type="button" id="navX">Schließen</button></div>`); return; }
+  navShow(`<b>Route zu ${esc(label)}</b>Route wird berechnet …<div class="nr">${gl}<button type="button" id="navX">Schließen</button></div>`);
+  try{
+    const rt=await getRoad([[from.lat,from.lng],[lat,lon]],"car"); if(seq!==navSeq) return;
+    const path=rt.path, end=path[path.length-1], gap=map.distance(end,[lat,lon]);
+    L.polyline(path,{color:"#fff",weight:9,opacity:.9,interactive:false}).addTo(gNav);
+    L.polyline(path,{color:"#6a1b9a",weight:5,interactive:false}).addTo(gNav);
+    if(gap>25) L.polyline([end,[lat,lon]],{color:"#6a1b9a",weight:4,dashArray:"6 7",interactive:false}).addTo(gNav);
+    L.circleMarker([from.lat,from.lng],{radius:6,color:"#fff",weight:2,fillColor:"#6a1b9a",fillOpacity:1,interactive:false}).addTo(gNav);
+    map.fitBounds(L.latLngBounds(path.concat([[lat,lon]])),{paddingTopLeft:[30,200],paddingBottomRight:[70,MAPONLY?170:60],maxZoom:17});
+    const km=rt.dist<1000? Math.round(rt.dist/10)*10+" m" : fmt(rt.dist/1000,1)+" km";
+    navShow(`<b>Route zu ${esc(label)}</b>${km} · ca. ${Math.max(1,Math.round(rt.dur/60))} min (Pkw-Richtwert) ab ${src}.`
+      +(gap>25?` Die letzten ca. ${Math.round(gap/10)*10} m (gestrichelt) führen über Waldweg oder Gelände – vor Ort prüfen.`:"")
+      +`<div class="nr">${gl}<button type="button" id="navX">Schließen</button></div>`);
+  }catch(err){ if(seq!==navSeq) return; navShow(`<b>Route zu ${esc(label)}</b>Routenplaner nicht erreichbar (Internet?). Google Maps nutzen.<div class="nr">${gl}<button type="button" id="navX">Schließen</button></div>`); }
+}
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest(".btnroute"); if(!b) return;
+  e.stopPropagation(); routeTo(+b.dataset.lat,+b.dataset.lon,b.dataset.label); },true);
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest(".btnws"); if(!b) return;
+  const w=WS.list.find(x=>x.id===b.dataset.id); if(w){ e.stopPropagation(); wsUseAsWE(w); map.closePopup(); } },true);
+function wsLabels(){ const hide=map.getZoom()<16; WS.ms.forEach(m=>{ const el=m.getElement(); if(el) el.classList.toggle("wsz-hide",hide); }); }
+map.on("zoomend",wsLabels); gWs.on("layeradd",wsLabels);
+function wsHtml(w){
+  const row=(k,v)=>v||v===0?`<tr><td>${k}</td><td><b>${esc(v)}</b></td></tr>`:"", ll=`${w.lat.toFixed(5)},${w.lon.toFixed(5)}`;
+  const cap=wsWeOf(w), cf=weCap(cap);
+  return `<div class="trkpop"><b>${esc(w.typ)} ${esc(w.id)}</b>${w.name?`<br>${esc(w.name)}`:""}<table>`
+    +row("Leistung",w.zufluss?fmt(w.zufluss)+" l/min":(w.k==="uf"||w.k==="ue")&&w.dn&&isFinite(cf)?`ca. ${fmt(cf)} l/min (Faustformel DN ${w.dn})`:(w.k==="uf"||w.k==="ue")?"unbekannt – vor Ort messen":"")
+    +row("Nennweite",w.dn?"DN "+w.dn:"")+row("Inhalt",w.kap?fmt(w.kap)+" m³":"")+row("Anschlüsse",w.anschl)
+    +row("Ganzjährig",w.ganz)+row("Frostsicher",w.frost)+row("Status",w.status)+row("Anspeisung",w.speis)+row("Saughöhe",w.saugh?fmt(w.saugh,1)+" m":"")
+    +row("Zufahrt",w.zufahrt)+row("Geprüft",w.gepr)+`</table>`
+    +(w.note?`<small>${esc(w.note)}</small><br>`:"")
+    +`<small>Koordinaten: ${ll}</small>`+`<button type="button" class="btnroute" data-lat="${w.lat}" data-lon="${w.lon}" data-label="${esc(w.typ+" "+w.id)}">Route in der App berechnen</button>`+`<a href="https://www.google.com/maps/dir/?api=1&destination=${ll}" target="_blank" rel="noopener">Navigation in Google Maps</a>`
+    +(MAPONLY?"":`<button type="button" class="btnws" data-id="${esc(w.id)}">Als Wasserentnahme übernehmen</button>`)+`</div>`;
+}
+function wsWeOf(w){
+  if(w.k==="uf"||w.k==="ue") return w.zufluss? {t:"eigen",dn:w.dn||100,cap:w.zufluss,vol:""} : {t:w.k,dn:w.dn||100,cap:"",vol:""};
+  if(w.k==="off") return {t:"offen",dn:100,cap:"",vol:""};
+  return {t:"beh",dn:100,cap:"",vol:w.kap||""};
+}
+function wsUseAsWE(w){
+  const ll=[w.lat,w.lon], we=wsWeOf(w);
+  if(S.pts.length) S.pts[0]=ll; else S.pts.push(ll);
+  if(S.mode==="pv"){ PV.we=we; const c=weCap(PV.we); if(isFinite(c)&&PV.fill>c){ PV.fill=c; $("pvFill").value=c; } store.set("lwf.pv",PV); if(typeof weUpdPV==="function") weUpdPV(); }
+  else { P.we=we; store.set("lwf.params",P); if(typeof weUpdLW==="function") weUpdLW(); }
+  changed(); toast(`${w.typ} ${w.id} ist jetzt die Wasserentnahmestelle${we.t==="eigen"?` (${fmt(we.cap)} l/min)`:we.t==="beh"&&we.vol?` (${fmt(we.vol)} m³)`:""}`);
+}
+function wsToggle(on){
+  WS.on=on&&WS.list.length>0; store.set("lwf.ws",WS.on);
+  if(WS.on){ if(!map.hasLayer(gWs)) gWs.addTo(map); } else if(map.hasLayer(gWs)) map.removeLayer(gWs);
+  renderLayerMenu(); trkLegend();
+}
+async function wsImportFile(f){
+  try{ const list=wsParse(decodeText(await f.arrayBuffer()),f.name);
+    if(!list.length){ toast("Keine Wasserstellen mit Koordinaten in der Datei gefunden"); return; }
+    store.set("lwf.wslocal",list); wsSet([...(WS.srvList||[]),...list],WS.srv); wsToggle(true);
+    const b=L.latLngBounds(list.map(w=>[w.lat,w.lon])); if(!b.contains(map.getCenter())) map.fitBounds(b,{padding:[40,40],maxZoom:16});
+    toast(`${list.length} Wasserstellen geladen (auf diesem Gerät gespeichert)`);
+  }catch(err){ console.warn(err); toast("Datei konnte nicht gelesen werden"); }
+}
+async function wsNear(){
+  if(!WS.list.length){ toast("Noch keine Wasserstellen geladen (Ebenen-Menü → Wasserstellen-Datei laden)"); return; }
+  if(!WS.on) wsToggle(true);
+  const from=locM? locM.getLatLng() : map.getCenter(), src=locM?"vom Standort":"von der Kartenmitte";
+  let best=null,bd=Infinity; for(const w of WS.list){ const d=map.distance(from,[w.lat,w.lon]); if(d<bd){ bd=d; best=w; } }
+  map.setView([best.lat,best.lon],Math.max(map.getZoom(),16)); setTimeout(()=>WS.ms.get(best.id).openPopup(),500);
+  toast(`${best.typ} ${best.id}: ${bd<1000?Math.round(bd/10)*10+" m":fmt(bd/1000,1)+" km"} Luftlinie ${src}`);
+}
+(async()=>{
+  const local=store.get("lwf.wslocal",[]); let srv=[];
+  try{ const r=await fetch("wasserstellen.json",{cache:"no-store"}); if(r.ok) srv=wsParse(await r.text(),"wasserstellen.json"); }catch(_){}
+  WS.srvList=srv; wsSet([...srv,...(Array.isArray(local)?local:[])],srv.length>0);
+  if(WS.list.length && (store.get("lwf.ws",false)===true || MAPONLY)) wsToggle(true);
+})();
 renderLayerMenu();
 if(ovAny()) trkRefresh();
 try{ window.caches && caches.delete("lwf-trk-1"); }catch(_){}
@@ -997,7 +1152,7 @@ function setMapOnly(on){
   MAPONLY=on; document.body.classList.toggle("maponly",on); $("mapBar").hidden=!on; store.set("lwf.maponly",on);
   [gLine,gPts,gRes].forEach(g=>{ if(on) map.removeLayer(g); else if(!map.hasLayer(g)) g.addTo(map); });
   if(on){ $("brandT1").textContent="Lagekarte"; TRK.info=false;
-    if(!TRK.on) trkToggle(true); if(!TRK.rp) rpToggle(true);
+    if(!TRK.on) trkToggle(true); if(!TRK.rp) rpToggle(true); if(!WS.on&&WS.list.length) wsToggle(true);
     if(map.getZoom()<TRK_MINZ) map.setZoom(14,{animate:false}); }
   else { $("brandT1").textContent=MODE_TXT[S.mode].t1; }
   trkLegend(); map.closePopup();
@@ -1013,7 +1168,7 @@ async function nearestRp(){
   setTimeout(()=>f.r.m.openPopup(),500);
   toast(`Rettungspunkt ${f.r.el.tags.ref||""}: ${f.d<1000?Math.round(f.d/10)*10+" m":fmt(f.d/1000,1)+" km"} Luftlinie von der ${src}`);
 }
-$("rpNear").onclick=nearestRp;
+$("rpNear").onclick=nearestRp; $("wsNear").onclick=()=>wsNear();
 $("mapPlan").onclick=openPicker;
 $("brandBtn").onclick=openPicker;
 document.querySelectorAll(".mp-card").forEach(b=>b.onclick=()=>{ $("modePick").hidden=true;
@@ -1127,7 +1282,11 @@ $("pumpPreset").onchange=e=>{ $("pa").value=e.target.value; readP(); };
 writeP();
 
 /* ---------- Daten holen ---------- */
+// Routing-Server des FOSSGIS e.V.: höchstens eine Anfrage pro Sekunde (Nutzungsbedingungen)
+let _routeNext=0;
 async function getRoad(pts,profile){
+  const wait=Math.max(0,_routeNext-Date.now()); _routeNext=Date.now()+wait+1100;
+  if(wait) await new Promise(r=>setTimeout(r,wait));
   const c=pts.map(p=>p[1].toFixed(6)+","+p[0].toFixed(6)).join(";");
   const url=profile==="car"
     ? `https://routing.openstreetmap.de/routed-car/route/v1/driving/${c}?overview=full&geometries=geojson`
@@ -1362,6 +1521,11 @@ async function staticMap(r,W,H,ov){
           c.setLineDash(st.dash?[3,3]:[]); c.strokeStyle=st.c; c.globalAlpha=.85; c.lineWidth=2.2; c.stroke(); }
         c.setLineDash([]); c.globalAlpha=1;
         for(const m of TRK.bars.values()){ const q=m.getLatLng(), [x,y]=P(q.lat,q.lng); if(x<0||y<0||x>w||y>h) continue; c.fillStyle="#fff"; c.strokeStyle="#d7191c"; c.lineWidth=1.5; c.fillRect(x-3,y-3,6,6); c.strokeRect(x-3,y-3,6,6); } }
+      if(WS.on){ c.textAlign="center"; c.textBaseline="middle"; c.font="bold 6px Helvetica, Arial, sans-serif";
+        for(const ws of WS.list){ const [x,y]=P(ws.lat,ws.lon); if(x<0||y<0||x>w||y>h) continue; const [sym]=WS_SYM[ws.k]||WS_SYM.beh;
+          c.fillStyle=ws.k==="beh"?"#0a8fc9":ws.k==="off"?"#1b7f3b":"#0a62c9"; c.strokeStyle="#fff"; c.lineWidth=1;
+          if(ws.k==="beh"){ c.fillRect(x-4,y-4,8,8); c.strokeRect(x-4,y-4,8,8); } else { c.beginPath(); c.arc(x,y,4.2,0,7); c.fill(); c.stroke(); }
+          c.fillStyle="#fff"; c.fillText(sym,x,y+.3); } }
       if(trkAttr && TRK.rp){ c.font="bold 7px Helvetica, Arial, sans-serif"; c.textAlign="left"; c.textBaseline="middle";
         for(const {el} of TRK.rps.values()){ const [x,y]=P(el.lat,el.lon); if(x<0||y<0||x>w||y>h) continue;
           c.beginPath(); c.arc(x,y,3,0,7); c.fillStyle="#e30613"; c.strokeStyle="#fff"; c.lineWidth=1; c.fill(); c.stroke();
@@ -1404,7 +1568,7 @@ async function staticMap(r,W,H,ov){
       c.fillStyle="rgba(255,255,255,.9)"; c.beginPath(); c.arc(w-20,22,13,0,7); c.fill();
       c.fillStyle="#07275C"; c.beginPath(); c.moveTo(w-20,11); c.lineTo(w-26,27); c.lineTo(w-20,23); c.lineTo(w-14,27); c.closePath(); c.fill();
       c.font="bold 7px Helvetica, Arial, sans-serif"; c.textAlign="center"; c.fillText("N",w-20,32.5);
-      return {img:cv.toDataURL("image/jpeg",.88), attr:src.attr+trkAttr, trk:(trkAttr&&TRK.rp?" | roter Punkt mit Nummer = Rettungspunkt Forst":"")+(trkAttr&&TRK.on?" | Waldwege: grün = befestigt, gelb = überwiegend fest, orange = gemischt, rot = unbefestigt, grau gestrichelt = nicht erfasst, Quadrat = Schranke/Tor":"")};
+      return {img:cv.toDataURL("image/jpeg",.88), attr:src.attr+trkAttr, trk:(WS.on?" | H = Hydrant, B = Löschwasserbehälter/Zisterne, O = offenes Gewässer (eigene Wasserstellen)":"")+(trkAttr&&TRK.rp?" | roter Punkt mit Nummer = Rettungspunkt Forst":"")+(trkAttr&&TRK.on?" | Waldwege: grün = befestigt, gelb = überwiegend fest, orange = gemischt, rot = unbefestigt, grau gestrichelt = nicht erfasst, Quadrat = Schranke/Tor":"")};
     }catch(err){ console.warn("Kartenausschnitt",src.url,err); }
   }
   return null;
