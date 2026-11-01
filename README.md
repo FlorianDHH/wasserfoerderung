@@ -1,6 +1,9 @@
 # Wasserförderung – Lange Wegstrecke und Pendelverkehr
 
-Handy-Web-App zur Planung der Löschwasserversorgung nach der HLFS-Lernunterlage „Löschwasserförderung“ (2019) und dem Skript „Löschwasserversorgung F4 Zugführer“ der Landesfeuerwehrschule Baden-Württemberg (2026). Beim Start wird gewählt: **Lange Wegstrecke** oder **Pendelverkehr** (später über das Logo oben links umschaltbar).
+Handy-Web-App zur Planung der Löschwasserversorgung nach der HLFS-Lernunterlage „Löschwasserförderung“ (2019) und dem Skript „Löschwasserversorgung F4 Zugführer“ der Landesfeuerwehrschule Baden-Württemberg (2026). Beim Start wird gewählt: **Lange Wegstrecke**, **Pendelverkehr** oder **Nur Karte** (später über das Logo oben links umschaltbar).
+
+## Nur Karte (Lagekarte)
+Karte ohne Planung mit Waldwegen, Schranken und Rettungspunkten. Antippen eines Weges, einer Schranke oder eines Rettungspunkts zeigt die Details. „Nächster Rettungspunkt“ sucht den nächstgelegenen Rettungspunkt zum eigenen Standort (vorher Standort-Knopf antippen) oder zur Kartenmitte. Die App startet beim nächsten Mal wieder als Lagekarte. Die Legende lässt sich über ihre Überschrift einklappen.
 
 ## Pendelverkehr
 - Wasserentnahmestelle und Einsatzstelle auf der Karte setzen, Fahrstrecke folgt automatisch den Straßen (oder gerade Linie für Wald-/Feldwege)

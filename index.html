@@ -80,10 +80,17 @@ button,input,select{font:inherit;color:inherit}
 .trkleg .th button{border:0;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 4px}
 .trkleg .tr{display:flex;align-items:center;gap:7px;padding:2px 0}.trkleg .tr>i{width:22px;flex:none}
 .trkleg .ts{margin-top:4px;color:var(--muted)}
+.trkleg .tmin{border:0;background:none;padding:2px 0;color:var(--fg);cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px}.trkleg .tmin span{color:var(--muted)}
 .trkleg>button{margin-top:6px;width:100%;border:1px solid var(--line,#ccd);background:var(--surface-2);color:var(--fg);border-radius:7px;padding:6px;font-size:12px;cursor:pointer}
 .trkleg>button[aria-pressed="true"]{background:#0190b3;border-color:#0190b3;color:#fff;font-weight:600}
 .trkbar{display:inline-block;width:12px;height:12px;flex:none;border-radius:2px;background:repeating-linear-gradient(45deg,#d7191c 0 3px,#fff 3px 6px);border:1.5px solid #d7191c;box-sizing:border-box}
 .trkbar.lk{border-color:#111}
+body.maponly .sheet{display:none}
+body.maponly .trkleg{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 112px)}
+.mapbar{position:fixed;z-index:600;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--surface);color:var(--fg);border-radius:14px;box-shadow:var(--shadow);padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:13px;max-width:560px;margin:0 auto}
+.mapbar>span{color:var(--muted)}.mapbar>div{display:flex;gap:8px}
+.mapbar button{flex:1;min-height:44px;border-radius:10px;border:0;font:700 15px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;background:var(--vg-blue);color:#fff}
+.mapbar #mapPlan{flex:none;padding:0 14px;background:var(--surface-2);color:var(--fg)}
 .rpmk{position:relative;display:inline-block;width:14px;height:14px;flex:none}.rpmk i{position:absolute;left:2px;top:2px;width:10px;height:10px;border-radius:50%;background:#e30613;border:1.5px solid #fff;box-shadow:0 0 0 1px #e30613;box-sizing:border-box}
 .rpmk b{position:absolute;left:15px;top:-2px;font:700 12px/1 Arial,sans-serif;color:#e30613;white-space:nowrap;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
 .trkpop table{border-collapse:collapse;margin:4px 0;font-size:12px}.trkpop td{padding:1px 6px 1px 0;vertical-align:top}.trkpop small{color:#667}
@@ -240,7 +247,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
 
 <div class="modepick" id="modePick" hidden>
   <div class="mp-in" role="dialog" aria-labelledby="mpTitle">
-    <div class="mp-head"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b id="mpTitle">Was wird geplant?</b><span>Löschwasserversorgung über größere Entfernung</span></div></div>
+    <div class="mp-head"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b id="mpTitle">Was wird gebraucht?</b><span>Löschwasserversorgung über größere Entfernung</span></div></div>
     <button class="mp-card" data-mode="lw">
       <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 30c7 0 8-8 15-8s8-8 19-10" stroke="#01A0C6" stroke-width="3.5"/><rect x="6" y="25" width="8" height="8" rx="1.5" fill="#D8AD14"/><rect x="20" y="17" width="8" height="8" rx="1.5" fill="#D8AD14"/></svg></div>
       <div><b>Lange Wegstrecke</b><span>Schlauchleitung mit Verstärkerpumpen. Pumpenstandorte, B-Längen, Material.</span></div>
@@ -248,6 +255,10 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <button class="mp-card" data-mode="pv">
       <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 26V15h18v11M22 19h7l5 5v2" stroke="#fff" stroke-width="2.5"/><rect x="6" y="17" width="13" height="6" rx="1" fill="#01A0C6"/><circle cx="11" cy="28" r="3" fill="#D8AD14"/><circle cx="29" cy="28" r="3" fill="#D8AD14"/><path d="M8 35h24" stroke="#01A0C6" stroke-width="2" stroke-dasharray="3 3"/></svg></div>
       <div><b>Pendelverkehr</b><span>Wassertransport mit Tanklöschfahrzeugen. Anzahl Fahrzeuge, Umlaufzeit, Zeitstrahl.</span></div>
+    </button>
+    <button class="mp-card" data-mode="map">
+      <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 31c6-3 9-9 14-11s10 1 16-6" stroke="#2fb35a" stroke-width="3"/><path d="M5 18c8 1 12 6 20 6" stroke="#f08c00" stroke-width="2.5" stroke-dasharray="3 3"/><circle cx="27" cy="13" r="4.5" fill="#e30613" stroke="#fff" stroke-width="1.5"/></svg></div>
+      <div><b>Nur Karte</b><span>Lagekarte mit Waldwegen, Schranken und Rettungspunkten. Ohne Planung, zum Nachschauen im Einsatz.</span></div>
     </button>
     <p class="note" style="margin:0">Faustregel nach HLFS: Pendelverkehr bei Förderstrom unter 500 l/min, Entfernung über 3 bis 4 km, zu Beginn des Einsatzes oder bei ausgedehnten Einsatzstellen.</p>
   </div>
@@ -267,6 +278,10 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
 <div class="results" id="results" hidden></div>
 <div class="layermenu" id="layerMenu" hidden role="menu"></div>
 <div class="trkleg" id="trkLeg" hidden></div>
+<div class="mapbar" id="mapBar" hidden>
+  <span>Weg, Schranke oder Rettungspunkt antippen für Details</span>
+  <div><button type="button" id="rpNear">Nächster Rettungspunkt</button><button type="button" id="mapPlan">Planen …</button></div>
+</div>
 
 <div class="fab">
   <button id="locBtn" aria-label="Mein Standort"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
@@ -841,12 +856,14 @@ function trkLegend(){
   const z=map.getZoom(), what=TRK.on&&TRK.rp?"Waldwege und Rettungspunkte":TRK.on?"Waldwege":"Rettungspunkte";
   const st=TRK.busy? `${what} werden geladen … (beim ersten Mal bis zu 1 Minute)` : TRK.err? `${what} konnten nicht geladen werden (Internet?). Karte verschieben zum erneuten Versuch.`
     : z<TRK_MINZ? `Zum Anzeigen näher heranzoomen (ab Zoom ${TRK_MINZ}).` : TRK.tooBig? "Ausschnitt zu groß, bitte näher heranzoomen." : "";
-  el.innerHTML=`<div class="th"><b>${TRK.on?"Waldwege":"Rettungspunkte"}</b><button type="button" id="trkX" aria-label="Zusatz-Ebenen ausblenden">×</button></div>`
-    +(TRK.on? [1,2,3,4,0].map(k=>`<div class="tr"><i style="border-top:4px ${TRK_CLS[k].dash?"dashed":"solid"} ${TRK_CLS[k].c}"></i>${TRK_CLS[k].t}</div>`).join("")
+  const mini=store.get("lwf.legmin",false)===true;
+  el.innerHTML=`<div class="th"><button type="button" id="trkMin" class="tmin" aria-expanded="${!mini}"><b>${TRK.on?"Waldwege":"Rettungspunkte"}</b> <span>${mini?"▸ Legende":"▾"}</span></button><button type="button" id="trkX" aria-label="Zusatz-Ebenen ausblenden">×</button></div>`
+    +(mini? (st?`<div class="ts">${st}</div>`:"") : (TRK.on? [1,2,3,4,0].map(k=>`<div class="tr"><i style="border-top:4px ${TRK_CLS[k].dash?"dashed":"solid"} ${TRK_CLS[k].c}"></i>${TRK_CLS[k].t}</div>`).join("")
       +`<div class="tr"><span class="trkbar"></span>Schranke / Tor (antippen)</div>` : "")
     +(TRK.rp?`<div class="tr"><span class="rpmk"><i></i></span>Rettungspunkt Forst (antippen)</div>`:"")
     +(st?`<div class="ts">${st}</div>`:"")
-    +(TRK.on?`<button type="button" id="trkInfo" aria-pressed="${TRK.info}">${TRK.info?"Weg-Info an: Weg antippen":"Weg-Info: Weg antippen"}</button>`:"");
+    +(TRK.on&&!MAPONLY?`<button type="button" id="trkInfo" aria-pressed="${TRK.info}">${TRK.info?"Weg-Info an: Weg antippen":"Weg-Info: Weg antippen"}</button>`:""));
+  $("trkMin").onclick=e=>{ e.stopPropagation(); store.set("lwf.legmin",!mini); trkLegend(); };
   $("trkX").onclick=e=>{ e.stopPropagation(); trkToggle(false); rpToggle(false); };
   if($("trkInfo")) $("trkInfo").onclick=e=>{ e.stopPropagation(); TRK.info=!TRK.info; if(!TRK.info) map.closePopup(); trkLegend(); if(TRK.info) toast("Weg antippen für Details. Punkte setzen ist so lange pausiert."); };
   L.DomEvent.disableClickPropagation(el);
@@ -863,13 +880,13 @@ function rpToggle(on){
   renderLayerMenu();
   if(on && map.getZoom()<TRK_MINZ) toast(`Rettungspunkte erscheinen ab Zoom ${TRK_MINZ}, bitte näher heranzoomen`);
 }
-function trkInfoAt(ll){
+function trkInfoAt(ll,quiet){
   const p=map.latLngToLayerPoint(ll); let best=null, bd=22;
   for(const wy of TRK.ways.values()){
     const pts=wy.ll.map(q=>map.latLngToLayerPoint(q));
     for(let i=1;i<pts.length;i++){ const d=L.LineUtil.pointToSegmentDistance(p,pts[i-1],pts[i]); if(d<bd){ bd=d; best=wy; } }
   }
-  if(!best){ toast("Kein Waldweg an dieser Stelle. Weg-Info ausschalten zum Punkte setzen."); return; }
+  if(!best){ if(!quiet) toast("Kein Waldweg an dieser Stelle. Weg-Info ausschalten zum Punkte setzen."); return; }
   const hl=L.polyline(best.ll,{color:"#0190b3",weight:8,opacity:.55,interactive:false}).addTo(map);
   L.popup({maxWidth:260}).setLatLng(ll).setContent(trkWayHtml(best.tags)).on("remove",()=>map.removeLayer(hl)).openOn(map);
 }
@@ -919,6 +936,7 @@ function updStats(){
   $("calcBtn").disabled=S.pts.length<2; $("undoBtn").disabled=!S.pts.length;
 }
 map.on("click",e=>{
+  if(MAPONLY){ if(TRK.on) trkInfoAt(e.latlng,true); return; }
   if(TRK.on && TRK.info){ trkInfoAt(e.latlng); return; }
   const ll=[e.latlng.lat,e.latlng.lng];
   if(S.mode==="pv" && S.ring && S.editRet){ if(S.pts.length<2){ toast("Erst Entnahmestelle und Einsatzstelle setzen"); return; } S.ret.push(ll); }
@@ -972,9 +990,35 @@ function setPlanMode(m){
   store.set("lwf.mode",m);
 }
 $("mLW").onclick=()=>setPlanMode("lw"); $("mPV").onclick=()=>setPlanMode("pv");
-function openPicker(){ document.querySelectorAll(".mp-card").forEach(b=>b.setAttribute("aria-current",b.dataset.mode===S.mode)); $("modePick").hidden=false; }
+function openPicker(){ document.querySelectorAll(".mp-card").forEach(b=>b.setAttribute("aria-current",MAPONLY? b.dataset.mode==="map" : b.dataset.mode===S.mode)); $("modePick").hidden=false; }
+/* ---------- Nur Karte (Lagekarte ohne Planung) ---------- */
+var MAPONLY=false;
+function setMapOnly(on){
+  MAPONLY=on; document.body.classList.toggle("maponly",on); $("mapBar").hidden=!on; store.set("lwf.maponly",on);
+  [gLine,gPts,gRes].forEach(g=>{ if(on) map.removeLayer(g); else if(!map.hasLayer(g)) g.addTo(map); });
+  if(on){ $("brandT1").textContent="Lagekarte"; TRK.info=false;
+    if(!TRK.on) trkToggle(true); if(!TRK.rp) rpToggle(true);
+    if(map.getZoom()<TRK_MINZ) map.setZoom(14,{animate:false}); }
+  else { $("brandT1").textContent=MODE_TXT[S.mode].t1; }
+  trkLegend(); map.closePopup();
+}
+async function nearestRp(){
+  const from=locM? locM.getLatLng() : map.getCenter(), src=locM?"Standort":"Kartenmitte";
+  const find=()=>{ let best=null,bd=Infinity; for(const r of TRK.rps.values()){ const d=map.distance(from,[r.el.lat,r.el.lon]); if(d<bd){ bd=d; best=r; } } return best&&{r:best,d:bd}; };
+  let f=find();
+  if(!f||f.d>2500){ toast("Rettungspunkte in der Umgebung werden geladen …"); if(!TRK.rp) rpToggle(true);
+    await trkLoad(from.lat-.03,from.lng-.045,from.lat+.03,from.lng+.045); f=find(); }
+  if(!f){ toast("Kein Rettungspunkt in der Nähe in OpenStreetMap erfasst"); return; }
+  map.setView([f.r.el.lat,f.r.el.lon],Math.max(map.getZoom(),15));
+  setTimeout(()=>f.r.m.openPopup(),500);
+  toast(`Rettungspunkt ${f.r.el.tags.ref||""}: ${f.d<1000?Math.round(f.d/10)*10+" m":fmt(f.d/1000,1)+" km"} Luftlinie von der ${src}`);
+}
+$("rpNear").onclick=nearestRp;
+$("mapPlan").onclick=openPicker;
 $("brandBtn").onclick=openPicker;
-document.querySelectorAll(".mp-card").forEach(b=>b.onclick=()=>{ setPlanMode(b.dataset.mode); $("modePick").hidden=true; tab("strecke"); });
+document.querySelectorAll(".mp-card").forEach(b=>b.onclick=()=>{ $("modePick").hidden=true;
+  if(b.dataset.mode==="map"){ setMapOnly(true); return; }
+  if(MAPONLY) setMapOnly(false); setPlanMode(b.dataset.mode); tab("strecke"); });
 $("modePick").addEventListener("click",e=>{ if(e.target.id==="modePick") $("modePick").hidden=true; });
 $("modeFree").onclick=()=>setMode(false); $("modeRoad").onclick=()=>setMode(true);
 
@@ -2327,7 +2371,8 @@ renderPlans();
 setPlanMode(store.get("lwf.mode","lw"));
 if(location.hash && decode(location.hash)){
   writeP(); setMode(S.road); map.fitBounds(S.pts.length>1?S.pts:[S.pts[0],S.pts[0]],{padding:[60,60],maxZoom:16}); calc();
-} else { const last=store.get("lwf.view",null); if(last) map.setView(last.c,last.z); updStats(); openPicker(); }
+} else { const last=store.get("lwf.view",null); if(last) map.setView(last.c,last.z); updStats();
+  if(store.get("lwf.maponly",false)===true) setMapOnly(true); else openPicker(); }
 map.on("moveend",()=>{ const c=map.getCenter(); store.set("lwf.view",{c:[c.lat,c.lng],z:map.getZoom()}); });
 if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
