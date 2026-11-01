@@ -70,6 +70,22 @@ button,input,select{font:inherit;color:inherit}
 /* Kartenknöpfe */
 .fab{position:fixed;z-index:500;right:max(12px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 66px);display:flex;flex-direction:column;gap:8px}
 .fab button{width:44px;height:44px;border-radius:10px;border:0;background:var(--surface);box-shadow:var(--shadow);cursor:pointer;display:grid;place-items:center}
+.layermenu{position:fixed;z-index:800;right:calc(max(12px,env(safe-area-inset-right,0px)) + 52px);top:calc(env(safe-area-inset-top,0px) + 66px);width:min(280px,calc(100vw - 90px));background:var(--surface);border-radius:12px;box-shadow:var(--shadow);padding:8px;display:flex;flex-direction:column;gap:4px;max-height:calc(100vh - 90px);max-height:calc(100dvh - 90px);overflow:auto}
+.layermenu b{font:700 14px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px 4px}
+.layermenu button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid transparent;background:none;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--fg)}
+.layermenu button span{font-weight:600;font-size:15px}.layermenu button small{font-size:12px;color:var(--muted)}
+.layermenu button[aria-pressed="true"]{background:var(--surface-2);border-color:var(--vg-cyan)}
+.trkleg{position:fixed;z-index:500;right:max(12px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 172px);width:190px;background:var(--surface);color:var(--fg);border-radius:10px;box-shadow:var(--shadow);padding:6px 8px 8px;font-size:12px;line-height:1.25}
+.trkleg .th{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}.trkleg .th b{font:700 13px/1 var(--f-display);letter-spacing:.05em;text-transform:uppercase}
+.trkleg .th button{border:0;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 4px}
+.trkleg .tr{display:flex;align-items:center;gap:7px;padding:2px 0}.trkleg .tr i{width:22px;flex:none}
+.trkleg .ts{margin-top:4px;color:var(--muted)}
+.trkleg>button{margin-top:6px;width:100%;border:1px solid var(--line,#ccd);background:var(--surface-2);color:var(--fg);border-radius:7px;padding:6px;font-size:12px;cursor:pointer}
+.trkleg>button[aria-pressed="true"]{background:#0190b3;border-color:#0190b3;color:#fff;font-weight:600}
+.trkbar{display:inline-block;width:12px;height:12px;flex:none;border-radius:2px;background:repeating-linear-gradient(45deg,#d7191c 0 3px,#fff 3px 6px);border:1.5px solid #d7191c;box-sizing:border-box}
+.trkbar.lk{border-color:#111}
+.trkpop table{border-collapse:collapse;margin:4px 0;font-size:12px}.trkpop td{padding:1px 6px 1px 0;vertical-align:top}.trkpop small{color:#667}
+@media (max-height:620px){.trkleg{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}}
 .fab svg{width:22px;height:22px;stroke:var(--fg);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* Bedienblatt */
@@ -180,6 +196,10 @@ tr.go{cursor:pointer}
 .veh .warnv{grid-column:1/-1;font-size:12px;color:var(--warn-fg)}
 .hints{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .hints li::marker{color:var(--vg-gold)}
+.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.check li{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.check li span{flex:none;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-weight:700;color:#fff;font-size:13px}
+.check .ck-ok span{background:#2f8a3e}.check .ck-no span{background:#c8141e}.check .ck-q span{background:#e07a10}
 canvas#gantt,canvas#pvProf{width:100%;display:block}
 .pvlbl{display:inline-block;transform:translate(-50%,-50%);background:var(--surface);color:var(--fg);border:2px solid var(--water);border-radius:999px;padding:3px 9px;font:700 12px/1.2 var(--f-body);white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .mk.es{background:var(--vg-blue);border-radius:6px}
@@ -243,10 +263,12 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
   </form>
 </header>
 <div class="results" id="results" hidden></div>
+<div class="layermenu" id="layerMenu" hidden role="menu"></div>
+<div class="trkleg" id="trkLeg" hidden></div>
 
 <div class="fab">
   <button id="locBtn" aria-label="Mein Standort"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
-  <button id="layerBtn" aria-label="Kartenart wechseln"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></button>
+  <button id="layerBtn" aria-label="Kartenart wählen" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></button>
 </div>
 
 <section class="sheet" id="sheet">
@@ -297,6 +319,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <div class="chips" id="qChips"></div>
     <label class="f">Eigener Wert [l/min]<input id="qIn" type="number" inputmode="numeric" min="100" max="4000" step="50" value="800"></label>
 
+    <div id="weBoxLW" style="display:contents"></div>
     <h3>Leitung</h3>
     <div class="seg" role="group" aria-label="Leitung">
       <button id="l1" aria-pressed="true">Einfachleitung</button>
@@ -307,6 +330,12 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       <button id="srG" aria-pressed="true">Geschlossen</button>
       <button id="srO" aria-pressed="false">Offen (Behälter)</button>
     </div>
+    <h3>Ende der Förderstrecke</h3>
+    <div class="seg" role="group" aria-label="Ende der Förderstrecke">
+      <button id="emBsp" aria-pressed="true">Brandstellenpumpe (LF mit Tank)</button>
+      <button id="emV" aria-pressed="false">Verteiler direkt</button>
+    </div>
+    <p class="note" id="emNote" style="margin:0"></p>
 
     <h3>Eingangsdruck an der Verstärker-TS</h3>
     <div id="peBox" style="display:flex;flex-direction:column;gap:8px">
@@ -334,7 +363,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       <label class="f">B-Schlauchlänge [m]<input id="hoseLen" type="number" inputmode="numeric" min="5" max="50" step="5" value="20"></label>
       <label class="f">Zuschlag Verlegung [%]<input id="zus" type="number" inputmode="numeric" min="0" max="50" step="1" value="10"></label>
     </div>
-    <p class="note" style="margin:0">Reibungsverluste je 100 m B-Schlauch nach HLFS-Tabelle: 400 l/min 0,3 · 600 l/min 0,6 · 800 l/min 1,0 · 1.000 l/min 1,4 · 1.200 l/min 2,0 bar. Zwischenwerte werden interpoliert.</p>
+    <p class="note" style="margin:0">Reibungsverluste je 100 m B-Schlauch (HLFS/LFS BW): 200 l/min 0,1 · 400 l/min 0,3 · 600 l/min 0,6 · 800 l/min 1,0 · 1.000 l/min 1,4 · 1.200 l/min 2,0 bar. Zwischenwerte werden interpoliert.</p>
   </div>
 
   <!-- DATEN PENDELVERKEHR -->
@@ -361,7 +390,8 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <p class="note" style="margin:0">Fahrzeuge mit geringerer Höchstgeschwindigkeit (z. B. Traktor 40 km/h) werden automatisch mit ihrer eigenen Geschwindigkeit gerechnet.</p>
     <p class="note" style="margin:0">HLFS: ohne Vorbereitung 8 min Rüstzeit je Umlauf (je 2 min Auf- und Abbau an Entnahme- und Abgabestelle). Fest besetzte Stellen und ein Puffer verkürzen sie.</p>
 
-    <h3>Entnahme und Abgabe</h3>
+    <div id="weBoxPV" style="display:contents"></div>
+    <h3>Füllen und Abgabe</h3>
     <div class="grid2">
       <label class="f">Füllstrom Entnahme [l/min]<input id="pvFill" type="number" inputmode="numeric" min="100" max="4000" step="100" value="1000"></label>
       <label class="f">Füllstellen
@@ -370,7 +400,9 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       <label class="f">Puffer an der Einsatzstelle
         <select id="pvBuf">
           <option value="0">Kein Puffer (direkt)</option>
-          <option value="3000">Behälter 3.000 l</option>
+          <option value="2000">2.000 l (z. B. TLF 2000)</option>
+          <option value="3000">3.000 l (z. B. TLF 3000)</option>
+          <option value="4000">4.000 l (z. B. TLF 4000)</option>
           <option value="5000">Behälter 5.000 l</option>
           <option value="10000">Behälter 10.000 l</option>
           <option value="15000">Behälter 15.000 l</option>
@@ -410,6 +442,8 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       <div class="formula" id="rMat"></div>
       <h3>Überschlag nach Formel</h3>
       <div class="formula" id="rForm"></div>
+      <h3>Hinweise zur Förderstrecke</h3>
+      <ul class="hints" id="lwHints"></ul>
     </div>
     <div id="resPV" hidden style="display:contents">
       <div class="stats">
@@ -433,6 +467,9 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       </div>
       <h3>Berechnung nach HLFS</h3>
       <div class="formula" id="pvForm"></div>
+      <h3>Checkliste Pendelverkehr</h3>
+      <ul class="check" id="pvCheck"></ul>
+      <p class="note" id="pvCheckRes" style="margin:0"></p>
       <h3>Hinweise zum Pendelverkehr</h3>
       <ul class="hints" id="pvHints"></ul>
     </div>
@@ -450,7 +487,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <h3>Gespeicherte Pläne</h3>
     <div id="plans" class="plans" style="display:flex;flex-direction:column;gap:6px"></div>
     <div class="foot"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b>Löschwasser-Planung</b><span>Lange Wegstrecke · Pendelverkehr</span></div></div>
-    <p class="note" style="margin:0">Berechnung nach HLFS-Lernunterlage „Löschwasserförderung“ (2019). Höhendaten: Copernicus-DEM ca. 30–90 m Raster über Open-Meteo. Ergebnis ist eine Planungshilfe und ersetzt nicht die Lagebeurteilung vor Ort.</p>
+    <p class="note" style="margin:0">Berechnung nach HLFS-Lernunterlage „Löschwasserförderung“ (2019) und LFS BW „Löschwasserversorgung F4“ (2026). Höhendaten: Copernicus-DEM ca. 30–90 m Raster über Open-Meteo. Ergebnis ist eine Planungshilfe und ersetzt nicht die Lagebeurteilung vor Ort.</p>
   </div>
 </section>
 
@@ -530,9 +567,9 @@ function pathLen(p){ let s=0; for(let i=1;i<p.length;i++) s+=hav(p[i-1],p[i]); r
 
 /* ---------- Fachlogik (HLFS) ---------- */
 // Druckverlust pR [bar / 100 m B-Schlauch] je Förderstrom einer Leitung
-const PR_TAB=[[400,.3],[500,.4],[600,.6],[700,.8],[800,1.0],[900,1.2],[1000,1.4],[1200,2.0],[1600,4.0]];
+const PR_TAB=[[200,.1],[400,.3],[500,.4],[600,.6],[700,.8],[800,1.0],[900,1.2],[1000,1.4],[1200,2.0],[1600,4.0]];
 function pR(q){
-  if(q<=PR_TAB[0][0]) return .3*(q/400)**2;
+  if(q<=PR_TAB[0][0]) return .1*(q/200)**2;
   for(let i=1;i<PR_TAB.length;i++){ const [q1,p1]=PR_TAB[i-1],[q2,p2]=PR_TAB[i];
     if(q<=q2) return p1+(p2-p1)*(q-q1)/(q2-q1); }
   return 4*(q/1600)**2;
@@ -541,7 +578,7 @@ function pR(q){
  * Pumpenstandorte entlang eines Höhenprofils (grafisches Verfahren HLFS, Abb. 5/6).
  * s: [{d (Kartenmeter), h (m)}], p: Parameter. Liefert Pumpen + Drucklinie.
  */
-function plan(s,p){
+function planCore(s,p,endNeed){
   const f=1+p.zus/100, n=s.length;
   const hose=s.map(x=>x.d*f);
   const qL=p.q/p.lines, r=pR(qL);
@@ -555,7 +592,7 @@ function plan(s,p){
     let fail=-1;
     for(let j=k;j<n;j++){
       const pr=pa - r*(hose[j]-hose[k])/100 - (s[j].h-s[k].h)/10;
-      const need=(j===n-1)? p.pstr : th;
+      const need=(j===n-1)? endNeed : th;
       if(pr<need){ fail=j; break; }
       press[j]=pr; if(pr>maxP) maxP=pr;
     }
@@ -576,18 +613,240 @@ function plan(s,p){
   const H=s[n-1].h-s[0].h, L=hose[n-1];
   const pges=H/10 + r*L/100 + p.pstr;
   const pv=p.pa-th;
-  return {pumps,press,hose,r,qL,warn,maxP,H,L,pges,pv,hl,bTotal,nForm:Math.max(1,Math.ceil(pges/pv-0.05)),paNext,th};
+  return {pumps,press,hose,r,qL,warn,maxP,H,L,pges,pv,hl,bTotal,nForm:Math.max(1,Math.ceil(pges/pv-0.05)),paNext,th,endNeed};
 }
+/* Ende der Förderstrecke (LFS BW): Brandstellenpumpe = Löschfahrzeug mit Tank.
+   Variante A: letzte Pumpe erreicht den Verteiler mit Strahlrohrdruck und ist selbst die Brandstellenpumpe.
+   Variante B: Förderstrecke endet an einer zusätzlichen Brandstellenpumpe am Objekt (Eingangsdruck bzw. in den Tank).
+   Gewählt wird die Variante mit weniger Pumpen, bei Gleichstand B (Puffer direkt am Objekt). */
+function plan(s,p){
+  const A=planCore(s,p,p.pstr);
+  if(p.em!=="bsp"){ A.bsp=null; A.nTot=A.pumps.length; return A; }
+  const B=planCore(s,p,p.open?0:p.pe);
+  if(B.pumps.length+1<=A.pumps.length){ B.bsp="end"; B.nTot=B.pumps.length+1; return B; }
+  A.bsp="last"; A.nTot=A.pumps.length; return A;
+}
+
+
+/* ---------- Wasserentnahmestelle (Faustformeln LFS BW) ---------- */
+const WE_TYPES={offen:"Offenes Gewässer / Saugstelle",beh:"Löschwasserbehälter / Zisterne",uf:"Unterflurhydrant",ue:"Überflurhydrant",eigen:"Gemessene Leistung"};
+function weCap(we){
+  if(!we) return Infinity;
+  if(we.t==="uf") return Math.min((+we.dn||100)*10,2000);
+  if(we.t==="ue") return Math.min((+we.dn||100)*15,3200);
+  if(we.t==="eigen") return +we.cap>0 ? +we.cap : Infinity;
+  return Infinity;
+}
+const isHydrant=we=>we&&(we.t==="uf"||we.t==="ue"||we.t==="eigen");
+function weLabel(we){ if(!we) return ""; const c=weCap(we);
+  return WE_TYPES[we.t]+(we.t==="uf"||we.t==="ue"?" DN "+we.dn:"")+(isFinite(c)?` (ca. ${fmt(c)} l/min)`:"")+(we.t==="beh"&&+we.vol>0?` (${fmt(+we.vol)} m³)`:""); }
+function weMarkup(px){
+  return `<h3>Wasserentnahmestelle</h3>
+    <div class="grid2">
+      <label class="f">Art<select id="${px}WeT">${Object.entries(WE_TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label>
+      <label class="f" id="${px}WeDnL">Nennweite<select id="${px}WeDn">${[80,100,125,150,200,250,300].map(d=>`<option value="${d}">DN ${d}</option>`).join("")}</select></label>
+      <label class="f" id="${px}WeCapL">Leistung [l/min]<input id="${px}WeCap" type="number" inputmode="numeric" min="50" max="10000" step="50"></label>
+      <label class="f" id="${px}WeVolL">Inhalt [m³]<input id="${px}WeVol" type="number" inputmode="numeric" min="1" max="5000" step="5"></label>
+    </div>
+    <p class="note" id="${px}WeNote" style="margin:0"></p>`;
+}
+function weBind(px,get,save){
+  const upd=()=>{ const we=get();
+    $(px+"WeT").value=we.t; $(px+"WeDn").value=String(we.dn||100); $(px+"WeCap").value=we.cap||""; $(px+"WeVol").value=we.vol||"";
+    $(px+"WeDnL").hidden=!(we.t==="uf"||we.t==="ue"); $(px+"WeCapL").hidden=we.t!=="eigen"; $(px+"WeVolL").hidden=we.t!=="beh";
+    const c=weCap(we);
+    $(px+"WeNote").textContent=
+      we.t==="offen"?"Unerschöpfliche Entnahmestelle. Wenn möglich bevorzugen (LFS BW).":
+      we.t==="beh"?"Größen: klein 75–150 m³, mittel 150–300 m³, groß über 300 m³. Die App prüft, wie lange der Inhalt reicht.":
+      we.t==="eigen"?"Tatsächlich gemessene Leistung, z. B. aus einer Übung. Der genaueste Wert.":
+      `Faustformel ${we.t==="uf"?"Unterflur: DN × 10":"Überflur: DN × 15"} = ca. ${fmt(c)} l/min (höchstens ${we.t==="uf"?"2.000":"3.200"} l/min). Nicht garantiert, viele Hydranten liefern deutlich weniger. Am besten in Übungen messen und als „Gemessene Leistung“ eintragen.`;
+  };
+  const read=()=>{ const we=get(); we.t=$(px+"WeT").value; we.dn=+$(px+"WeDn").value||100; we.cap=+$(px+"WeCap").value||""; we.vol=+$(px+"WeVol").value||""; save(); upd(); };
+  ["WeT","WeDn","WeCap","WeVol"].forEach(id=>$(px+id).addEventListener("change",read));
+  return upd;
+}
+const TW_HINTS=["Trinkwasserschutz: Feuerwehr-Systemtrenner B-FW am Standrohr bzw. Überflurhydrant einsetzen.",
+  "Der Netzdruck darf nicht unter 1,5 bar fallen. Pro Löschfahrzeug mit Wasserabgabe einen eigenen Hydranten einplanen.",
+  "Schieber und Strahlrohre langsam bedienen: Druckstöße können Trinkwasserleitungen zerstören. Behälter nur von oben befüllen."];
 
 /* ---------- Karte ---------- */
 const map=L.map("map",{zoomControl:false,attributionControl:true}).setView([50.272,7.842],14);
-const layers=[
-  ["Karte",L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"})],
-  ["Topo",L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap, SRTM · © OpenTopoMap"})],
-  ["Luftbild",L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, Maxar, Earthstar"})]
-];
-let layerIx=store.get("lwf.layer",1)%layers.length; layers[layerIx][1].addTo(map);
-$("layerBtn").onclick=()=>{ map.removeLayer(layers[layerIx][1]); layerIx=(layerIx+1)%layers.length; layers[layerIx][1].addTo(map); store.set("lwf.layer",layerIx); toast("Kartenart: "+layers[layerIx][0]); };
+const YEAR=new Date().getFullYear();
+const RLP_ATTR=`© GeoBasis-DE / LVermGeoRP (${YEAR}), dl-de/by-2-0`;
+const rlpWms=(layer,o={})=>L.tileLayer.wms(`https://geo4.service24.rlp.de/wms/${layer}.fcgi`,{layers:layer,format:"image/png",version:"1.3.0",maxZoom:19,attribution:RLP_ATTR,...o});
+const MAPS=[
+  {id:"osm",name:"Straßenkarte",sub:"OpenStreetMap",layer:L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap-Mitwirkende</a>'})},
+  {id:"topo",name:"Topografisch",sub:"OpenTopoMap, Höhenlinien",layer:L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap, SRTM · © OpenTopoMap"})},
+  {id:"dtk",name:"Topo-Karte RLP",sub:"amtlich, DTK25/50/100 · nur Rheinland-Pfalz",layer:L.layerGroup([rlpWms("rp_dtk100",{maxZoom:11}),rlpWms("rp_dtk50",{minZoom:12,maxZoom:13}),rlpWms("rp_dtk25",{minZoom:14})])},
+  {id:"dop",name:"Luftbild RLP",sub:"amtlich, 20 cm · nur Rheinland-Pfalz",layer:rlpWms("rp_dop20")},
+  {id:"bkg",name:"TopPlusOpen",sub:"Bundesamt für Kartographie, ganz Deutschland",layer:L.tileLayer("https://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web/default/WEBMERCATOR/{z}/{y}/{x}.png",{maxZoom:18,attribution:`© BKG (${YEAR}), dl-de/by-2-0`})},
+  {id:"esri",name:"Luftbild weltweit",sub:"Esri World Imagery",layer:L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, Maxar, Earthstar"})}];
+let mapId=(()=>{ const v=store.get("lwf.layer","topo"); if(typeof v==="number") return ["osm","topo","esri"][v%3]; return MAPS.some(m=>m.id===v)?v:"topo"; })();
+const curMap=()=>MAPS.find(m=>m.id===mapId)||MAPS[1];
+curMap().layer.addTo(map);
+function setMap(id){ if(id===mapId) return; map.removeLayer(curMap().layer); mapId=id; curMap().layer.addTo(map); store.set("lwf.layer",id); renderLayerMenu(); probeMap(id); }
+/* OpenStreetMap und OpenTopoMap sperren manche Umgebungen (z. B. Vorschau-Fenster, lokal geöffnete Datei) mit 403.
+   Die Sperrkacheln laden wie normale Bilder, deshalb wird eine Probekachel geprüft und bei Sperre auf eine amtliche Karte gewechselt. */
+const PROBE={osm:"https://tile.openstreetmap.org/14/8508/5523.png", topo:"https://a.tile.opentopomap.org/14/8508/5523.png"};
+const FALLBACK={osm:"bkg", topo:"bkg"};
+async function probeMap(id){
+  const u=PROBE[id], m=MAPS.find(x=>x.id===id); if(!u||!m||m.checked) return;
+  try{ const r=await fetch(u,{cache:"no-store"}); m.checked=true;
+    if(r.status===403||r.status===418||r.status===429){ m.blocked=true;
+      if(mapId===id){ setMap(FALLBACK[id]); toast(`${m.name} ist hier gesperrt (Nutzungsregel des Kartendienstes). Ersatzkarte TopPlusOpen aktiv.`); }
+      renderLayerMenu(); } }catch(_){ /* offline oder ohne CORS: nichts ändern */ }
+}
+function renderLayerMenu(){
+  $("layerMenu").innerHTML=`<b>Kartenart</b>`+MAPS.map(m=>`<button type="button" data-id="${m.id}" aria-pressed="${m.id===mapId}"><span>${m.name}</span><small>${m.blocked?"⚠ hier gesperrt (Kartendienst lehnt Zugriff ab)":m.sub}</small></button>`).join("")
+    +`<b>Zusatz-Ebenen</b><button type="button" data-ov="trk" aria-pressed="${TRK.on}"><span>${TRK.on?"✓ ":""}Waldwege (OSM)</span><small>nach Befahrbarkeit eingefärbt, Schranken · ab Zoom ${TRK_MINZ}</small></button>`;
+  $("layerMenu").querySelectorAll("button[data-id]").forEach(b=>b.onclick=()=>{ setMap(b.dataset.id); $("layerMenu").hidden=true; });
+  $("layerMenu").querySelector("button[data-ov=trk]").onclick=()=>{ trkToggle(!TRK.on); $("layerMenu").hidden=true; };
+}
+
+/* ---------- Zusatz-Ebene Waldwege (OpenStreetMap über Overpass) ---------- */
+const TRK_MINZ=13, TRK_CELL=0.04;
+const TRK_CLS={1:{c:"#1a9850",t:"befestigt (Asphalt, Schotter)"},2:{c:"#d9b800",t:"überwiegend fest"},3:{c:"#f08c00",t:"gemischt"},4:{c:"#d7191c",t:"unbefestigt (Erde, Gras)"},0:{c:"#6b7480",t:"Zustand nicht erfasst",dash:"6 5"}};
+const TRK_SURF={asphalt:"Asphalt",concrete:"Beton",paved:"befestigt",paving_stones:"Pflaster",sett:"Pflaster",chipseal:"Asphalt",compacted:"verdichtet (wassergebundene Decke)",fine_gravel:"Splitt",gravel:"Schotter",pebblestone:"Kies",unpaved:"unbefestigt",ground:"Erdboden",dirt:"Erdboden",earth:"Erdboden",soil:"Erdboden",grass:"Gras",grass_paver:"Rasengitter",mud:"Schlamm",sand:"Sand",rock:"Fels",woodchips:"Holzhäcksel"};
+const TRK_ACC={no:"gesperrt",private:"privat",agricultural:"nur Landwirtschaft",forestry:"nur Forstwirtschaft",destination:"nur Anlieger",delivery:"nur Lieferverkehr",permissive:"geduldet",yes:"frei",designated:"frei",permit:"mit Genehmigung",emergency:"nur Rettungsdienste",official:"nur Dienstfahrzeuge"};
+const TRK_BAR={gate:"Tor",lift_gate:"Schranke",swing_gate:"Drehschranke",bollard:"Poller",chain:"Kette",block:"Sperrblock",jersey_barrier:"Betonsperre"};
+const TRK_GRADE={1:"Klasse 1 – befestigt",2:"Klasse 2 – überwiegend fest",3:"Klasse 3 – gemischt fest/weich",4:"Klasse 4 – überwiegend weich",5:"Klasse 5 – weich (Gras, Erde)"};
+const TRK_API=["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
+const TRK={on:store.get("lwf.tracks",false)===true, info:false, ways:new Map(), bars:new Map(), cells:new Set(), busy:0, err:false, tooBig:false};
+const trkR=L.canvas({padding:.4,tolerance:0});
+const gTrk=L.layerGroup();
+function trkClass(tg){
+  if(tg.tracktype){ const g=+String(tg.tracktype).replace(/\D/g,""); if(g>=1&&g<=5) return g>=4?4:g; }
+  const s=tg.surface||"";
+  if(/^(asphalt|paved|concrete|paving_stones|sett|chipseal)/.test(s)) return 1;
+  if(/^(compacted|fine_gravel|gravel|pebblestone|grass_paver)$/.test(s)) return 2;
+  if(/^(unpaved|rock)$/.test(s)) return 3;
+  if(/^(ground|dirt|earth|soil|grass|mud|sand|woodchips)/.test(s)) return 4;
+  return 0;
+}
+const trkAcc=v=>v? String(v).split(";").map(x=>TRK_ACC[x.trim()]||x.trim()).join(", ") : "";
+function trkWayHtml(tg){
+  const row=(k,v)=>v?`<tr><td>${k}</td><td><b>${esc(v)}</b></td></tr>`:"";
+  const g=tg.tracktype? +String(tg.tracktype).replace(/\D/g,"") : 0;
+  const acc=tg.motor_vehicle||tg.motorcar||tg.vehicle||tg.access;
+  return `<div class="trkpop"><b>${esc(tg.name||"Waldweg / Wirtschaftsweg")}</b><table>`
+    +row("Zustand",TRK_GRADE[g]||"nicht erfasst")
+    +row("Oberfläche",tg.surface? (TRK_SURF[tg.surface]||tg.surface) : "")
+    +row("Zufahrt Kfz",acc? trkAcc(acc) : "keine Angabe")
+    +row("Gewicht max.",tg.maxweight? String(tg.maxweight).replace(".",",")+(/\d$/.test(tg.maxweight)?" t":"") : "")
+    +row("Breite",tg.width? String(tg.width).replace(".",",")+(/\d$/.test(tg.width)?" m":"") : "")
+    +row("Wintersperre",tg.seasonal==="winter"?"ja":"")
+    +`</table><small>Daten aus OpenStreetMap. Befahrbarkeit, Breite und Tragfähigkeit vor Ort prüfen.</small></div>`;
+}
+function trkBarHtml(tg){
+  const acc=tg.motor_vehicle||tg.vehicle||tg.access;
+  return `<div class="trkpop"><b>${esc(TRK_BAR[tg.barrier]||"Sperre")}</b>${tg.locked==="yes"?" – abgeschlossen":""}`
+    +(acc?`<br>Durchfahrt: ${esc(trkAcc(acc))}`:"")+(tg.note?`<br><small>${esc(tg.note)}</small>`:"")
+    +`<br><small>Schlüssel klären (Forstamt, Gemeinde). Daten aus OpenStreetMap.</small></div>`;
+}
+function trkAdd(els){
+  for(const el of els){
+    if(el.type==="way" && el.geometry && !TRK.ways.has(el.id)){
+      const k=trkClass(el.tags||{}), st=TRK_CLS[k], ll=el.geometry.map(p=>[p.lat,p.lon]);
+      const line=L.polyline(ll,{renderer:trkR,interactive:false,color:st.c,weight:4,opacity:.9,dashArray:st.dash,lineCap:"round"});
+      TRK.ways.set(el.id,{k,ll,tags:el.tags||{},line}); gTrk.addLayer(line);
+    } else if(el.type==="node" && el.tags && el.tags.barrier && !TRK.bars.has(el.id)){
+      const m=L.marker([el.lat,el.lon],{icon:L.divIcon({className:"",html:`<div class="trkbar${el.tags.locked==="yes"?" lk":""}"></div>`,iconSize:[14,14],iconAnchor:[7,7]}),keyboard:false});
+      m.bindPopup(()=>trkBarHtml(el.tags)); m.on("click",ev=>L.DomEvent.stopPropagation(ev));
+      TRK.bars.set(el.id,m); gTrk.addLayer(m);
+    }
+  }
+}
+async function trkLoad(s,w,n,e){
+  const c=TRK_CELL, keys=[];
+  for(let y=Math.floor(s/c); y<=Math.floor(n/c); y++) for(let x=Math.floor(w/c); x<=Math.floor(e/c); x++) keys.push([y,x]);
+  let miss=keys.filter(([y,x])=>!TRK.cells.has(y+"/"+x));
+  if(!miss.length) return true;
+  if(miss.length>64){ TRK.tooBig=true; trkLegend(); return false; }
+  TRK.tooBig=false;
+  // zuerst den Gerätespeicher fragen (30 Tage gültig, auch offline)
+  const hit=await Promise.all(miss.map(([y,x])=>trkCacheGet(y,x)));
+  hit.forEach((els,i)=>{ if(els){ trkAdd(els); TRK.cells.add(miss[i][0]+"/"+miss[i][1]); } });
+  miss=miss.filter((k,i)=>!hit[i]);
+  if(!miss.length){ trkLegend(); return true; }
+  const ys=miss.map(k=>k[0]), xs=miss.map(k=>k[1]);
+  const bb=[Math.min(...ys)*c, Math.min(...xs)*c, (Math.max(...ys)+1)*c, (Math.max(...xs)+1)*c].map(v=>v.toFixed(4)).join(",");
+  const q=`[out:json][timeout:60];way["highway"="track"](${bb})->.t;.t out tags geom qt;node(w.t)["barrier"];out qt;`;
+  miss.forEach(([y,x])=>TRK.cells.add(y+"/"+x));
+  TRK.busy++; TRK.err=false; trkLegend();
+  // Server nacheinander anfragen; antwortet einer nicht binnen 10 s, startet parallel der nächste. Die erste gültige Antwort gilt.
+  const ctl=TRK_API.map(()=>new AbortController());
+  const ask=(api,i)=>fetch(api,{method:"POST",signal:ctl[i].signal,body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}})
+    .then(async r=>{ if(!r.ok) throw new Error("HTTP "+r.status); const j=await r.json(); if(!j.elements) throw new Error("leer"); return j.elements; });
+  try{
+    const els=await new Promise((res,rej)=>{ let left=TRK_API.length, started=0, done=false, timer;
+      const next=()=>{ if(done||started>=TRK_API.length) return; const i=started++;
+        ask(TRK_API[i],i).then(e=>{ if(!done){ done=true; clearTimeout(timer); ctl.forEach((c,k)=>k!==i&&c.abort()); res(e); } },
+          err=>{ if(err.name!=="AbortError") console.warn("Overpass",TRK_API[i],err); if(--left===0&&!done) rej(err); else { clearTimeout(timer); next(); } });
+        timer=setTimeout(next,10000); };
+      next(); });
+    trkAdd(els); trkCachePut(miss,els); return true;
+  }catch(err){ miss.forEach(([y,x])=>TRK.cells.delete(y+"/"+x)); TRK.err=true; return false; }
+  finally { TRK.busy--; trkLegend(); }
+}
+const TRK_STORE="lwf-trk-1", TRK_DAYS=30;
+const trkKey=(y,x)=>new URL(`__waldwege/${y}_${x}.json`,location.href).href;
+async function trkCacheGet(y,x){
+  try{ if(!window.caches) return null; const c=await caches.open(TRK_STORE), r=await c.match(trkKey(y,x)); if(!r) return null;
+    const d=await r.json(); return Date.now()-d.t<TRK_DAYS*864e5? d.el : null; }catch(_){ return null; }
+}
+async function trkCachePut(cells,els){
+  try{ if(!window.caches) return; const c=await caches.open(TRK_STORE), C=TRK_CELL;
+    for(const [y,x] of cells){ const s=y*C, w=x*C, n=s+C, e=w+C;
+      const part=els.filter(el=> el.type==="node"? el.lat>=s&&el.lat<n&&el.lon>=w&&el.lon<e
+        : el.geometry&&el.geometry.some(p=>p.lat>=s&&p.lat<n&&p.lon>=w&&p.lon<e));
+      await c.put(trkKey(y,x),new Response(JSON.stringify({t:Date.now(),el:part}),{headers:{"Content-Type":"application/json"}})); }
+  }catch(err){ console.warn("Waldwege speichern",err); }
+}
+let trkT=0;
+function trkRefresh(){
+  if(!TRK.on) return;
+  const z=map.getZoom();
+  if(z>=12){ if(!map.hasLayer(gTrk)) gTrk.addTo(map); } else if(map.hasLayer(gTrk)) map.removeLayer(gTrk);
+  trkLegend();
+  if(z<TRK_MINZ) return;
+  clearTimeout(trkT); trkT=setTimeout(()=>{ const b=map.getBounds(); trkLoad(b.getSouth(),b.getWest(),b.getNorth(),b.getEast()); },450);
+}
+function trkLegend(){
+  const el=$("trkLeg"); el.hidden=!TRK.on; if(!TRK.on) return;
+  const z=map.getZoom();
+  const st=TRK.busy? "Waldwege werden geladen …" : TRK.err? "Waldwege konnten nicht geladen werden (Internet?). Karte verschieben zum erneuten Versuch."
+    : z<TRK_MINZ? `Zum Anzeigen näher heranzoomen (ab Zoom ${TRK_MINZ}).` : TRK.tooBig? "Ausschnitt zu groß, bitte näher heranzoomen." : "";
+  el.innerHTML=`<div class="th"><b>Waldwege</b><button type="button" id="trkX" aria-label="Waldwege ausblenden">×</button></div>`
+    +[1,2,3,4,0].map(k=>`<div class="tr"><i style="border-top:4px ${TRK_CLS[k].dash?"dashed":"solid"} ${TRK_CLS[k].c}"></i>${TRK_CLS[k].t}</div>`).join("")
+    +`<div class="tr"><span class="trkbar"></span>Schranke / Tor (antippen)</div>`
+    +(st?`<div class="ts">${st}</div>`:"")
+    +`<button type="button" id="trkInfo" aria-pressed="${TRK.info}">${TRK.info?"Weg-Info an: Weg antippen":"Weg-Info: Weg antippen"}</button>`;
+  $("trkX").onclick=e=>{ e.stopPropagation(); trkToggle(false); };
+  $("trkInfo").onclick=e=>{ e.stopPropagation(); TRK.info=!TRK.info; if(!TRK.info) map.closePopup(); trkLegend(); if(TRK.info) toast("Weg antippen für Details. Punkte setzen ist so lange pausiert."); };
+  L.DomEvent.disableClickPropagation(el);
+}
+function trkToggle(on){
+  TRK.on=on; TRK.info=false; store.set("lwf.tracks",on);
+  if(on) trkRefresh(); else { if(map.hasLayer(gTrk)) map.removeLayer(gTrk); trkLegend(); }
+  renderLayerMenu();
+  if(on && map.getZoom()<TRK_MINZ) toast(`Waldwege erscheinen ab Zoom ${TRK_MINZ}, bitte näher heranzoomen`);
+}
+function trkInfoAt(ll){
+  const p=map.latLngToLayerPoint(ll); let best=null, bd=22;
+  for(const wy of TRK.ways.values()){
+    const pts=wy.ll.map(q=>map.latLngToLayerPoint(q));
+    for(let i=1;i<pts.length;i++){ const d=L.LineUtil.pointToSegmentDistance(p,pts[i-1],pts[i]); if(d<bd){ bd=d; best=wy; } }
+  }
+  if(!best){ toast("Kein Waldweg an dieser Stelle. Weg-Info ausschalten zum Punkte setzen."); return; }
+  const hl=L.polyline(best.ll,{color:"#0190b3",weight:8,opacity:.55,interactive:false}).addTo(map);
+  L.popup({maxWidth:260}).setLatLng(ll).setContent(trkWayHtml(best.tags)).on("remove",()=>map.removeLayer(hl)).openOn(map);
+}
+map.on("moveend zoomend",trkRefresh);
+renderLayerMenu();
+if(TRK.on) trkRefresh();
+probeMap(mapId);
+$("layerBtn").onclick=e=>{ e.stopPropagation(); $("layerMenu").hidden=!$("layerMenu").hidden; };
+document.addEventListener("click",e=>{ if(!$("layerMenu").hidden && !$("layerMenu").contains(e.target)) $("layerMenu").hidden=true; });
 
 const icon=(cls,txt,size)=>L.divIcon({className:"",html:`<div class="mk ${cls}" style="width:${size}px;height:${size}px">${txt}</div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
 const S={pts:[],road:false,path:null,result:null,mode:"lw",saved:{},ring:false,ret:[],retPath:null,editRet:false};
@@ -627,6 +886,7 @@ function updStats(){
   $("calcBtn").disabled=S.pts.length<2; $("undoBtn").disabled=!S.pts.length;
 }
 map.on("click",e=>{
+  if(TRK.on && TRK.info){ trkInfoAt(e.latlng); return; }
   const ll=[e.latlng.lat,e.latlng.lng];
   if(S.mode==="pv" && S.ring && S.editRet){ if(S.pts.length<2){ toast("Erst Entnahmestelle und Einsatzstelle setzen"); return; } S.ret.push(ll); }
   else S.pts.push(ll);
@@ -738,6 +998,8 @@ $("grip").onclick=()=>{ const s=$("sheet");
 
 /* ---------- Parameter ---------- */
 const P=store.get("lwf.params",{q:800,lines:1,open:false,pa:8,pe:1.5,pstr:5,addPe:false,hoseLen:20,zus:10});
+if(!P.em) P.em="bsp";
+if(!P.we||typeof P.we!=="object") P.we={t:"offen",dn:100,cap:"",vol:""};
 function num(id,def){ const v=parseFloat(String($(id).value).replace(",",".")); return isFinite(v)?v:def; }
 function readP(){
   P.q=num("qIn",800); P.pa=num("pa",8); P.pe=num("pe",1.5); P.pstr=num("pstr",5);
@@ -749,6 +1011,11 @@ function writeP(){
   $("hoseLen").value=P.hoseLen; $("zus").value=P.zus; $("addPe").checked=P.addPe;
   $("l1").setAttribute("aria-pressed",P.lines===1); $("l2").setAttribute("aria-pressed",P.lines===2);
   $("srG").setAttribute("aria-pressed",!P.open); $("srO").setAttribute("aria-pressed",P.open);
+  $("emBsp").setAttribute("aria-pressed",P.em==="bsp"); $("emV").setAttribute("aria-pressed",P.em!=="bsp");
+  $("emNote").textContent=P.em==="bsp"
+    ? "LFS BW: Zur Absicherung des Innenangriffs muss die Brandstellenpumpe ein Löschfahrzeug mit Tank sein (Puffer). Die App prüft, ob die letzte Pumpe als Brandstellenpumpe den Verteiler erreicht. Sonst endet die Förderstrecke an einer eigenen Brandstellenpumpe am Objekt."
+    : "Die letzte Pumpe speist den Verteiler direkt mit dem Strahlrohrdruck (Rechenweg der HLFS-Lernunterlage).";
+  if(typeof weUpdLW==="function") weUpdLW();
   document.querySelectorAll("#qChips button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.q===P.q));
   document.querySelectorAll("#peChips button").forEach(b=>{ b.setAttribute("aria-pressed",+b.dataset.pe===P.pe); b.disabled=P.open; });
   $("pe").disabled=P.open;
@@ -762,6 +1029,9 @@ $("qChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ P.q=+b.dataset
 ["qIn","pa","pe","pstr","hoseLen","zus","addPe"].forEach(id=>$(id).addEventListener("change",()=>{ readP(); writeP(); updStats(); }));
 $("l1").onclick=()=>{P.lines=1;writeP();readP();}; $("l2").onclick=()=>{P.lines=2;writeP();readP();};
 $("srG").onclick=()=>{P.open=false;writeP();readP();}; $("srO").onclick=()=>{P.open=true;writeP();readP();};
+$("emBsp").onclick=()=>{P.em="bsp";writeP();readP();}; $("emV").onclick=()=>{P.em="v";writeP();readP();};
+$("weBoxLW").innerHTML=weMarkup("lw");
+var weUpdLW=weBind("lw",()=>P.we,()=>store.set("lwf.params",P));
 $("peChips").innerHTML=[1.5,2,2.5,3].map(v=>`<button data-pe="${v}">${fmt(v,1)} bar</button>`).join("");
 $("peChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ P.pe=+b.dataset.pe; writeP(); readP(); });
 $("pumpPreset").onchange=e=>{ $("pa").value=e.target.value; readP(); };
@@ -839,41 +1109,69 @@ function drawResOnMap(r){
     m.bindPopup(`<b>FP ${ix+1}</b>${ix===0?" · Wasserentnahme":` · nach <b>${r.pumps[ix-1].bl} B-Längen</b> ab FP ${ix} (${pp.bNr}. B-Schlauch ab WE)`}<br>Schlauch-km ${fmt(r.hose[pp.i])} m · Höhe ${fmt(x.h)} m<br>Ausgangsdruck ${fmt(pp.pa,1)} bar`+
       (pp.arrive!=null?`<br>Ankunft nächste FP ${fmt(pp.arrive,1)} bar · bis dahin ${pp.bl} B`:`<br>${pp.bl} B bis Verteiler · Druck dort ${fmt(pp.endP,1)} bar`));
   });
+  if(r.bsp==="end"){ const e=r.s[r.s.length-1], lp=r.pumps[r.pumps.length-1];
+    L.marker([e.lat,e.lng],{icon:icon("fp","BSP",40),zIndexOffset:1001}).addTo(gRes)
+      .bindPopup(`<b>Brandstellenpumpe</b> (Löschfahrzeug mit Tank) am Objekt<br>${lp.bl} B ab FP ${r.pumps.length} · Ankunft ${fmt(lp.endP,1)} bar`); }
   map.fitBounds(L.latLngBounds(r.s.map(x=>[x.lat,x.lng])),{padding:[40,40],paddingBottomRight:[0,Math.round(innerHeight*.45)]});
 }
 
 function showResult(r){
   if(!r) return;
-  const p=r.params, nFP=r.pumps.length, perLine=Math.ceil(r.L/p.hoseLen);
-  const hoses=perLine*p.lines, resH=Math.ceil(r.L*p.lines/100), resFP=Math.ceil(nFP/4);
-  $("rFp").textContent=nFP; $("rB").textContent=hoses; $("rH").textContent=(r.H>=0?"+":"")+fmt(r.H)+" m";
+  const p=r.params, nFP=r.pumps.length, nTot=r.nTot||nFP, perLine=Math.ceil(r.L/p.hoseLen);
+  const hoses=perLine*p.lines, resH=Math.ceil(r.L*p.lines/100), resFP=Math.ceil(nTot/4);
+  $("rFp").textContent=nTot; $("rB").textContent=hoses; $("rH").textContent=(r.H>=0?"+":"")+fmt(r.H)+" m";
   const msgs=[];
   if(r.warn.includes("steep")) msgs.push(["warn","Sehr steiler Abschnitt: Auf mindestens einer Teilstrecke reicht der Pumpendruck nicht einmal für einen Schlauch. Trasse oder Förderstrom ändern."]);
   if(!p.open && p.pe<1.5) msgs.push(["warn",`Eingangsdruck ${fmt(p.pe,1)} bar liegt unter den empfohlenen 1,5 bar. Bei Druckschwankungen kann die Verstärkerpumpe abreißen.`]);
   $("thArr").innerHTML=p.open?"Ankunft":`Ankunft<br><span style="text-transform:none">Soll ${fmt(p.pe,1)}</span>`;
-  if(r.qL>1000) msgs.push(["warn",`${fmt(r.qL)} l/min in einer B-Leitung: HLFS empfiehlt höchstens 1.000 l/min je Leitung. Doppelleitung prüfen.`]);
+  if(r.qL>1000) msgs.push(["warn",`${fmt(r.qL)} l/min in einer B-Leitung: Über 1.000 l/min sind B-Schläuche unzweckmäßig (HLFS, LFS BW). Doppelleitung verlegen.`]);
+  else if(r.qL>800) msgs.push(["warn",`${fmt(r.qL)} l/min in einer B-Leitung: Ab 800 l/min steigen die Reibungsverluste stark an (LFS BW). Ziel sollte eine Doppelleitung sein.`]);
+  const cap=weCap(p.we);
+  if(isFinite(cap) && cap<p.q) msgs.push(["warn",`Die Entnahmestelle liefert ${p.we&&p.we.t==="eigen"?"gemessen":"nach Faustformel"} nur etwa ${fmt(cap)} l/min, gefordert sind ${fmt(p.q)} l/min. Weitere Entnahmestelle einbinden oder offenes Gewässer nutzen.`]);
+  if(p.we&&p.we.t==="beh"&&+p.we.vol>0){ const mins=+p.we.vol*1000/p.q; msgs.push([mins<120?"warn":"ok",`Löschwasserbehälter ${fmt(+p.we.vol)} m³ reicht bei ${fmt(p.q)} l/min etwa ${fmt(mins)} min.`]); }
   if(r.maxP>16) msgs.push(["warn",`Durch Gefälle steigt der Leitungsdruck auf ${fmt(r.maxP,1)} bar. Über dem Betriebsdruck der B-Schläuche (16 bar): Druck reduzieren oder Druckbegrenzung einbauen.`]);
   if(p.q<500 && r.L>3000) msgs.push(["warn","Kleiner Förderstrom über mehr als 3 km: Pendelverkehr mit Tanklöschfahrzeugen als Alternative prüfen."]);
   if(nFP>1){ const bls=r.pumps.slice(0,-1).map(x=>x.bl), mn=Math.min(...bls), mx=Math.max(...bls);
     msgs.push(["ok",`<b>Verstärkerpumpe ${mn===mx?"alle "+mn:"nach "+mn+"–"+mx} B-Längen setzen</b> (à ${fmt(p.hoseLen)} m). Die genaue Zahl je Pumpe steht in der Tabelle.`]); }
-  const ep=r.pumps[nFP-1].endP;
-  if(ep!=null) msgs.push(["ok",`Am Verteiler kommen rechnerisch ${fmt(ep,1)} bar an (benötigt ${fmt(p.pstr,1)} bar). Q je Leitung ${fmt(r.qL)} l/min, Reibung ${fmt(r.r,2)} bar/100 m.`]);
+  const ep=r.pumps[nFP-1].endP, lastD=r.L-r.hose[r.pumps[nFP-1].i];
+  if(ep!=null){
+    if(r.bsp==="end") msgs.push(["ok",`<b>Brandstellenpumpe am Objekt</b> (Löschfahrzeug mit Tank): Dort kommen rechnerisch ${fmt(ep,1)} bar an${p.open?" (offen in den Tank)":` (Soll mind. ${fmt(p.pe,1)} bar)`}. Sie versorgt den Verteiler und puffert den Innenangriff. Q je Leitung ${fmt(r.qL)} l/min, Reibung ${fmt(r.r,2)} bar/100 m.`]);
+    else if(r.bsp==="last") msgs.push(["ok",nFP>1?`<b>FP ${nFP} ist zugleich Brandstellenpumpe</b> (Löschfahrzeug mit Tank). Sie steht etwa ${fmt(Math.round(lastD/10)*10)} m vor dem Verteiler und liefert dort rechnerisch ${fmt(ep,1)} bar (benötigt ${fmt(p.pstr,1)} bar). Eine eigene Pumpe am Objekt ist nicht nötig.`:`FP 1 versorgt den Verteiler direkt mit rechnerisch ${fmt(ep,1)} bar. Für den Innenangriff ein Löschfahrzeug mit Tank als Puffer an der Brandstelle vorsehen.`]);
+    else msgs.push(["ok",`Am Verteiler kommen rechnerisch ${fmt(ep,1)} bar an (benötigt ${fmt(p.pstr,1)} bar). Q je Leitung ${fmt(r.qL)} l/min, Reibung ${fmt(r.r,2)} bar/100 m.`]);
+  }
   $("rMsgs").innerHTML=msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join("");
   const sm=t=>`<br><span class="note">${t}</span>`;
-  $("rTbl").innerHTML=r.pumps.map((pp,i)=>`<tr class="go" data-i="${i}"><td><b>FP ${i+1}</b></td><td>${i===0?"WE":`<b>${r.pumps[i-1].bl} × B</b>`+sm(`${pp.bNr}. B · ${fmt(pp.bNr*r.hl)} m`)}</td><td>${fmt(r.s[pp.i].h)} m</td><td>${fmt(pp.pa,1)}</td><td>${pp.arrive!=null?fmt(pp.arrive,1)+" bar":"–"}</td></tr>`).join("")+
-    `<tr><td><b>V</b></td><td><b>${r.pumps[nFP-1].bl} × B</b>${sm(`${r.bTotal}. B · ${fmt(r.L)} m`)}</td><td>${fmt(r.s[r.s.length-1].h)} m</td><td>–</td><td>${fmt(r.pumps[nFP-1].endP,1)} bar</td></tr>`;
+  $("rTbl").innerHTML=r.pumps.map((pp,i)=>`<tr class="go" data-i="${i}"><td><b>FP ${i+1}</b>${r.bsp==="last"&&i===nFP-1&&nFP>1?sm("BSP"):""}</td><td>${i===0?"WE":`<b>${r.pumps[i-1].bl} × B</b>`+sm(`${pp.bNr}. B · ${fmt(pp.bNr*r.hl)} m`)}</td><td>${fmt(r.s[pp.i].h)} m</td><td>${fmt(pp.pa,1)}</td><td>${pp.arrive!=null?fmt(pp.arrive,1)+" bar":"–"}</td></tr>`).join("")+
+    `<tr><td><b>${r.bsp==="end"?"BSP":"V"}</b>${r.bsp==="end"?sm("am Objekt"):""}</td><td><b>${r.pumps[nFP-1].bl} × B</b>${sm(`${r.bTotal}. B · ${fmt(r.L)} m`)}</td><td>${fmt(r.s[r.s.length-1].h)} m</td><td>–</td><td>${fmt(r.pumps[nFP-1].endP,1)} bar</td></tr>`;
   $("rTbl").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>{ const x=r.s[r.pumps[+tr.dataset.i].i]; map.setView([x.lat,x.lng],17); $("sheet").classList.add("min"); });
   $("rMat").innerHTML=
-    `${nFP} Feuerlöschkreiselpumpen + ${resFP} Reserve<br>`+
+    `${nTot} Feuerlöschkreiselpumpen + ${resFP} Reserve${r.bsp?" (davon 1 Brandstellenpumpe: Löschfahrzeug mit Tank)":""}<br>`+
     `${hoses} B-Schläuche à ${fmt(p.hoseLen)} m (${p.lines===2?"2 × ":""}${fmt(perLine)}) + ${resH} Reserve<br>`+
     `Schlauchstrecke ${fmt(r.L)} m · ${p.open?"offene Schaltreihe: "+Math.max(0,nFP-1)+" Auffangbehälter":"geschlossene Schaltreihe"}`;
   $("rForm").innerHTML=
     `p<sub>ges</sub> = p<sub>geo</sub> + p<sub>R</sub> + p<sub>Str</sub> = ${fmt(r.H/10,1)} + ${fmt(r.r*r.L/100,1)} + ${fmt(p.pstr,1)} = <b>${fmt(r.pges,1)} bar</b><br>`+
     `n<sub>FP</sub> = p<sub>ges</sub> / p<sub>v</sub> = ${fmt(r.pges,1)} / ${fmt(r.pv,1)} ≈ <b>${r.nForm} Pumpen</b><br>`+
     `<span class="note">Die Formel nimmt nur Start- und Endhöhe. Die Pumpenzahl oben berücksichtigt den Geländeverlauf dazwischen.</span>`;
+  $("lwHints").innerHTML=lwHints(p).map(h=>`<li>${h}</li>`).join("");
   if(!$("tab-ergebnis").hidden) requestAnimationFrame(drawChart);
 }
 
+function lwHints(p){
+  const h=[
+    "Stärkste Pumpe an die Wasserentnahmestelle. Die schwächste Pumpe der Strecke bestimmt den Förderdruck.",
+    "Wenn möglich unerschöpfliche Entnahmestellen (offenes Gewässer) nutzen und eine Doppelleitung verlegen: weniger Reibungsverlust und Redundanz.",
+    p.open?"Offene Schaltreihe: Wasser fließt in Pufferbehälter, die nächste Pumpe saugt daraus an. Behälterstände überwachen.":`Geschlossene Schaltreihe: An jeder Verstärkerpumpe mindestens ${fmt(Math.max(1.5,p.pe),1)} bar Eingangsdruck halten. Fällt eine Pumpe aus, kommt die Förderung sofort zum Erliegen.`,
+    "Brandstellenpumpe zur Absicherung des Innenangriffs: Löschfahrzeug mit Tank (Puffer).",
+    "Leitung vor dem Fördern vollständig füllen und entlüften. Schieber, Druckbegrenzungsventile und Strahlrohre langsam bedienen (Druckstöße).",
+    "In der Ebene von beiden Richtungen aufbauen, bei Höhenunterschieden bergab. Alle 100 m (5 B-Längen) einen Reserveschlauch.",
+    "Aufstellplätze für Pumpen und Pufferbehälter auf der gleichen Straßenseite festlegen, Schlauchleitung am Straßenrand verlegen.",
+    "Funkverbindung zwischen allen Pumpen sicherstellen. Einen Trupp für die Schlauchaufsicht einteilen.",
+    "Schlauchbrücken absichern und ausleuchten. Verkehrsregelung erfolgt durch die Polizei.",
+    "Treibstoff, Brandschutz am Pumpenstandort, Reservepumpen und rechtzeitige Ablösung einplanen, dazu Verpflegung und Sonnen- oder Kälteschutz.",
+    "Bei bekannten Objekten mit schwacher Löschwasserversorgung einen Feuerwehreinsatzplan erstellen und in Übungen prüfen."];
+  if(isHydrant(p.we)) h.push(...TW_HINTS);
+  return h;
+}
 /* ---------- Profil-Grafik (grafisches Verfahren) ---------- */
 function getVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 function drawChart(){
@@ -901,18 +1199,20 @@ function drawProfile(c,W,H,r,C){
   // Druckabfalllinien: verfügbare Höhe = h_Pumpe + (pa − Restdruck)·10 − Reibung·10
   c.setLineDash([6,5]); c.strokeStyle=getVar("--drop"); c.lineWidth=2;
   r.pumps.forEach((pp,ix)=>{
-    const last=ix===r.pumps.length-1, need=last?r.params.pstr:r.th;
+    const last=ix===r.pumps.length-1, need=last?(r.endNeed!=null?r.endNeed:r.params.pstr):r.th;
     const h0=r.s[pp.i].h+(pp.pa-need)*10, d0=r.hose[pp.i];
     const dEnd=last? r.L : Math.min(r.L,d0+ (pp.pa-need)/r.r*100*1.05);
     c.beginPath(); c.moveTo(X(d0),Y(h0)); c.lineTo(X(dEnd),Y(h0-r.r*(dEnd-d0)/100*10)); c.stroke();
   });
   c.setLineDash([]);
+  if(r.bsp==="end"){ const px=X(r.L), py=Y(r.s[r.s.length-1].h); c.fillStyle=getVar("--red"); c.fillRect(px-4,py-4,8,8);
+    c.fillStyle=getVar("--fg"); c.textAlign="right"; c.font="600 11px "+getVar("--f-body"); c.fillText("BSP",px-5,padT+38); }
   // Pumpen
   r.pumps.forEach((pp,ix)=>{
     const px=X(r.hose[pp.i]), py=Y(r.s[pp.i].h);
     c.strokeStyle=getVar("--red"); c.lineWidth=1.5; c.setLineDash([2,3]); c.beginPath(); c.moveTo(px,padT); c.lineTo(px,padT+ih); c.stroke(); c.setLineDash([]);
     c.fillStyle=getVar("--red"); c.fillRect(px-4,py-4,8,8);
-    c.fillStyle=getVar("--fg"); c.textAlign=px>W-40?"right":"left"; c.font="600 11px "+getVar("--f-body"); c.fillText("FP "+(ix+1),px+(px>W-40?-5:5),padT+11);
+    c.fillStyle=getVar("--fg"); c.textAlign=px>W-40?"right":"left"; c.font="600 11px "+getVar("--f-body"); c.fillText("FP "+(ix+1)+(r.bsp==="last"&&ix===r.pumps.length-1&&ix>0?" BSP":""),px+(px>W-40?-5:5),padT+11);
     // B-Längen bis zur nächsten Pumpe bzw. zum Verteiler
     const nx=ix<r.pumps.length-1? X(r.hose[r.pumps[ix+1].i]) : X(r.L);
     if(nx-px>34){ c.fillStyle=getVar("--muted"); c.textAlign="center"; c.font="600 10px "+getVar("--f-body"); c.fillText(pp.bl+" B",(px+nx)/2,padT+24); }
@@ -929,9 +1229,16 @@ function loadScript(src){ return _ls[src]||(_ls[src]=new Promise((res,rej)=>{ co
 function loadImg(u){ return new Promise((res,rej)=>{ const i=new Image(); i.crossOrigin="anonymous"; i.onload=()=>res(i); i.onerror=()=>rej(new Error("Bild")); i.src=u; }); }
 const wX=(lon,z)=>(lon+180)/360*256*2**z;
 const wY=(lat,z)=>{ const a=lat*Math.PI/180; return (1-Math.log(Math.tan(a)+1/Math.cos(a))/Math.PI)/2*256*2**z; };
-const PRINT_TILES=[
-  {url:"https://a.tile.opentopomap.org/{z}/{x}/{y}.png",max:17,attr:"Kartendaten © OpenStreetMap-Mitwirkende, SRTM | Darstellung © OpenTopoMap (CC-BY-SA)"},
-  {url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",max:18,attr:"Kartendaten © OpenStreetMap-Mitwirkende"}];
+const WM=20037508.342789244;
+const rlpTile=layer=>(z,x,y)=>{ const r=2*WM/(256*2**z), x0=x*256*r-WM, y1=WM-y*256*r;
+  return `https://geo4.service24.rlp.de/wms/${layer(z)}.fcgi?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=${layer(z)}&STYLES=&CRS=EPSG:3857&BBOX=${x0},${y1-256*r},${x0+256*r},${y1}&WIDTH=256&HEIGHT=256&FORMAT=image/png`; };
+const PRINT_SRC={
+  topo:{url:"https://a.tile.opentopomap.org/{z}/{x}/{y}.png",max:17,attr:"Kartendaten © OpenStreetMap-Mitwirkende, SRTM | Darstellung © OpenTopoMap (CC-BY-SA)"},
+  osm:{url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",max:18,attr:"Kartendaten © OpenStreetMap-Mitwirkende"},
+  dtk:{fn:rlpTile(z=>z<=11?"rp_dtk100":z<=13?"rp_dtk50":"rp_dtk25"),max:16,attr:`Topographische Karte: ${RLP_ATTR}`},
+  dop:{fn:rlpTile(()=>"rp_dop20"),max:18,attr:`Luftbild: ${RLP_ATTR}`}};
+const printSources=()=>[[mapId,PRINT_SRC[mapId]],["topo",PRINT_SRC.topo],["osm",PRINT_SRC.osm],["dtk",PRINT_SRC.dtk]]
+  .filter(([id,x],i,a)=>x && !(MAPS.find(m=>m.id===id)||{}).blocked && a.findIndex(q=>q[1]===x)===i).map(q=>q[1]);
 
 async function staticMap(r,W,H,ov){
   const k=2, w=W/k, h=H/k, pad=55;
@@ -939,7 +1246,9 @@ async function staticMap(r,W,H,ov){
   const extra=(S.mode==="pv" && S.ring && S.retPath ? S.retPath : []).map(q=>({lat:q[0],lng:q[1]}));
   const lats=route.concat(extra).map(q=>q.lat), lngs=route.concat(extra).map(q=>q.lng);
   const la0=Math.min(...lats), la1=Math.max(...lats), lo0=Math.min(...lngs), lo1=Math.max(...lngs);
-  for(const src of PRINT_TILES){
+  let trkAttr="";
+  if(TRK.on){ const dl=(la1-la0)*.15+.003, dg=(lo1-lo0)*.15+.003; try{ await trkLoad(la0-dl,lo0-dg,la1+dl,lo1+dg); }catch(_){} if(TRK.ways.size) trkAttr=" · Waldwege © OpenStreetMap-Mitwirkende (ODbL)"; }
+  for(const src of printSources()){
     try{
       let z=src.max;
       while(z>4 && (wX(lo1,z)-wX(lo0,z)>w-2*pad || wY(la0,z)-wY(la1,z)>h-2*pad)) z--;
@@ -950,13 +1259,18 @@ async function staticMap(r,W,H,ov){
       for(let tx=Math.floor(x0/256); tx<=Math.floor((x0+w)/256); tx++)
         for(let ty=Math.floor(y0/256); ty<=Math.floor((y0+h)/256); ty++){
           if(ty<0||ty>=N) continue;
-          const u=src.url.replace("{z}",z).replace("{x}",((tx%N)+N)%N).replace("{y}",ty);
+          const xx=((tx%N)+N)%N, u=src.fn? src.fn(z,xx,ty) : src.url.replace("{z}",z).replace("{x}",xx).replace("{y}",ty);
           jobs.push(loadImg(u).then(img=>c.drawImage(img,tx*256-x0,ty*256-y0,256,256)));
         }
       await Promise.all(jobs);
       c.getImageData(0,0,1,1); // wirft, falls Kacheln ohne Freigabe geladen wurden
       const P=(lat,lng)=>[wX(lng,z)-x0, wY(lat,z)-y0];
       c.fillStyle="rgba(255,255,255,.18)"; c.fillRect(0,0,w,h);
+      if(trkAttr){ c.lineJoin=c.lineCap="round";
+        for(const wy of TRK.ways.values()){ const st=TRK_CLS[wy.k]; c.beginPath(); wy.ll.forEach((q,i)=>{ const [x,y]=P(q[0],q[1]); i?c.lineTo(x,y):c.moveTo(x,y); });
+          c.setLineDash(st.dash?[3,3]:[]); c.strokeStyle=st.c; c.globalAlpha=.85; c.lineWidth=2.2; c.stroke(); }
+        c.setLineDash([]); c.globalAlpha=1;
+        for(const m of TRK.bars.values()){ const q=m.getLatLng(), [x,y]=P(q.lat,q.lng); if(x<0||y<0||x>w||y>h) continue; c.fillStyle="#fff"; c.strokeStyle="#d7191c"; c.lineWidth=1.5; c.fillRect(x-3,y-3,6,6); c.strokeRect(x-3,y-3,6,6); } }
       // Leitung
       c.lineJoin=c.lineCap="round";
       c.beginPath(); route.forEach((q,i)=>{ const [x,y]=P(q.lat,q.lng); i?c.lineTo(x,y):c.moveTo(x,y); });
@@ -995,7 +1309,7 @@ async function staticMap(r,W,H,ov){
       c.fillStyle="rgba(255,255,255,.9)"; c.beginPath(); c.arc(w-20,22,13,0,7); c.fill();
       c.fillStyle="#07275C"; c.beginPath(); c.moveTo(w-20,11); c.lineTo(w-26,27); c.lineTo(w-20,23); c.lineTo(w-14,27); c.closePath(); c.fill();
       c.font="bold 7px Helvetica, Arial, sans-serif"; c.textAlign="center"; c.fillText("N",w-20,32.5);
-      return {img:cv.toDataURL("image/jpeg",.88), attr:src.attr};
+      return {img:cv.toDataURL("image/jpeg",.88), attr:src.attr+trkAttr, trk:trkAttr?" | Waldwege: grün = befestigt, gelb = überwiegend fest, orange = gemischt, rot = unbefestigt, grau gestrichelt = nicht erfasst, Quadrat = Schranke/Tor":""};
     }catch(err){ console.warn("Kartenausschnitt",src.url,err); }
   }
   return null;
@@ -1035,7 +1349,7 @@ function navItems(){
     return [
       {tag:"WE",title:"Wasserentnahme (FP 1)",sub:`${we[0].toFixed(5)}, ${we[1].toFixed(5)}`,url:gmapsUrl(we),col:[1,160,198]},
       {tag:"FP",title:"Pumpen abfahren",sub:`${stops.length} Stopp${stops.length>1?"s":""} FP 1${stops.length>1?"–"+stops.length:""}, dann Verteiler${fps.length>9?" (nur FP 1–9)":""}`,url:gmapsUrl(v,stops),col:[200,20,30]},
-      {tag:"V",title:"Verteiler (Brandstelle)",sub:`${v[0].toFixed(5)}, ${v[1].toFixed(5)}`,url:gmapsUrl(v),col:[7,39,92]}];
+      {tag:r.bsp==="end"?"BSP":"V",title:r.bsp==="end"?"BSP am Objekt":"Verteiler (Brandstelle)",sub:`${v[0].toFixed(5)}, ${v[1].toFixed(5)}`,url:gmapsUrl(v),col:[7,39,92]}];
   }
   const hin=S.path||S.pts, we=hin[0], es=hin[hin.length-1];
   const ret=(r.ring&&S.retPath)?S.retPath:hin.slice().reverse();
@@ -1109,7 +1423,7 @@ async function makePdf(){
       const n=doc.getNumberOfPages();
       for(let i=1;i<=n;i++){ doc.setPage(i); doc.setDrawColor(...LINE); doc.setLineWidth(.2); doc.line(M,287,210-M,287);
         doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
-        doc.text("Planungshilfe nach HLFS-Lernunterlage Löschwasserförderung. Eingangsdruck an jeder Pumpe vor Ort kontrollieren.",M,291);
+        doc.text("Planungshilfe nach HLFS-Lernunterlage und LFS BW F4 Löschwasserversorgung. Eingangsdruck an jeder Pumpe vor Ort kontrollieren.",M,291);
         doc.text("Seite "+i+" von "+n,210-M,291,{align:"right"}); }
     };
     const sect=(t)=>{ doc.setFillColor(...GOLD); doc.rect(M,y-3.2,1.2,4,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.setTextColor(...INK); doc.text(t.toUpperCase(),M+3,y); y+=4; };
@@ -1119,12 +1433,12 @@ async function makePdf(){
     doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...INK);
     doc.text(name||"Förderstrecke",M,y, {maxWidth:CW});
     doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...MUT);
-    doc.text(`${n0(p.q)} l/min · ${p.lines===2?"Doppelleitung":"Einfachleitung"} · ${p.open?"offene":"geschlossene"} Schaltreihe · pa ${n0(p.pa,1)} bar · pe ${p.open?"–":n0(p.pe,1)+" bar"} · Strahlrohr ${n0(p.pstr,1)} bar · B-Schlauch ${n0(p.hoseLen)} m`,M,y+5);
+    doc.text(`${n0(p.q)} l/min · ${p.lines===2?"Doppelleitung":"Einfachleitung"} · ${p.open?"offene":"geschlossene"} Schaltreihe · pa ${n0(p.pa,1)} bar · pe ${p.open?"–":n0(p.pe,1)+" bar"} · Strahlrohr ${n0(p.pstr,1)} bar · B-Schlauch ${n0(p.hoseLen)} m · Ende: ${r.bsp?"Brandstellenpumpe":"Verteiler"} · WE: ${weLabel(p.we)}`,M,y+5,{maxWidth:CW});
     y+=10;
 
     // Kennzahlen
     const tiles=[
-      ["Pumpen",`${nFP}`,`+ ${resFP} Reserve`,true],
+      ["Pumpen",`${r.nTot||nFP}`,`+ ${resFP} Reserve${r.bsp?" · inkl. BSP":""}`,true],
       ["Verstärker alle",nFP>1?(mn===mx?`${mn} B`:`${mn}–${mx} B`):"–",nFP>1?`= ${n0(mn*p.hoseLen)}${mn!==mx?"–"+n0(mx*p.hoseLen):""} m`:"keine nötig",false],
       ["B-Schläuche",`${hoses}`,`+ ${resH} Reserve`,false],
       ["Schlauchstrecke",`${n0(r.L)} m`,`Karte ${n0(pathLen(S.path||S.pts))} m`,false],
@@ -1143,7 +1457,7 @@ async function makePdf(){
     if(mapImg){
       sect("Lageskizze"); const mh=CW*1000/1820;
       doc.addImage(mapImg.img,"JPEG",M,y,CW,mh); doc.setDrawColor(...LINE); doc.setLineWidth(.3); doc.rect(M,y,CW,mh);
-      y+=mh+3; doc.setFontSize(6); doc.setTextColor(...MUT); doc.text(mapImg.attr+" | FP = Feuerlöschpumpe, V = Verteiler, Zahl = B-Längen",M,y); y+=6;
+      y+=mh+3; doc.setFontSize(6); doc.setTextColor(...MUT); { const t=doc.splitTextToSize(mapImg.attr+" | FP = Feuerlöschpumpe, V = Verteiler, Zahl = B-Längen"+(mapImg.trk||""),CW); doc.text(t,M,y); y+=3+2.6*t.length; }
     }
 
     // Pumpentabelle
@@ -1153,9 +1467,9 @@ async function makePdf(){
       cols.forEach(c=>{ doc.text(c[0],x+1.5,y+4.4); x+=c[1]; }); y+=6.5; };
     th();
     const rows=r.pumps.map((pp,i)=>{ const q=r.s[pp.i];
-      return [`FP ${i+1}`, i===0?"WE":`${r.pumps[i-1].bl} × B`, i===0?"–":`nach ${pp.bNr}.`, `${n0(i===0?0:pp.bNr*p.hoseLen)} m`, `${n0(q.h)} m`, `${n0(pp.pa,1)} bar`, pp.arrive!=null?`${n0(pp.arrive,1)} bar`:"–", `${q.lat.toFixed(5)}, ${q.lng.toFixed(5)}`]; });
+      return [`FP ${i+1}${r.bsp==="last"&&i===nFP-1&&nFP>1?" BSP":""}`, i===0?"WE":`${r.pumps[i-1].bl} × B`, i===0?"–":`nach ${pp.bNr}.`, `${n0(i===0?0:pp.bNr*p.hoseLen)} m`, `${n0(q.h)} m`, `${n0(pp.pa,1)} bar`, pp.arrive!=null?`${n0(pp.arrive,1)} bar`:"–", `${q.lat.toFixed(5)}, ${q.lng.toFixed(5)}`]; });
     const e=r.s[r.s.length-1];
-    rows.push(["V",`${r.pumps[nFP-1].bl} × B`,`nach ${r.bTotal}.`,`${n0(r.L)} m`,`${n0(e.h)} m`,"–",`${n0(r.pumps[nFP-1].endP,1)} bar`,`${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}`]);
+    rows.push([r.bsp==="end"?"BSP":"V",`${r.pumps[nFP-1].bl} × B`,`nach ${r.bTotal}.`,`${n0(r.L)} m`,`${n0(e.h)} m`,"–",`${n0(r.pumps[nFP-1].endP,1)} bar`,`${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}`]);
     doc.setFontSize(8);
     rows.forEach((row,ri)=>{
       if(y+6>283){ doc.addPage(); header(); y=34; th(); doc.setFontSize(8); }
@@ -1165,7 +1479,7 @@ async function makePdf(){
     });
     doc.setDrawColor(...LINE); doc.line(M,y,M+CW,y); y+=3;
     doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
-    doc.text(`Abstand = B-Längen ab vorheriger Stelle. B-Nr. = Verstärker an der Kupplung nach dem n-ten B-Schlauch ab Wasserentnahme${p.lines===2?" (je Leitung)":""}. Ankunft = Eingangsdruck an der nächsten Pumpe.`,M,y+1,{maxWidth:CW});
+    doc.text(`Abstand = B-Längen ab vorheriger Stelle. B-Nr. = Verstärker an der Kupplung nach dem n-ten B-Schlauch ab Wasserentnahme${p.lines===2?" (je Leitung)":""}. Ankunft = Eingangsdruck an der nächsten Pumpe. BSP = Brandstellenpumpe (Löschfahrzeug mit Tank).`,M,y+1,{maxWidth:CW});
     y+=9;
 
     // Höhenprofil
@@ -1173,20 +1487,20 @@ async function makePdf(){
     const ph=CW*420/1500; doc.addImage(profilePng(r),"JPEG",M,y,CW,ph); y+=ph+2;
     doc.setFontSize(6.5); doc.setTextColor(...MUT); doc.text("Grün: Gelände (Copernicus-DEM) · Orange gestrichelt: Druckabfalllinie · Rot: Pumpenstandort · x-Achse: Schlauchmeter",M,y+1); y+=7;
 
-    // Material + Hinweise + QR
-    need(58); const colW=(CW-6)/2, y0=y;
-    sect("Material");
-    const mat=[`${nFP} Feuerlöschkreiselpumpen (+ ${resFP} Reserve)`,`${hoses} B-Schläuche à ${n0(p.hoseLen)} m${p.lines===2?" (2 × "+perLine+")":""} (+ ${resH} Reserve)`,
+    // Material
+    need(34); sect("Material");
+    const nT=r.nTot||nFP;
+    const mat=[`${nT} Feuerlöschkreiselpumpen (+ ${resFP} Reserve)${r.bsp?", davon 1 Brandstellenpumpe (Löschfahrzeug mit Tank)":""}`,`${hoses} B-Schläuche à ${n0(p.hoseLen)} m${p.lines===2?" (2 × "+perLine+")":""} (+ ${resH} Reserve)`,
       p.open?`${Math.max(0,nFP-1)} Auffangbehälter (offene Schaltreihe)`:"Geschlossene Schaltreihe, keine Behälter",
-      `Förderstrom ${n0(p.q)} l/min, je Leitung ${n0(r.qL)} l/min`,`Reibungsverlust ${n0(r.r,2)} bar je 100 m`,`Formel-Überschlag: ${r.nForm} Pumpen (pges ${n0(r.pges,1)} bar)`];
+      `Förderstrom ${n0(p.q)} l/min, je Leitung ${n0(r.qL)} l/min · Reibungsverlust ${n0(r.r,2)} bar je 100 m`,`Wasserentnahmestelle: ${weLabel(p.we)}`,`Formel-Überschlag: ${r.nForm} Pumpen (pges ${n0(r.pges,1)} bar)`];
     doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);
-    mat.forEach(t=>{ const l=doc.splitTextToSize("• "+t,colW); doc.text(l,M,y+1); y+=l.length*3.8; });
-    const yA=y; y=y0; const x2=M+colW+6;
-    doc.setFillColor(...GOLD); doc.rect(x2,y-3.2,1.2,4,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.text("HINWEISE",x2+3,y); y+=4;
-    const hin=[`Eingangsdruck an jeder Verstärkerpumpe mind. ${n0(Math.max(1.5,p.open?1.5:p.pe),1)} bar halten.`,"Leitung vor dem Fördern vollständig füllen und entlüften.","Druckbegrenzungsventile und Schieber langsam bedienen (Druckstöße).","Funkverbindung zwischen allen Pumpen sicherstellen.","Schlauchbrücken an Straßen, Reserve an Knickstellen."];
-    doc.setFont("helvetica","normal"); doc.setFontSize(8);
-    hin.forEach(t=>{ const l=doc.splitTextToSize("• "+t,colW); doc.text(l,x2,y+1); y+=l.length*3.8; });
-    y=Math.max(y,yA)+6;
+    mat.forEach(t=>{ const l=doc.splitTextToSize("• "+t,CW); doc.text(l,M,y+1); y+=l.length*3.8; });
+    y+=4;
+    // Hinweise
+    need(30); sect("Hinweise zur Förderstrecke");
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);
+    lwHints(p).forEach(t=>{ const l=doc.splitTextToSize("• "+t,CW); if(y+l.length*3.7>283){ doc.addPage(); header(); y=34; } doc.text(l,M,y+1); y+=l.length*3.7+0.5; });
+    y+=4;
     if(nav){ need(48); sect("Anfahrt mit dem Handy"); y+=pdfNav(doc,M,y,CW,nav,{line:LINE,ink:INK,mut:MUT})+2;
       doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
       doc.text(doc.splitTextToSize("Mit der Handy-Kamera scannen, die Navigation startet in Google Maps. „Pumpen abfahren“ führt über Straßen nacheinander zu allen Pumpen, z. B. zum Absetzen der Tragkraftspritzen. Die Schlauchtrasse selbst kann abseits der Straße verlaufen. Mit der Google-Maps-App werden bis zu 9 Stopps übernommen, im Handy-Browser nur 3.",CW),M,y+1); y+=11; }
@@ -1214,6 +1528,8 @@ $("pdfClose").onclick=()=>$("pdfReady").hidden=true;
 
 /* ================= PENDELVERKEHR ================= */
 const STD_TYPES=[
+  {id:"std-tlf2000",name:"TLF 2000",vol:2000,vmax:80,kind:"fw"},
+  {id:"std-lf20",name:"LF 20",vol:2000,vmax:80,kind:"fw"},
   {id:"std-tlf3000",name:"TLF 3000",vol:3000,vmax:80,kind:"fw"},
   {id:"std-tlf4000",name:"TLF 4000",vol:4000,vmax:80,kind:"fw"},
   {id:"std-tlf1625",name:"TLF 16/25",vol:2500,vmax:80,kind:"fw"},
@@ -1224,16 +1540,19 @@ const STD_TYPES=[
   {id:"std-gtlf",name:"GTLF",vol:10000,vmax:80,kind:"fw"},
   {id:"std-traktor",name:"Traktor mit Wasserfass",vol:12000,vmax:40,kind:"lw"}];
 const KIND_TXT={fw:"Feuerwehr",lw:"Landwirtschaft",thw:"THW / Hilfsorganisation",so:"Sonstiges"};
-const PV_DEF={q:400,v:30,rust:8,fill:1000,fs:1,buf:0,pump:1200,dur:120,veh:[{id:"std-tlf3000",c:2,t:10},{id:"std-tlf4000",c:1,t:15}]};
+const PV_DEF={q:400,v:30,rust:8,fill:1000,fs:1,buf:3000,pump:1200,dur:120,we:{t:"uf",dn:100,cap:"",vol:""},veh:[{id:"std-tlf3000",c:2,t:10},{id:"std-tlf4000",c:1,t:15}]};
 const PV=Object.assign(JSON.parse(JSON.stringify(PV_DEF)),store.get("lwf.pv",{}));
 if(!Array.isArray(PV.veh)) PV.veh=JSON.parse(JSON.stringify(PV_DEF.veh));
 // ältere Einträge {n,vol} übernehmen
+if(!PV.we||typeof PV.we!=="object") PV.we={t:"uf",dn:100,cap:"",vol:""};
 PV.veh.forEach(r=>{ if(!r.id){ const s=STD_TYPES.find(t=>t.name===r.n); r.id=s?s.id:"snap"; r.snap={name:r.n||"Fahrzeug",vol:r.vol||3000,vmax:80}; delete r.n; delete r.vol; } });
 
 const PV_HINTS=[
-  "Nur Fahrzeuge mit mindestens 2.500 l Löschwasser einsetzen (TLF, StLF, Wasserfass). Kleinere Fahrzeuge verlängern den Umlauf und blockieren die Abgabestelle.",
+  "Nur wasserführende Fahrzeuge mit ausreichend Tankinhalt einsetzen: LFS BW mindestens 2.000 l, HLFS mindestens 2.500 l. Kleinere Fahrzeuge verlängern den Umlauf und blockieren die Abgabestelle.",
+  "An der Einsatzstelle muss ein großer Pufferbehälter bereitstehen, z. B. ein weiteres TLF oder ein Faltbehälter, in den die pendelnden Fahrzeuge einspeisen (LFS BW).",
   "Wasserentnahmestelle und Abgabestelle für die gesamte Einsatzdauer mit einer eigenen Einheit besetzen. Das verkürzt die Rüstzeiten.",
-  "An der Einsatzstelle einen Pufferbehälter oder ein Pufferfahrzeug einsetzen. Er überbrückt Wechsel- und Rüstzeiten und verspätete Fahrzeuge.",
+  "Der Puffer überbrückt Wechsel- und Rüstzeiten und verspätete Fahrzeuge. Er sollte mindestens den Inhalt des größten pendelnden Fahrzeugs aufnehmen.",
+  "Fahrzeuge müssen die Strecke von ihren Geländefahreigenschaften her sicher befahren können.",
   "Fahrstrecke festlegen und möglichst als Ringverkehr führen: beladen auf einem Weg hin, leer auf einem anderen zurück. Begegnungsverkehr auf engen Wegen vermeiden.",
   "Lotsenstellen, Einweiser und Beschilderung an Abzweigungen einrichten, besonders dort, wo Hin- und Rückweg sich trennen. Wendemöglichkeiten an Entnahme- und Einsatzstelle sicherstellen.",
   "Breite und Tragfähigkeit von Wald- und Feldwegen prüfen. Beladene Tanklöschfahrzeuge wiegen bis 18 t, Traktoren mit Wasserfass oft mehr.",
@@ -1346,6 +1665,7 @@ function writePV(){
   $("pvQ").value=PV.q; $("pvV").value=PV.v; $("pvR").value=PV.rust; $("pvFill").value=PV.fill;
   $("pvFs").value=String(PV.fs); $("pvBuf").value=String(PV.buf); $("pvPump").value=PV.pump; $("pvDur").value=String(PV.dur);
   $("pvPump").disabled=!PV.buf;
+  if(typeof weUpdPV==="function") weUpdPV();
   document.querySelectorAll("#pvQChips button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.q===PV.q));
   document.querySelectorAll("#pvVChips button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===PV.v));
   renderVeh();
@@ -1378,7 +1698,7 @@ function renderVeh(){
     <span class="vinfo">${fmt(v.vol)} l · max. ${fmt(v.vmax||80)} km/h${v.fill?" · Füllen "+fmt(v.fill)+" l/min":""}${v.out?" · Abgabe "+fmt(v.out)+" l/min":""}</span>
     ${fl?`<label>Anzahl<span class="vone">1 (Fuhrpark)</span></label>`:`<label>Anzahl<input class="vc" id="vc${i}" type="number" inputmode="numeric" min="1" max="30" step="1" value="${r.c}"></label>`}
     <label>Eintreffen [min]<input class="ve" id="ve${i}" type="number" inputmode="numeric" min="0" max="240" step="1" value="${r.t}"></label>
-    ${v.vol<2400?'<span class="warnv">Unter 2.500 l nur eingeschränkt geeignet.</span>':""}
+    ${v.vol<2000?'<span class="warnv">Unter 2.000 l für den Pendelverkehr nicht geeignet.</span>':v.vol<2500?'<span class="warnv">Unter 2.500 l: nach HLFS nur eingeschränkt geeignet.</span>':""}
   </div>`; }).join("");
   box.querySelectorAll(".veh").forEach(row=>{
     const i=+row.dataset.i, r=PV.veh[i];
@@ -1401,6 +1721,8 @@ $("pvVChips").innerHTML=[20,30,40,50].map(v=>`<button data-v="${v}">${v} km/h</b
 $("pvVChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ PV.v=+b.dataset.v; writePV(); readPV(); updStats(); });
 ["pvQ","pvV","pvR","pvFill","pvFs","pvBuf","pvPump","pvDur"].forEach(id=>$(id).addEventListener("change",()=>{ readPV(); writePV(); updStats(); }));
 $("pvHints").innerHTML=PV_HINTS.map(h=>`<li>${h}</li>`).join("");
+$("weBoxPV").innerHTML=weMarkup("pv");
+var weUpdPV=weBind("pv",()=>PV.we,()=>{ const c=weCap(PV.we); if(isFinite(c) && PV.fill>c){ PV.fill=c; $("pvFill").value=c; } store.set("lwf.pv",PV); });
 $("ganttLegend").innerHTML=GANTT_KEYS.map(k=>`<span><i style="background:${k[2]};height:8px"></i>${k[1]}</span>`).join("")+'<span><i style="background:#c8141e;height:8px"></i>Kein Wasser</span>';
 
 /* ---------- Fuhrpark verwalten ---------- */
@@ -1549,7 +1871,8 @@ function simPV(list,p){
   return {V,t0,tEnd,gaps:real,short,stable:t0!==null && short<0.25,minB:minB===Infinity?0:minB,avgQ:t0!==null?delivered/p.dur:0};
 }
 function pvTypes(lenH,lenR,p){
-  return p.veh.map(r=>{ const v=rowVeh(r), sp=Math.min(p.v, v.vmax||p.v), fill=v.fill||p.fill;
+  const capPer=weCap(p.we)/(isHydrant(p.we)?(p.fs||1):1);
+  return p.veh.map(r=>{ const v=rowVeh(r), sp=Math.min(p.v, v.vmax||p.v), fill=Math.min(v.fill||p.fill, capPer);
     const tH=lenH/1000/sp*60, tR=lenR/1000/sp*60, tFill=v.vol/fill, tAb=v.vol/p.q, U=p.rust+tFill+tH+tR+tAb;
     return {id:r.id,c:r.c,t:r.t,name:v.name,unit:v.unit||"",vol:v.vol,vmax:v.vmax||80,out:v.out||0,fill,sp,tH,tR,tFill,tAb,U,need:U/tAb}; });
 }
@@ -1653,13 +1976,29 @@ function pvMessages(r){
     if(r.overlap>150) m.push(["warn",`Ringverkehr: Hin- und Rückweg nutzen etwa ${fmt(Math.round(r.overlap/50)*50)} m gemeinsam. Dort gibt es Gegenverkehr: Ausweichstellen oder Einweiser einplanen.`]);
     else m.push(["ok",`Ringverkehr: Hinweg ${fmt(r.lenH/1000,1)} km und Rückweg ${fmt(r.lenR/1000,1)} km sind getrennt. Kein Gegenverkehr außer an Entnahme- und Einsatzstelle.`]);
   } else if(r.nVeh>1) m.push(["warn","Hin- und Rückweg auf derselben Strecke: Beladene und leere Fahrzeuge begegnen sich. Auf engen Wegen unter „Strecke“ einen Ringverkehr planen."]);
+  if(!p.buf && r.nVeh>1) m.push(["warn","Ohne Puffer: Laut LFS BW muss an der Einsatzstelle ein großer Pufferbehälter (z. B. ein weiteres TLF) bereitstehen. Sonst muss das nächste Fahrzeug angekuppelt sein, bevor das vorherige leer ist."]);
   const slow=r.types.filter(t=>t.sp<p.v);
   if(slow.length) m.push(["warn",`Langsamere Fahrzeuge: ${slow.map(t=>`${esc(t.name)}${t.unit?" ("+esc(t.unit)+")":""} max. ${fmt(t.sp)} km/h, Umlauf ${fmt(t.U)} min`).join("; ")}. Auf engen Wegen ohne Überholmöglichkeit bremsen sie nachfolgende Fahrzeuge.`]);
-  if(r.types.some(t=>t.vol<2400)) m.push(["warn","Fahrzeuge unter 2.500 l sind für den Pendelverkehr nur eingeschränkt geeignet (HLFS)."]);
+  if(r.types.some(t=>t.vol<2000)) m.push(["warn","Fahrzeuge unter 2.000 l sind für den Pendelverkehr nicht geeignet (LFS BW mind. 2.000 l, HLFS mind. 2.500 l)."]);
+  const cap=weCap(p.we);
+  if(isFinite(cap) && p.fill*(isHydrant(p.we)?p.fs:1)>cap) m.push(["warn",`Die Entnahmestelle liefert ${p.we.t==="eigen"?"gemessen":"nach Faustformel"} nur etwa ${fmt(cap)} l/min. Gerechnet wird deshalb mit ${fmt(Math.min(p.fill,cap/(isHydrant(p.we)?p.fs:1)))} l/min Füllstrom je Füllstelle.`]);
+  if(p.we.t==="beh" && +p.we.vol>0 && +p.we.vol*1000<p.q*p.dur) m.push(["warn",`Der Löschwasserbehälter (${fmt(+p.we.vol)} m³) reicht bei ${fmt(p.q)} l/min nur etwa ${fmt(+p.we.vol*1000/p.q)} min, geplant sind ${fmt(p.dur)} min.`]);
   if(p.q>=500 && r.lenH<3000) m.push(["warn",`Bei ${fmt(p.q)} l/min und nur ${fmt(r.lenH/1000,1)} km ist eine Förderstrecke (lange Wegstrecke) meist leistungsfähiger.`]);
   if(r.slope>10) m.push(["warn",`Steigungen bis etwa ${fmt(r.slope)} % auf dem Hinweg: Beladene Fahrzeuge fahren dort deutlich langsamer. Geschwindigkeit ggf. senken.`]);
   if(r.osrm) m.push(["ok",`Routenplaner (Pkw): Hinweg ${fmt(r.osrm.dist/1000,1)} km, etwa ${fmt(r.osrm.dur/60)} min${r.osrmR?`, Rückweg ${fmt(r.osrmR.dist/1000,1)} km`:""}. Gerechnet wird mit Ø ${fmt(p.v)} km/h, bei langsameren Fahrzeugen mit deren Höchstgeschwindigkeit.`]);
   return m;
+}
+function pvChecklist(r){
+  const p=r.params, cap=weCap(p.we), maxVol=Math.max(0,...r.types.map(t=>t.vol));
+  const weOk=p.we.t==="beh"? (+p.we.vol>0? +p.we.vol*1000>=p.q*p.dur : null) : (isFinite(cap)? cap>=p.q : true);
+  return [
+    [r.nVeh>0 && r.types.every(t=>t.vol>=2000), `${r.nVeh} wasserführende Fahrzeuge mit mindestens 2.000 l Tankinhalt sind eingeplant.`],
+    [r.nVeh>0 && r.sim.stable, `Der Wasserbedarf von ${fmt(p.q)} l/min ist ausreichend und kann realisiert werden${r.sim.stable?"":` (Zeitstrahl: ${fmt(r.sim.short)} min ohne Wasser)`}.`],
+    [r.ring? (r.overlap>150? null : true) : null, r.ring? (r.overlap>150?`Ringverkehr geplant, aber etwa ${fmt(Math.round(r.overlap/50)*50)} m Begegnungsverkehr: Straßenbreite dort prüfen.`:"Die Fahrstrecke wird im Ringverkehr befahren.") : "Begegnungsverkehr: Ausreichende Straßenbreite vor Ort prüfen oder Ringverkehr planen."],
+    [null, `Die Fahrzeuge können die Strecke von ihren Geländefahreigenschaften her befahren${r.slope>10?` (Steigungen bis ca. ${fmt(r.slope)} %)`:""}. Vor Ort prüfen.`],
+    [weOk, `Die Wasserentnahmestelle ist leistungsstark genug: ${weLabel(p.we)}${isFinite(cap)?` für ${fmt(p.fill*(isHydrant(p.we)?p.fs:1))} l/min Füllstrom`:""}.`],
+    [p.buf>=maxVol && p.buf>0 ? true : (p.buf>0? null : false), p.buf? `Pufferbehälter an der Einsatzstelle: ${fmt(p.buf)} l${p.buf<maxVol?` (kleiner als das größte Fahrzeug mit ${fmt(maxVol)} l)`:""}.` : "An der Einsatzstelle steht kein Pufferbehälter (ggf. TLF) zur Verfügung."],
+    [p.q>=500 && r.lenH<3000 ? false : null, p.q>=500 && r.lenH<3000 ? `Bei ${fmt(p.q)} l/min und ${fmt(r.lenH/1000,1)} km ist eine Förderstrecke vermutlich einfacher.` : "Es gibt keine andere Alternative, die einfacher funktioniert (z. B. Förderstrecke). Prüfen."]];
 }
 function showPV(r){
   if(!r) return;
@@ -1672,7 +2011,11 @@ function showPV(r){
   $("pvMsgs").innerHTML=pvMessages(r).map(x=>`<div class="msg ${x[0]}">${x[1]}</div>`).join("");
   $("pvTbl").innerHTML=r.types.map(t=>`<tr><td><b>${t.c} × ${esc(t.name)}</b><br><span class="note">${t.unit?esc(t.unit)+" · ":""}ab Min. ${fmt(t.t)}</span></td><td>${fmt(t.vol)} l<br><span class="note">reicht ${fmt(t.tAb,1)} min</span></td><td>${fmt(t.sp)}</td><td>${fmt(t.U)} min</td><td>${Math.ceil(t.need-1e-9)}</td></tr>`).join("");
   $("pvForm").innerHTML=t0? pvFormulaHtml(r,t0) : "Keine Fahrzeuge eingeplant.";
+  const ck=pvChecklist(r);
+  $("pvCheck").innerHTML=ck.map(([ok,t])=>`<li class="${ok===true?"ck-ok":ok===false?"ck-no":"ck-q"}"><span aria-hidden="true">${ok===true?"✓":ok===false?"✗":"?"}</span><div>${esc(t)}</div></li>`).join("");
+  $("pvCheckRes").textContent=ck.every(c=>c[0]===true)?"Alle Punkte erfüllt.":`${ck.filter(c=>c[0]===false).length} Punkt(e) nicht erfüllt, ${ck.filter(c=>c[0]===null).length} vor Ort zu prüfen. Der Pendelverkehr kommt nur in Betracht, wenn alle Anforderungen erfüllt sind (LFS BW).`;
   $("pvProfBox").hidden=!r.s;
+  $("pvHints").innerHTML=PV_HINTS.concat(isHydrant(p.we)?TW_HINTS:[]).map(h=>`<li>${h}</li>`).join("");
   if(!$("tab-ergebnis").hidden) requestAnimationFrame(drawPVCharts);
 }
 function pvFormulaHtml(r,t){
@@ -1765,7 +2108,7 @@ async function makePdfPV(){
     const footer=()=>{ const n=doc.getNumberOfPages();
       for(let i=1;i<=n;i++){ doc.setPage(i); doc.setDrawColor(...LINE); doc.setLineWidth(.2); doc.line(M,287,210-M,287);
         doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
-        doc.text("Planungshilfe nach HLFS-Lernunterlage Löschwasserförderung, Kap. 14 Pendelverkehr. Ersetzt nicht die Lagebeurteilung vor Ort.",M,291);
+        doc.text("Planungshilfe nach HLFS-Lernunterlage und LFS BW F4 Löschwasserversorgung. Ersetzt nicht die Lagebeurteilung vor Ort.",M,291);
         doc.text("Seite "+i+" von "+n,210-M,291,{align:"right"}); } };
     const sect=t=>{ doc.setFillColor(...GOLD); doc.rect(M,y-3.2,1.2,4,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.setTextColor(...INK); doc.text(t.toUpperCase(),M+3,y); y+=4; };
     const need=h=>{ if(y+h>283){ doc.addPage(); header(); y=34; } };
@@ -1774,7 +2117,7 @@ async function makePdfPV(){
     header(); y=34;
     doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...INK); doc.text(name||"Pendelverkehr",M,y,{maxWidth:CW});
     doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...MUT);
-    doc.text(`Bedarf ${n0(p.q)} l/min · Ø ${n0(p.v)} km/h · ${r.ring?"Ringverkehr":"Rückweg gleiche Strecke"} · Rüstzeit ${n0(p.rust,1)} min · Füllstrom ${n0(p.fill)} l/min (${p.fs} Füllstelle${p.fs>1?"n":""}) · ${p.buf?"Puffer "+n0(p.buf)+" l":"ohne Puffer"} · ${n0(p.dur)} min`,M,y+5,{maxWidth:CW});
+    doc.text(`Bedarf ${n0(p.q)} l/min · Ø ${n0(p.v)} km/h · ${r.ring?"Ringverkehr":"Rückweg gleiche Strecke"} · Rüstzeit ${n0(p.rust,1)} min · Füllstrom ${n0(p.fill)} l/min (${p.fs} Füllstelle${p.fs>1?"n":""}) · ${p.buf?"Puffer "+n0(p.buf)+" l":"ohne Puffer"} · ${n0(p.dur)} min · WE: ${weLabel(p.we)}`,M,y+5,{maxWidth:CW});
     y+=10;
     const tiles=[
       ["Fahrzeuge",r.nVeh?`${r.nVeh}`:"–",sim.stable?"reichen aus":(r.add?`+ ${r.add.n} Fahrzeug${r.add.n>1?"e":""} nötig`:"reichen nicht"),true],
@@ -1800,7 +2143,7 @@ async function makePdfPV(){
     if(mapImg){ sect("Lageskizze"); const mh=CW*1000/1820*0.86;
       doc.addImage(mapImg.img,"JPEG",M,y,CW,mh); doc.setDrawColor(...LINE); doc.setLineWidth(.3); doc.rect(M,y,CW,mh);
       y+=mh+3; doc.setFontSize(6); doc.setTextColor(...MUT);
-      doc.text(mapImg.attr+" | WE = Wasserentnahme, ES = Einsatzstelle"+(r.ring?", blau = Hinweg beladen, orange = Rückweg leer":", Pfeil = Fahrtrichtung beladen"),M,y); y+=6; }
+      { const t=doc.splitTextToSize(mapImg.attr+" | WE = Wasserentnahme, ES = Einsatzstelle"+(r.ring?", blau = Hinweg beladen, orange = Rückweg leer":", Pfeil = Fahrtrichtung beladen")+(mapImg.trk||""),CW); doc.text(t,M,y); y+=3+2.6*t.length; } }
     // Fahrzeuge
     need(26); sect("Fahrzeuge");
     const cols=[["Fahrzeug",34],["Einheit",30],["Anz.",11],["Inhalt",18],["km/h",13],["Eintreffen",18],["Umlauf",17],["Fahrten",17],["allein nötig",32]];
@@ -1842,10 +2185,26 @@ async function makePdfPV(){
       doc.setFontSize(8);
       L2.forEach((l,i)=>{ doc.setFont("helvetica",i>=4?"bold":"normal"); doc.setTextColor(...INK); doc.text(l[0],M,y+1); doc.setTextColor(...MUT); doc.text(l[1],M+62,y+1); doc.setTextColor(...INK); doc.text(l[2],M+CW,y+1,{align:"right"}); y+=4.4; });
       y+=3; }
+    // Checkliste (LFS BW)
+    need(50); sect("Checkliste Pendelverkehr");
+    doc.setFontSize(8);
+    pvChecklist(r).forEach(([ok,t])=>{
+      const l=doc.splitTextToSize(t,CW-9); if(y+l.length*3.7+1>283){ doc.addPage(); header(); y=34; }
+      const col=ok===true?[47,138,62]:ok===false?[200,20,30]:[224,122,16];
+      doc.setDrawColor(...col); doc.setLineWidth(.5); doc.rect(M,y-1.6,3.6,3.6);
+      if(ok===true){ doc.line(M+0.7,y+0.3,M+1.5,y+1.2); doc.line(M+1.5,y+1.2,M+3,y-0.9); }
+      else if(ok===false){ doc.line(M+0.8,y-0.8,M+2.8,y+1.2); doc.line(M+2.8,y-0.8,M+0.8,y+1.2); }
+      else { doc.setFont("helvetica","bold"); doc.setTextColor(...col); doc.text("?",M+1.1,y+1.1); }
+      doc.setFont("helvetica","normal"); doc.setTextColor(...INK); doc.text(l,M+6,y+1); y+=l.length*3.7+1.4; });
+    doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(...MUT);
+    doc.text(doc.splitTextToSize("Der Pendelverkehr kommt nur in Betracht, wenn alle Anforderungen der Checkliste vollständig erfüllt sind (LFS BW). Grün = erfüllt, Rot = nicht erfüllt, Orange = vor Ort prüfen.",CW),M,y+1); y+=9;
     need(60); sect("Hinweise zum Pendelverkehr");
     const colW=CW;
     doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);
     PV_HINTS.forEach(h=>{ const l=doc.splitTextToSize("• "+h,colW); if(y+l.length*3.7>283){ doc.addPage(); header(); y=34; } doc.text(l,M,y+1); y+=l.length*3.7+0.6; });
+    doc.setFontSize(7); doc.setTextColor(...MUT);
+    doc.setFontSize(8); doc.setTextColor(...INK);
+    if(isHydrant(p.we)) TW_HINTS.forEach(h=>{ const l=doc.splitTextToSize("• "+h,colW); if(y+l.length*3.7>283){ doc.addPage(); header(); y=34; } doc.text(l,M,y+1); y+=l.length*3.7+0.6; });
     doc.setFontSize(7); doc.setTextColor(...MUT);
     const crit=doc.splitTextToSize("Entscheidungshilfe HLFS: Pendelverkehr bei Förderstrom unter 500 l/min, Entfernung über 3 bis 4 km, zu Beginn des Einsatzes oder bei ausgedehnten Einsatzstellen.",colW);
     if(y+crit.length*3.4+3>283){ doc.addPage(); header(); y=34; }
@@ -1869,7 +2228,7 @@ function encode(){
   const pts="p="+S.pts.map(p=>p[0].toFixed(5)+","+p[1].toFixed(5)).join(";");
   if(S.mode==="pv") return pts+"&m=pv&r="+(+S.road)+(S.ring?"&ring=1&ret="+S.ret.map(p=>p[0].toFixed(5)+","+p[1].toFixed(5)).join(";"):"")+"&pv="+encodeURIComponent(JSON.stringify(PV));
   return pts+
-  `&q=${P.q}&l=${P.lines}&o=${+P.open}&pa=${P.pa}&pe=${P.pe}&ps=${P.pstr}&a=${+P.addPe}&hl=${P.hoseLen}&z=${P.zus}&r=${+S.road}`; }
+  `&q=${P.q}&l=${P.lines}&o=${+P.open}&pa=${P.pa}&pe=${P.pe}&ps=${P.pstr}&a=${+P.addPe}&hl=${P.hoseLen}&z=${P.zus}&r=${+S.road}&em=${P.em}&we=${encodeURIComponent(JSON.stringify(P.we))}`; }
 function writeHash(){ history.replaceState(null,"","#"+encode()); }
 function decode(h){
   const q=new URLSearchParams(h.replace(/^#/,"")); if(!q.get("p")) return false;
@@ -1884,6 +2243,8 @@ function decode(h){
     writePV(); renderRingUI(); return S.pts.length>0;
   }
   Object.assign(P,{q:n("q",P.q),lines:n("l",P.lines),open:!!n("o",0),pa:n("pa",P.pa),pe:n("pe",P.pe),pstr:n("ps",P.pstr),addPe:!!n("a",0),hoseLen:n("hl",P.hoseLen),zus:n("z",P.zus)});
+  if(q.get("em")) P.em=q.get("em")==="v"?"v":"bsp";
+  try{ const w=JSON.parse(q.get("we")||"null"); if(w&&typeof w==="object"&&WE_TYPES[w.t]) P.we=w; }catch(e){}
   S.road=!!n("r",0); return S.pts.length>0;
 }
 $("shareBtn").onclick=async()=>{
@@ -1896,7 +2257,7 @@ $("saveBtn").onclick=()=>{
   const name=(prompt("Name des Plans (z. B. Objekt, Waldabschnitt):",$("planName").value)||"").trim(); if(!name) return;
   const plans=store.get("lwf.plans",[]);
   const R=S.result, pv=S.mode==="pv";
-  plans.unshift({name,hash:encode(),pv,fp:R&&!pv?R.pumps.length:null,nv:R&&pv?R.nVeh:null,len:R?Math.round(pv?R.len:R.L):null,t:Date.now()});
+  plans.unshift({name,hash:encode(),pv,fp:R&&!pv?(R.nTot||R.pumps.length):null,nv:R&&pv?R.nVeh:null,len:R?Math.round(pv?R.len:R.L):null,t:Date.now()});
   store.set("lwf.plans",plans.slice(0,50)); renderPlans(); toast("Plan gespeichert");
 };
 function renderPlans(){
@@ -1911,7 +2272,7 @@ renderPlans();
 /* ---------- Start ---------- */
 (function(){ const sp=$("splash"); const t0=Date.now(); let done=false;
   const hide=()=>{ if(done) return; done=true; setTimeout(()=>sp.classList.add("gone"),Math.max(0,1100-(Date.now()-t0))); };
-  layers[layerIx][1].once("load",hide); setTimeout(hide,2500); sp.onclick=hide; })();
+  const base=curMap().layer; (base.getLayers? base.getLayers() : [base]).forEach(l=>l.once("load",hide)); setTimeout(hide,2500); sp.onclick=hide; })();
 setPlanMode(store.get("lwf.mode","lw"));
 if(location.hash && decode(location.hash)){
   writeP(); setMode(S.road); map.fitBounds(S.pts.length>1?S.pts:[S.pts[0],S.pts[0]],{padding:[60,60],maxZoom:16}); calc();

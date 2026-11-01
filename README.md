@@ -1,13 +1,15 @@
 # Wasserförderung – Lange Wegstrecke und Pendelverkehr
 
-Handy-Web-App zur Planung der Löschwasserversorgung nach der HLFS-Lernunterlage „Löschwasserförderung“ (2019). Beim Start wird gewählt: **Lange Wegstrecke** oder **Pendelverkehr** (später über das Logo oben links umschaltbar).
+Handy-Web-App zur Planung der Löschwasserversorgung nach der HLFS-Lernunterlage „Löschwasserförderung“ (2019) und dem Skript „Löschwasserversorgung F4 Zugführer“ der Landesfeuerwehrschule Baden-Württemberg (2026). Beim Start wird gewählt: **Lange Wegstrecke** oder **Pendelverkehr** (später über das Logo oben links umschaltbar).
 
 ## Pendelverkehr
 - Wasserentnahmestelle und Einsatzstelle auf der Karte setzen, Fahrstrecke folgt automatisch den Straßen (oder gerade Linie für Wald-/Feldwege)
 - **Ringverkehr:** Rückweg getrennt vom Hinweg planen (Strecke → Ringverkehr → Rückweg bearbeiten). Die App meldet, auf wie vielen Metern sich Hin- und Rückweg doch überschneiden (Gegenverkehr).
 - **Fuhrpark:** Daten → Fuhrpark verwalten. Fahrzeuge mit Bezeichnung, Einheit/Halter, Art, Inhalt, max. Pendelgeschwindigkeit, Anfahrtszeit und optional eigenem Füll-/Abgabestrom anlegen (z. B. Traktor mit Wasserfass 12.000 l, 25 km/h). Langsamere Fahrzeuge werden mit ihrer eigenen Geschwindigkeit gerechnet.
 - Fahrzeuge aus dem Fuhrpark mit Eintreffzeit einplanen. Jedes Fuhrpark-Fahrzeug kann nur einmal eingeplant werden, die Auswahl zeigt nur freie Fahrzeuge (Standardtypen dürfen mehrfach vorkommen). Reicht der Plan nicht, schlägt die App zuerst freie Fuhrpark-Fahrzeuge zum Nachalarmieren vor. Dazu Bedarf, Geschwindigkeit, Rüstzeit, Füllstrom, Füllstellen, Puffer
-- Berechnung nach HLFS-Formel n = Umlaufzeit / Abgabezeit (Fahrzeit hin und zurück)
+- Berechnung n = Umlaufzeit / Abgabezeit (Fahrzeit hin und zurück), geprüft mit dem LFS-BW-Beispiel (33 min / 2,5 min → 14 Fahrzeuge)
+- Wasserentnahmestelle mit Hydranten-Faustformel (Unterflur DN × 10, Überflur DN × 15 l/min, max. 2.000 / 3.200 l/min), begrenzt den Füllstrom
+- Checkliste Pendelverkehr nach LFS BW (automatisch bewertet: erfüllt / nicht erfüllt / vor Ort prüfen), Puffer an der Einsatzstelle
 - Zeitstrahl-Simulation aller Fahrzeuge mit Warte- und Rüstzeiten: stabil ja/nein, Unterbrechungen, fehlende Fahrzeuge
 - Höhenprofil der Fahrstrecke, Hinweise zum Pendelverkehr, PDF mit Lageskizze und Zeitstrahl
 
@@ -19,11 +21,15 @@ Handy-Web-App zur Planung der Löschwasserversorgung nach der HLFS-Lernunterlage
 - Höhenprofil wird automatisch geladen (Open-Meteo, Copernicus-DEM)
 - Pumpenstandorte nach dem grafischen Verfahren (Druckabfalllinie trifft Gelände), Anzeige auf Karte und im Profil
 - Einfach-/Doppelleitung, offene/geschlossene Schaltreihe, Pumpendruck, Eingangsdruck, Strahlrohrdruck, Verlegezuschlag
+- Ende der Förderstrecke: Brandstellenpumpe (Löschfahrzeug mit Tank, LFS BW) oder Verteiler direkt (HLFS). Geprüft mit dem LFS-Beispiel „Eichelberg – Näherweg“ (5/4/4/3 Pumpen)
+- Wasserentnahmestelle mit Hydranten-Faustformel, Behälterinhalt, Trinkwasserschutz-Hinweisen
+- Grundsätze der Wasserförderung (LFS BW) als Hinweisliste in App und PDF
 - Material: Pumpen + Reserve (1 je 4), B-Schläuche + Reserve (1 je 100 m)
-- Warnungen: > 1.000 l/min je Leitung, > 16 bar durch Gefälle, Pendelverkehr-Hinweis
+- Warnungen: > 800 und > 1.000 l/min je Leitung, > 16 bar durch Gefälle, Pendelverkehr-Hinweis
 - Plan per Link teilen, Pläne auf dem Gerät speichern
 - Navigation in Google Maps (QR-Codes im PDF und Knöpfe in der App): Lange Wegstrecke = Wasserentnahme, Pumpen abfahren (alle FP als Stopps), Verteiler; Pendelverkehr = Anfahrt Wasserentnahme, Hinweg und Rückweg über die geplante Strecke (wichtigste Abbiegepunkte als Zwischenziele, bis 8 in der Google-Maps-App, 3 im Handy-Browser)
-- Kartenarten: OSM, Topo (mit Höhenlinien), Luftbild
+- Kartenarten (Ebenen-Knopf): OpenStreetMap, OpenTopoMap, Topo-Karte RLP (amtliche DTK25/50/100), Luftbild RLP (DOP 20 cm), TopPlusOpen (BKG), Esri-Luftbild. Die RLP-Karten gibt es nur für Rheinland-Pfalz (© GeoBasis-DE / LVermGeoRP, dl-de/by-2-0). Die gewählte Karte wird auch im PDF verwendet (OSM, OpenTopoMap, RLP-Karten).
+- Zusatz-Ebene **Waldwege (OSM)** im Ebenen-Menü: Wald- und Wirtschaftswege aus OpenStreetMap, eingefärbt nach Befahrbarkeit (grün befestigt, gelb überwiegend fest, orange gemischt, rot unbefestigt, grau gestrichelt nicht erfasst), dazu Schranken und Tore. Erscheint ab Zoom 13. „Weg-Info“ in der Legende einschalten und einen Weg antippen zeigt Oberfläche, Gewichtsgrenze, Breite und Zufahrtsregel. Daten kommen über Overpass (das erste Laden eines Gebiets dauert bis zu einer Minute) und werden 30 Tage auf dem Gerät gespeichert, danach sofort und offline verfügbar. Tipp: Das eigene Gebiet einmal bei Zoom 13 mit Netz abfahren. Erscheint auch in der PDF-Lageskizze. Daten © OpenStreetMap-Mitwirkende (ODbL); Befahrbarkeit immer vor Ort prüfen.
 
 ## Fuhrpark für alle Geräte (fahrzeuge.csv oder fahrzeuge.json)
 Fahrzeuge, die in der App angelegt oder importiert werden, liegen zunächst nur auf dem jeweiligen Gerät. Für einen gemeinsamen Fuhrpark gibt es zwei Wege:
