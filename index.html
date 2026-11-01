@@ -85,10 +85,15 @@ button,input,select{font:inherit;color:inherit}
 .trkleg>button[aria-pressed="true"]{background:#0190b3;border-color:#0190b3;color:#fff;font-weight:600}
 .trkbar{display:inline-block;width:12px;height:12px;flex:none;border-radius:2px;background:repeating-linear-gradient(45deg,#d7191c 0 3px,#fff 3px 6px);border:1.5px solid #d7191c;box-sizing:border-box}
 .trkbar.lk{border-color:#111}
+/* große Tippflächen für Handschuhe/Einsatz: Symbol mittig in 40–48 px Fläche */
+.hit{width:100%;height:100%;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:rgba(1,144,179,.25);cursor:pointer}
+.hit .trkbar{width:16px;height:16px}
+.rpmk.big{width:20px;height:20px}.rpmk.big i{left:2px;top:2px;width:16px;height:16px;border-width:2px}.rpmk.big b{left:22px;top:2px;font-size:14px}
 .layermenu .lmfile{font-size:12px;color:var(--vg-cyan);padding:2px 10px 8px;cursor:pointer;text-decoration:underline}
 .wsmk{width:22px;height:22px;border-radius:50%;background:#0a62c9;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);color:#fff;font:700 10px/18px Arial,sans-serif;text-align:center;box-sizing:border-box}
 .wsmk.beh{border-radius:4px;background:#0a8fc9}.wsmk.ueh{background:#0a62c9;border-color:#ffd400}.wsmk.off{background:#1b7f3b}.wsmk.bad{background:#8a8f98}
-.wsmk + b{position:absolute;left:24px;top:3px;font:700 11px/1 Arial,sans-serif;color:#0a3f8a;white-space:nowrap;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
+.hin{position:relative;display:block}
+.wsmk + b{position:absolute;left:25px;top:5px;font:700 11px/1 Arial,sans-serif;color:#0a3f8a;white-space:nowrap;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff}
 .leaflet-marker-icon.wsz-hide .wsmk + b{display:none}
 .trkpop .btnroute{display:block;width:100%;margin:6px 0 4px;min-height:38px;border:0;border-radius:8px;background:#6a1b9a;color:#fff;font-weight:700;cursor:pointer}
 .navbox{position:fixed;z-index:640;left:max(10px,env(safe-area-inset-left,0px));right:calc(max(12px,env(safe-area-inset-right,0px)) + 52px);top:calc(env(safe-area-inset-top,0px) + 104px);max-width:460px;background:var(--surface);color:var(--fg);border-radius:12px;box-shadow:var(--shadow);border-left:5px solid #6a1b9a;padding:8px 10px;font-size:13px;line-height:1.3}
@@ -717,6 +722,18 @@ const MAPS=[
   {id:"dop",name:"Luftbild RLP",sub:"amtlich, 20 cm · nur Rheinland-Pfalz",layer:rlpWms("rp_dop20")},
   {id:"bkg",name:"TopPlusOpen",sub:"Bundesamt für Kartographie, ganz Deutschland",layer:L.tileLayer("https://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web/default/WEBMERCATOR/{z}/{y}/{x}.png",{maxZoom:18,attribution:`© BKG (${YEAR}), dl-de/by-2-0`})},
   {id:"esri",name:"Luftbild weltweit",sub:"Esri World Imagery",layer:L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, Maxar, Earthstar"})}];
+/* Kartenkacheln, die nicht laden (überlasteter Kartendienst, kurzer Netzaussetzer), bis zu 4-mal neu anfordern,
+   statt eine graue Lücke stehen zu lassen. Weniger Anfragen beim Zoomen entlasten die Dienste. */
+function tileRetry(layer){
+  const ls=layer.getLayers? layer.getLayers() : [layer];
+  ls.forEach(l=>{ if(!l.on) return;
+    l.options.updateWhenZooming=false; l.options.keepBuffer=4;
+    l.on("tileerror",e=>{ const t=e.tile, n=(t._retry||0)+1; if(n>4) return; t._retry=n;
+      const base=t.src.replace(/([?&])_r=\d+&?/,"$1").replace(/[?&]$/,"");
+      setTimeout(()=>{ if(!t.parentNode) return; t.src=base+(base.includes("?")?"&":"?")+"_r="+n; },[800,2500,6000,12000][n-1]); });
+  });
+}
+MAPS.forEach(m=>tileRetry(m.layer));
 let mapId=(()=>{ const v=store.get("lwf.layer","topo"); if(typeof v==="number") return ["osm","topo","esri"][v%3]; return MAPS.some(m=>m.id===v)?v:"topo"; })();
 const curMap=()=>MAPS.find(m=>m.id===mapId)||MAPS[1];
 curMap().layer.addTo(map);
@@ -724,12 +741,12 @@ function setMap(id){ if(id===mapId) return; map.removeLayer(curMap().layer); map
 /* OpenStreetMap und OpenTopoMap sperren manche Umgebungen (z. B. Vorschau-Fenster, lokal geöffnete Datei) mit 403.
    Die Sperrkacheln laden wie normale Bilder, deshalb wird eine Probekachel geprüft und bei Sperre auf eine amtliche Karte gewechselt. */
 const PROBE={osm:"https://tile.openstreetmap.org/14/8508/5523.png", topo:"https://a.tile.opentopomap.org/14/8508/5523.png"};
-const FALLBACK={osm:"bkg", topo:"bkg"};
+const FALLBACK={osm:"topo", topo:"dtk"};
 async function probeMap(id){
   const u=PROBE[id], m=MAPS.find(x=>x.id===id); if(!u||!m||m.checked) return;
   try{ const r=await fetch(u,{cache:"no-store"}); m.checked=true;
-    if(r.status===403||r.status===418||r.status===429){ m.blocked=true;
-      if(mapId===id){ setMap(FALLBACK[id]); toast(`${m.name} ist hier gesperrt (Nutzungsregel des Kartendienstes). Ersatzkarte TopPlusOpen aktiv.`); }
+    if(r.status===403||r.status===418){ m.blocked=true;
+      if(mapId===id){ setMap(FALLBACK[id]); toast(`${m.name} ist hier gesperrt (Nutzungsregel des Kartendienstes). Ersatzkarte „${MAPS.find(x=>x.id===FALLBACK[id]).name}“ aktiv.`); }
       renderLayerMenu(); } }catch(_){ /* offline oder ohne CORS: nichts ändern */ }
 }
 function renderLayerMenu(){
@@ -802,11 +819,11 @@ function trkAdd(els){
       TRK.ways.set(el.id,{k,ll,tags:el.tags||{},line}); gTrk.addLayer(line);
     } else if(el.type==="node" && el.tags && el.tags.highway==="emergency_access_point"){
       if(TRK.rps.has(el.id)) continue;
-      const m=L.marker([el.lat,el.lon],{icon:L.divIcon({className:"",html:`<div class="rpmk"><i></i><b>${esc(el.tags.ref||"")}</b></div>`,iconSize:[14,14],iconAnchor:[7,7]}),keyboard:false,zIndexOffset:-100});
+      const m=L.marker([el.lat,el.lon],{icon:L.divIcon({className:"",html:`<div class="hit"><div class="rpmk big"><i></i><b>${esc(el.tags.ref||"")}</b></div></div>`,iconSize:[48,48],iconAnchor:[24,24]}),keyboard:false,zIndexOffset:-100});
       m.bindPopup(()=>rpHtml(el)); m.on("click",ev=>L.DomEvent.stopPropagation(ev));
       TRK.rps.set(el.id,{el,m}); gRp.addLayer(m);
     } else if(el.type==="node" && el.tags && el.tags.barrier && !TRK.bars.has(el.id)){
-      const m=L.marker([el.lat,el.lon],{icon:L.divIcon({className:"",html:`<div class="trkbar${el.tags.locked==="yes"?" lk":""}"></div>`,iconSize:[14,14],iconAnchor:[7,7]}),keyboard:false});
+      const m=L.marker([el.lat,el.lon],{icon:L.divIcon({className:"",html:`<div class="hit"><div class="trkbar${el.tags.locked==="yes"?" lk":""}"></div></div>`,iconSize:[40,40],iconAnchor:[20,20]}),keyboard:false});
       m.bindPopup(()=>trkBarHtml(el.tags)); m.on("click",ev=>L.DomEvent.stopPropagation(ev));
       TRK.bars.set(el.id,m); gTrk.addLayer(m);
     }
@@ -905,6 +922,14 @@ function rpToggle(on){
   renderLayerMenu();
   if(on && map.getZoom()<TRK_MINZ) toast(`Rettungspunkte erscheinen ab Zoom ${TRK_MINZ}, bitte näher heranzoomen`);
 }
+// Tippen in der Nähe eines Symbols öffnet das nächstgelegene (Rettungspunkt, Wasserstelle, Schranke)
+function pickNear(ll,tol){
+  const p=map.latLngToContainerPoint(ll); let best=null, bd=tol;
+  const test=(m,on)=>{ if(!on) return; const q=map.latLngToContainerPoint(m.getLatLng()), d=p.distanceTo(q); if(d<bd){ bd=d; best=m; } };
+  const z=map.getZoom()>=12;
+  TRK.rps.forEach(r=>test(r.m,TRK.rp&&z)); WS.ms.forEach(m=>test(m,WS.on)); TRK.bars.forEach(m=>test(m,TRK.on&&z));
+  if(best){ best.openPopup(); return true; } return false;
+}
 function trkInfoAt(ll,quiet){
   const p=map.latLngToLayerPoint(ll); let best=null, bd=22;
   for(const wy of TRK.ways.values()){
@@ -948,7 +973,7 @@ function wsSet(list,srv){
   gWs.clearLayers(); WS.ms.clear();
   for(const w of WS.list){
     const [sym,cls]=WS_SYM[w.k]||WS_SYM.beh, bad=w.status&&!/verwendbar|ok|in ordnung/i.test(w.status);
-    const m=L.marker([w.lat,w.lon],{icon:L.divIcon({className:"",html:`<div class="wsmk ${cls}${bad?" bad":""}">${sym}</div><b>${esc(w.id)}</b>`,iconSize:[22,22],iconAnchor:[11,11]}),keyboard:false});
+    const m=L.marker([w.lat,w.lon],{icon:L.divIcon({className:"",html:`<div class="hit"><span class="hin"><div class="wsmk ${cls}${bad?" bad":""}">${sym}</div><b>${esc(w.id)}</b></span></div>`,iconSize:[48,48],iconAnchor:[24,24]}),keyboard:false});
     m.bindPopup(()=>wsHtml(w),{maxWidth:280}); m.on("click",ev=>L.DomEvent.stopPropagation(ev));
     WS.ms.set(w.id,m); gWs.addLayer(m);
   }
@@ -1091,7 +1116,7 @@ function updStats(){
   $("calcBtn").disabled=S.pts.length<2; $("undoBtn").disabled=!S.pts.length;
 }
 map.on("click",e=>{
-  if(MAPONLY){ if(TRK.on) trkInfoAt(e.latlng,true); return; }
+  if(MAPONLY){ if(!pickNear(e.latlng,40) && TRK.on) trkInfoAt(e.latlng,true); return; }
   if(TRK.on && TRK.info){ trkInfoAt(e.latlng); return; }
   const ll=[e.latlng.lat,e.latlng.lng];
   if(S.mode==="pv" && S.ring && S.editRet){ if(S.pts.length<2){ toast("Erst Entnahmestelle und Einsatzstelle setzen"); return; } S.ret.push(ll); }
