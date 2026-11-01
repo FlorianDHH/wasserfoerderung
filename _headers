@@ -1,0 +1,8 @@
+/sw.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/fahrzeuge.csv
+  Cache-Control: no-cache
+/fahrzeuge.json
+  Cache-Control: no-cache

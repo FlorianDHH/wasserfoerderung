@@ -1,0 +1,3 @@
+﻿Bezeichnung;Einheit;Art;Inhalt (l);Geschwindigkeit (km/h);Anfahrt (min);Füllstrom (l/min);Abgabestrom (l/min);Bemerkung;ID
+TLF 3000;FF Musterort;Feuerwehr;3000;80;15;;;Beispielzeile – überschreiben;
+Traktor mit Wasserfass;Landwirt Muster;Landwirtschaft;12000;25;40;3000;1500;Beispielzeile – überschreiben;

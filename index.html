@@ -1,0 +1,1923 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wasserförderung lange Wegstrecke</title>
+<meta name="theme-color" content="#07275C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wasserförderung">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: Vollbild-Karte, oben Suchleiste, unten ausziehbares Bedienblatt (Strecke · Daten · Ergebnis) */
+:root{
+  --bg:#eef2f7; --surface:#ffffff; --surface-2:#e8edf4; --line:#cfd8e4;
+  --fg:#0b1f45; --muted:#55657f;
+  --vg-blue:#07275C; --vg-cyan:#01A0C6; --vg-gold:#D8AD14; --vg-ink:#ffffff;
+  --red:#c8141e; --red-ink:#ffffff; --water:#0190b3; --terrain:#2f8a3e; --drop:#e07a10;
+  --warn-bg:#fff2d6; --warn-fg:#6d4a00; --ok-bg:#e1f2e4; --ok-fg:#1d5b29;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --shadow:0 6px 24px rgba(20,22,26,.18);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08142b; --surface:#0f1f3d; --surface-2:#172a4d; --line:#26395e;
+  --fg:#e9eef7; --muted:#9aaccb;
+  --vg-blue:#0c3577; --vg-cyan:#2cc0e4; --vg-gold:#e8bf2a; --vg-ink:#ffffff;
+  --red:#ee3b44; --red-ink:#ffffff; --water:#2cc0e4; --terrain:#5cc46d; --drop:#ff9a3a;
+  --warn-bg:#3a2e12; --warn-fg:#ffd27a; --ok-bg:#163020; --ok-fg:#8fe0a0;
+  --shadow:0 6px 24px rgba(0,0,0,.5); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#08142b; --surface:#0f1f3d; --surface-2:#172a4d; --line:#26395e;
+  --fg:#e9eef7; --muted:#9aaccb;
+  --vg-blue:#0c3577; --vg-cyan:#2cc0e4; --vg-gold:#e8bf2a; --vg-ink:#ffffff;
+  --red:#ee3b44; --red-ink:#ffffff; --water:#2cc0e4; --terrain:#5cc46d; --drop:#ff9a3a;
+  --warn-bg:#3a2e12; --warn-fg:#ffd27a; --ok-bg:#163020; --ok-fg:#8fe0a0;
+  --shadow:0 6px 24px rgba(0,0,0,.5); color-scheme:dark;}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.4 var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+#map{position:fixed;inset:0;z-index:0;background:var(--surface-2)}
+
+/* Kopfleiste */
+.top{position:fixed;left:0;right:0;top:0;z-index:500;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));
+  display:flex;gap:8px;align-items:center;pointer-events:none}
+.brand{pointer-events:auto;background:var(--vg-blue);color:var(--vg-ink);border-radius:10px;padding:6px 10px 6px 7px;box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:7px;white-space:nowrap;border-bottom:3px solid var(--vg-gold)}
+.brand svg{width:28px;height:28px;flex:none}
+.brand .t1{font:700 16px/1 var(--f-display);letter-spacing:.03em;text-transform:uppercase}
+.brand .t2{display:block;font:600 10px/1.2 var(--f-body);letter-spacing:.06em;color:var(--vg-cyan);margin-top:2px}
+.lion{fill:var(--vg-gold)} .wave{stroke:#07275C}
+@media (max-width:380px){.brand .t2{display:none}}
+.search{pointer-events:auto;flex:1;min-width:0;display:flex;background:var(--surface);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.search input{flex:1;min-width:0;border:0;background:transparent;padding:10px 12px;outline:none;font-size:16px}
+.search button{border:0;background:transparent;padding:0 12px;cursor:pointer;color:var(--muted)}
+.results{position:fixed;z-index:600;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));
+  top:calc(env(safe-area-inset-top,0px) + 62px);background:var(--surface);border-radius:10px;box-shadow:var(--shadow);max-height:40vh;overflow:auto}
+.results button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:10px 12px;cursor:pointer}
+
+/* Kartenknöpfe */
+.fab{position:fixed;z-index:500;right:max(12px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 66px);display:flex;flex-direction:column;gap:8px}
+.fab button{width:44px;height:44px;border-radius:10px;border:0;background:var(--surface);box-shadow:var(--shadow);cursor:pointer;display:grid;place-items:center}
+.fab svg{width:22px;height:22px;stroke:var(--fg);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Bedienblatt */
+.sheet{position:fixed;z-index:700;left:0;right:0;bottom:0;background:var(--surface);border-radius:16px 16px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,.22);
+  display:flex;flex-direction:column;max-height:50%;transition:max-height .25s ease;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet.big{max-height:88%}
+.sheet.min{max-height:118px}
+.grip{border:0;background:none;width:100%;padding:8px 0 2px;cursor:pointer}
+.grip span{display:block;margin:auto;width:42px;height:5px;border-radius:3px;background:var(--line)}
+.tabs{display:flex;gap:4px;padding:4px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;background:var(--surface-2);border-radius:8px;padding:9px 4px;cursor:pointer;font:700 15px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--vg-blue);color:var(--vg-ink);box-shadow:inset 0 -3px 0 var(--vg-gold)}
+.pane{overflow:auto;padding:14px max(16px,env(safe-area-inset-right,0px)) 18px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch}
+
+.hint{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.hint b{font-family:var(--f-display);font-size:18px;color:var(--vg-cyan);line-height:1}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 14px;cursor:pointer;font-weight:600;min-height:44px}
+.btn.primary{background:var(--vg-blue);border-color:var(--vg-blue);color:var(--vg-ink);box-shadow:inset 0 -3px 0 var(--vg-gold);flex:1;font:700 18px/1 var(--f-display);letter-spacing:.05em;text-transform:uppercase}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,.tabs button:focus-visible,.seg button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--vg-cyan);outline-offset:2px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface-2);border-radius:10px;padding:8px 10px;min-width:0}
+.stat .v{font:700 24px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat .l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat.hot{background:var(--vg-blue);color:var(--vg-ink);box-shadow:inset 0 -3px 0 var(--vg-gold)} .stat.hot .l{color:inherit;opacity:.85}
+
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+label.f input,label.f select{text-transform:none;letter-spacing:0;font-size:16px;color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:9px 4px;cursor:pointer;font-weight:600;font-size:14px;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 12px;cursor:pointer;font-variant-numeric:tabular-nums;font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--vg-cyan);border-color:var(--vg-cyan);color:#06213f}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.chk input{width:20px;height:20px;margin-top:1px;flex:none}
+h3{margin:0;font:700 15px/1.1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--fg);display:flex;align-items:center;gap:8px}
+h3::before{content:"";width:4px;height:14px;border-radius:2px;background:var(--vg-gold)}
+.note{font-size:13px;color:var(--muted)}
+
+.msg{border-radius:10px;padding:10px 12px;font-size:14px}
+.msg.warn{background:var(--warn-bg);color:var(--warn-fg)}
+.msg.ok{background:var(--ok-bg);color:var(--ok-fg)}
+.chartbox{background:var(--surface-2);border-radius:10px;padding:6px}
+canvas#prof{width:100%;height:210px;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);padding:2px 6px 4px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px}
+.tbl{overflow-x:auto}
+.pane>*,#res>*{flex-shrink:0}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font:600 11px/1.2 var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+tr.go{cursor:pointer}
+.formula{font-variant-numeric:tabular-nums;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.6}
+.plans button.pl{flex:1;text-align:left}
+.toast{position:fixed;z-index:900;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 70px);background:var(--fg);color:var(--surface);
+  padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);font-weight:600;max-width:90vw}
+.busy{position:fixed;inset:0;z-index:950;display:grid;place-items:center;background:rgba(0,0,0,.35)}
+.modal{position:fixed;inset:0;z-index:960;display:grid;place-items:center;background:rgba(4,12,30,.5);padding:16px}
+.modal .dlg{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:18px;width:min(360px,100%);display:flex;flex-direction:column;gap:10px}
+.modal .dlg>b,.modal .dlg .fl-head b{font:700 20px/1.1 var(--f-display);letter-spacing:.03em;text-transform:uppercase}
+.busy div{background:var(--surface);padding:16px 20px;border-radius:12px;box-shadow:var(--shadow);font-weight:600}
+
+/* Kartensymbole */
+.mk{display:grid;place-items:center;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.45);font:700 12px/1 var(--f-display);color:#fff}
+.mk.we{background:var(--water)} .mk.wp{background:#fff;border-color:#555;color:#333;font-size:10px}
+.mk.end{background:#07275C}
+.mk.fp{background:var(--red);border-radius:6px}
+.leaflet-container{font-family:var(--f-body)}
+.splash{position:fixed;inset:0;z-index:2000;background:#07275C;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  transition:opacity .45s ease, visibility .45s;text-align:center;padding:24px}
+.splash svg{width:120px;height:120px} .splash .lion{fill:#D8AD14}
+.splash .rule{width:220px;max-width:70vw;height:3px;background:#D8AD14;margin:10px 0 6px}
+.splash .w1{font:700 22px/1 var(--f-display);letter-spacing:.12em;text-transform:uppercase}
+.splash .w2{font:500 24px/1.1 var(--f-body);color:#01A0C6}
+.splash .w3{font:600 12px/1.3 var(--f-body);letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-top:18px}
+.splash.gone{opacity:0;visibility:hidden}
+.foot{display:flex;align-items:center;gap:10px;padding-top:6px;border-top:1px solid var(--line)}
+.foot svg{width:30px;height:30px;flex:none}
+.foot b{display:block;font:700 13px/1.1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--fg)}
+.foot span{font-size:12px;color:var(--vg-cyan)}
+/* Startauswahl */
+.modepick{position:fixed;inset:0;z-index:1500;background:rgba(5,22,54,.62);display:grid;place-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
+.mp-in{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);width:min(440px,100%);padding:18px;display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto}
+.mp-head{display:flex;gap:10px;align-items:center;padding-bottom:10px;border-bottom:3px solid var(--vg-gold)}
+.mp-head svg{width:40px;height:40px;flex:none}
+.mp-head b{display:block;font:700 22px/1.05 var(--f-display);letter-spacing:.03em;text-transform:uppercase}
+.mp-head span{font-size:13px;color:var(--muted)}
+.mp-card{display:flex;gap:14px;align-items:center;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;cursor:pointer;min-height:84px}
+.mp-card:hover,.mp-card:focus-visible{border-color:var(--vg-cyan);outline:none}
+.mp-card[aria-current="true"]{border-color:var(--vg-blue)}
+.mp-card .ic{width:54px;height:54px;flex:none;border-radius:12px;background:var(--vg-blue);display:grid;place-items:center}
+.mp-card .ic svg{width:38px;height:38px}
+.mp-card b{display:block;font:700 20px/1.1 var(--f-display);letter-spacing:.03em;text-transform:uppercase;color:var(--fg)}
+.mp-card span{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+.brand{cursor:pointer;border:0;font:inherit;text-align:left}
+.brand:focus-visible{outline:3px solid var(--vg-cyan);outline-offset:2px}
+/* Pendelverkehr */
+.veh{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px 8px;align-items:end;background:var(--surface-2);border-radius:10px;padding:8px}
+.veh select{grid-column:1/4;font-size:16px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px;width:100%}
+.veh .vdel{grid-column:4;grid-row:1;min-height:42px;padding:0 12px}
+.veh label{display:flex;flex-direction:column;gap:3px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);min-width:0}
+.veh input{font-size:16px;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;width:100%;min-width:0}
+.veh .warnv{grid-column:1/-1;font-size:12px;color:var(--warn-fg)}
+.hints{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.hints li::marker{color:var(--vg-gold)}
+canvas#gantt,canvas#pvProf{width:100%;display:block}
+.pvlbl{display:inline-block;transform:translate(-50%,-50%);background:var(--surface);color:var(--fg);border:2px solid var(--water);border-radius:999px;padding:3px 9px;font:700 12px/1.2 var(--f-body);white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.mk.es{background:var(--vg-blue);border-radius:6px}
+.navbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.navbtns a{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-decoration:none;color:var(--fg);border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 10px;min-height:64px;font-weight:600;font-size:13px;line-height:1.25}
+.navbtns a:focus-visible{outline:3px solid var(--vg-cyan);outline-offset:2px}
+.navbtns a span{font:700 11px/1 var(--f-body);color:#fff;border-radius:5px;padding:3px 6px}
+.mk.rp{background:#e07a10;color:#fff;font-size:10px}
+.arr{width:0;height:0;border-left:14px solid #07275C;border-top:7px solid transparent;border-bottom:7px solid transparent;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
+.pvlbl.ret{border-color:#e07a10}
+.veh .vinfo{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.veh .vone{display:block;font-size:14px;text-transform:none;letter-spacing:0;color:var(--fg);padding:9px 0}
+.dlg.fleet{width:min(540px,100%);max-height:calc(100vh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto}
+.fl-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-bottom:8px;border-bottom:3px solid var(--vg-gold)}
+.fl-item{display:grid;grid-template-columns:1fr auto;gap:2px 8px;text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--fg)}
+.fl-item:hover,.fl-item:focus-visible{border-color:var(--vg-cyan);outline:none}
+.fl-main{font-size:15px;min-width:0}.fl-main b{font-weight:700}.fl-main span{color:var(--muted);margin-left:6px}
+.fl-sub{grid-column:1;font-size:12px;color:var(--muted)}
+.fl-badge{grid-column:2;grid-row:1/3;align-self:center;font-size:11px;font-weight:600;border-radius:999px;padding:3px 8px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.fl-vg{background:var(--vg-blue);color:#fff}.fl-mod{background:var(--warn-bg);color:var(--warn-fg)}
+label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;font-family:inherit;resize:vertical}
+@media (prefers-reduced-motion:reduce){.sheet,.splash{transition:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="lion" viewBox="0 0 67 67"><path class="lion" d="M33.5 3C33.5 3 11 30.5 11 44a22.5 22.5 0 0 0 45 0C56 30.5 33.5 3 33.5 3Z"/><path class="wave" d="M17.5 45.5c3.2-3.4 6.4-3.4 9.6 0s6.4 3.4 9.6 0 6.4-3.4 9.6 0 4.8 3 6.2 1.6" fill="none" stroke-width="4.2" stroke-linecap="round"/></symbol></svg>
+
+<div class="splash" id="splash" aria-hidden="true">
+  <svg viewBox="0 0 67 67"><use href="#lion"/></svg>
+  <div class="rule"></div>
+  <div class="w1">Löschwasser</div>
+  <div class="w2">Lange Wegstrecke · Pendelverkehr</div>
+  <div class="w3">Planungshilfe nach HLFS</div>
+</div>
+
+<div class="modepick" id="modePick" hidden>
+  <div class="mp-in" role="dialog" aria-labelledby="mpTitle">
+    <div class="mp-head"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b id="mpTitle">Was wird geplant?</b><span>Löschwasserversorgung über größere Entfernung</span></div></div>
+    <button class="mp-card" data-mode="lw">
+      <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 30c7 0 8-8 15-8s8-8 19-10" stroke="#01A0C6" stroke-width="3.5"/><rect x="6" y="25" width="8" height="8" rx="1.5" fill="#D8AD14"/><rect x="20" y="17" width="8" height="8" rx="1.5" fill="#D8AD14"/></svg></div>
+      <div><b>Lange Wegstrecke</b><span>Schlauchleitung mit Verstärkerpumpen. Pumpenstandorte, B-Längen, Material.</span></div>
+    </button>
+    <button class="mp-card" data-mode="pv">
+      <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 26V15h18v11M22 19h7l5 5v2" stroke="#fff" stroke-width="2.5"/><rect x="6" y="17" width="13" height="6" rx="1" fill="#01A0C6"/><circle cx="11" cy="28" r="3" fill="#D8AD14"/><circle cx="29" cy="28" r="3" fill="#D8AD14"/><path d="M8 35h24" stroke="#01A0C6" stroke-width="2" stroke-dasharray="3 3"/></svg></div>
+      <div><b>Pendelverkehr</b><span>Wassertransport mit Tanklöschfahrzeugen. Anzahl Fahrzeuge, Umlaufzeit, Zeitstrahl.</span></div>
+    </button>
+    <p class="note" style="margin:0">Faustregel nach HLFS: Pendelverkehr bei Förderstrom unter 500 l/min, Entfernung über 3 bis 4 km, zu Beginn des Einsatzes oder bei ausgedehnten Einsatzstellen.</p>
+  </div>
+</div>
+
+<div id="map" aria-label="Karte"></div>
+
+<header class="top">
+  <button class="brand" id="brandBtn" type="button" aria-label="Art der Planung wechseln"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><span class="t1" id="brandT1">Lange Wegstrecke</span><span class="t2">Löschwasser-Planung</span></div></button>
+  <form class="search" id="searchForm" role="search">
+    <input id="q" type="search" placeholder="Ort suchen" autocomplete="off" enterkeyhint="search">
+    <button type="submit" aria-label="Suchen">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    </button>
+  </form>
+</header>
+<div class="results" id="results" hidden></div>
+
+<div class="fab">
+  <button id="locBtn" aria-label="Mein Standort"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+  <button id="layerBtn" aria-label="Kartenart wechseln"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg></button>
+</div>
+
+<section class="sheet" id="sheet">
+  <button class="grip" id="grip" aria-label="Bedienblatt vergrößern oder verkleinern"><span></span></button>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="strecke" aria-selected="true">Strecke</button>
+    <button role="tab" data-tab="daten" aria-selected="false">Daten</button>
+    <button role="tab" data-tab="ergebnis" aria-selected="false">Ergebnis</button>
+  </nav>
+
+  <!-- STRECKE -->
+  <div class="pane" id="tab-strecke">
+    <div class="seg" role="group" aria-label="Art der Planung">
+      <button id="mLW" aria-pressed="true">Lange Wegstrecke</button>
+      <button id="mPV" aria-pressed="false">Pendelverkehr</button>
+    </div>
+    <div class="hint" id="hint"><b>1</b><span>Auf der Karte die <strong>Wasserentnahmestelle</strong> antippen.</span></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sPts">0</div><div class="l" id="sL1">Punkte</div></div>
+      <div class="stat"><div class="v" id="sLen">0 m</div><div class="l" id="sL2">Karte</div></div>
+      <div class="stat"><div class="v" id="sHose">0 m</div><div class="l" id="sL3">Schlauch</div></div>
+    </div>
+    <div class="seg" role="group" aria-label="Linienführung">
+      <button id="modeFree" aria-pressed="true">Freihand / Gelände</button>
+      <button id="modeRoad" aria-pressed="false">Wegen folgen</button>
+    </div>
+    <div id="ringBox" hidden style="display:contents">
+      <div class="seg" role="group" aria-label="Rückweg">
+        <button id="retSame" aria-pressed="true">Rückweg gleiche Strecke</button>
+        <button id="retRing" aria-pressed="false">Ringverkehr</button>
+      </div>
+      <div class="seg" role="group" aria-label="Welcher Weg wird bearbeitet" id="ringEdit" hidden>
+        <button id="editHin" aria-pressed="true">Hinweg bearbeiten</button>
+        <button id="editRet" aria-pressed="false">Rückweg bearbeiten</button>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn" id="undoBtn">Rückgängig</button>
+      <button class="btn" id="clearBtn">Neu</button>
+      <button class="btn primary" id="calcBtn">Berechnen</button>
+    </div>
+    <p class="note" style="margin:0" id="streckeNote">Punkte lassen sich verschieben. Der letzte Punkt ist der Verteiler an der Brandstelle. Höhen werden automatisch aus einem Geländemodell geladen.</p>
+  </div>
+
+  <!-- DATEN -->
+  <div class="pane" id="tab-daten" hidden>
+    <h3>Förderstrom Q gesamt</h3>
+    <div class="chips" id="qChips"></div>
+    <label class="f">Eigener Wert [l/min]<input id="qIn" type="number" inputmode="numeric" min="100" max="4000" step="50" value="800"></label>
+
+    <h3>Leitung</h3>
+    <div class="seg" role="group" aria-label="Leitung">
+      <button id="l1" aria-pressed="true">Einfachleitung</button>
+      <button id="l2" aria-pressed="false">Doppelleitung</button>
+    </div>
+    <h3>Schaltreihe</h3>
+    <div class="seg" role="group" aria-label="Schaltreihe">
+      <button id="srG" aria-pressed="true">Geschlossen</button>
+      <button id="srO" aria-pressed="false">Offen (Behälter)</button>
+    </div>
+
+    <h3>Eingangsdruck an der Verstärker-TS</h3>
+    <div id="peBox" style="display:flex;flex-direction:column;gap:8px">
+      <div class="chips" id="peChips"></div>
+      <label class="f">Gewünschter Eingangsdruck pₑ [bar]<input id="pe" type="number" inputmode="decimal" step="0.5" min="0" max="6" value="1.5"></label>
+      <p class="note" id="peNote" style="margin:0">So viel Druck soll an jeder Verstärkerpumpe noch ankommen. HLFS: nicht unter 1,5 bar. Ein höherer Wert gibt mehr Reserve, die Pumpen stehen dann dichter.</p>
+    </div>
+
+    <h3>Drücke</h3>
+    <div class="grid2">
+      <label class="f">Ausgangsdruck pₐ [bar]<input id="pa" type="number" inputmode="decimal" step="0.5" min="2" max="16" value="8"></label>
+      <label class="f">Strahlrohrdruck [bar]<input id="pstr" type="number" inputmode="decimal" step="0.5" min="0" max="10" value="5"></label>
+      <label class="f">Pumpe
+        <select id="pumpPreset">
+          <option value="8">Standard (8 bar)</option>
+          <option value="10">FPN 10-1000/2000 (10 bar)</option>
+          <option value="8">TS 8/8 · PFPN (8 bar)</option>
+        </select>
+      </label>
+    </div>
+    <label class="chk"><input type="checkbox" id="addPe"><span>Zugeführten Eingangsdruck an Verstärkerpumpen anrechnen (pₐ = p + pₑ, wie HLFS-Grafikverfahren). Aus = vorsichtige Rechnung mit pᵥ = pₐ − pₑ.</span></label>
+
+    <h3>Schlauch</h3>
+    <div class="grid2">
+      <label class="f">B-Schlauchlänge [m]<input id="hoseLen" type="number" inputmode="numeric" min="5" max="50" step="5" value="20"></label>
+      <label class="f">Zuschlag Verlegung [%]<input id="zus" type="number" inputmode="numeric" min="0" max="50" step="1" value="10"></label>
+    </div>
+    <p class="note" style="margin:0">Reibungsverluste je 100 m B-Schlauch nach HLFS-Tabelle: 400 l/min 0,3 · 600 l/min 0,6 · 800 l/min 1,0 · 1.000 l/min 1,4 · 1.200 l/min 2,0 bar. Zwischenwerte werden interpoliert.</p>
+  </div>
+
+  <!-- DATEN PENDELVERKEHR -->
+  <div class="pane" id="tab-datenpv" hidden>
+    <h3>Löschwasserbedarf an der Einsatzstelle</h3>
+    <div class="chips" id="pvQChips"></div>
+    <label class="f">Eigener Wert [l/min]<input id="pvQ" type="number" inputmode="numeric" min="50" max="4000" step="50" value="400"></label>
+
+    <h3>Fahrzeuge im Pendelverkehr</h3>
+    <p class="note" id="fleetUse" style="margin:0" hidden></p>
+    <div id="vehList" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="row">
+      <button class="btn" id="vehAdd" style="flex:1">+ Fahrzeug einplanen</button>
+      <button class="btn" id="fleetBtn" style="flex:1">Fuhrpark verwalten</button>
+    </div>
+    <p class="note" style="margin:0">Eintreffen = Minuten nach Alarm, zu denen das Fahrzeug gefüllt an der Einsatzstelle steht. Eigene Fahrzeuge, Traktoren mit Wasserfass und andere werden unter „Fuhrpark verwalten“ mit Inhalt und Höchstgeschwindigkeit angelegt.</p>
+
+    <h3>Fahrt</h3>
+    <div class="chips" id="pvVChips"></div>
+    <div class="grid2">
+      <label class="f">Ø Geschwindigkeit Strecke [km/h]<input id="pvV" type="number" inputmode="numeric" min="5" max="80" step="5" value="30"></label>
+      <label class="f">Rüstzeit je Umlauf [min]<input id="pvR" type="number" inputmode="decimal" min="0" max="30" step="1" value="8"></label>
+    </div>
+    <p class="note" style="margin:0">Fahrzeuge mit geringerer Höchstgeschwindigkeit (z. B. Traktor 40 km/h) werden automatisch mit ihrer eigenen Geschwindigkeit gerechnet.</p>
+    <p class="note" style="margin:0">HLFS: ohne Vorbereitung 8 min Rüstzeit je Umlauf (je 2 min Auf- und Abbau an Entnahme- und Abgabestelle). Fest besetzte Stellen und ein Puffer verkürzen sie.</p>
+
+    <h3>Entnahme und Abgabe</h3>
+    <div class="grid2">
+      <label class="f">Füllstrom Entnahme [l/min]<input id="pvFill" type="number" inputmode="numeric" min="100" max="4000" step="100" value="1000"></label>
+      <label class="f">Füllstellen
+        <select id="pvFs"><option value="1">1 Füllstelle</option><option value="2">2 Füllstellen</option></select>
+      </label>
+      <label class="f">Puffer an der Einsatzstelle
+        <select id="pvBuf">
+          <option value="0">Kein Puffer (direkt)</option>
+          <option value="3000">Behälter 3.000 l</option>
+          <option value="5000">Behälter 5.000 l</option>
+          <option value="10000">Behälter 10.000 l</option>
+          <option value="15000">Behälter 15.000 l</option>
+          <option value="20000">Behälter 20.000 l</option>
+        </select>
+      </label>
+      <label class="f">Abgabestrom in Puffer [l/min]<input id="pvPump" type="number" inputmode="numeric" min="200" max="4000" step="100" value="1200"></label>
+    </div>
+    <label class="f">Betrachtungszeitraum
+      <select id="pvDur"><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option><option value="180">3 Stunden</option><option value="240">4 Stunden</option></select>
+    </label>
+  </div>
+
+  <!-- ERGEBNIS -->
+  <div class="pane" id="tab-ergebnis" hidden>
+    <div id="resEmpty" class="hint"><b>!</b><span>Noch keine Berechnung. Strecke zeichnen und <strong>Berechnen</strong> tippen.</span></div>
+    <div id="res" hidden style="display:contents">
+      <div class="stats">
+        <div class="stat hot"><div class="v" id="rFp">–</div><div class="l">Pumpen</div></div>
+        <div class="stat"><div class="v" id="rB">–</div><div class="l">B-Schläuche</div></div>
+        <div class="stat"><div class="v" id="rH">–</div><div class="l">Höhe Δ</div></div>
+      </div>
+      <div id="rMsgs" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="chartbox">
+        <canvas id="prof" aria-label="Höhenprofil mit Druckabfalllinien"></canvas>
+        <div class="legend">
+          <span><i style="background:var(--terrain)"></i>Gelände</span>
+          <span><i style="background:var(--drop)"></i>Druckabfalllinie</span>
+          <span><i style="background:var(--red)"></i>Pumpe</span>
+        </div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Pumpe</th><th>Abstand</th><th>Höhe</th><th>pₐ</th><th id="thArr">Ankunft</th></tr></thead>
+        <tbody id="rTbl"></tbody>
+      </table></div>
+      <h3>Material</h3>
+      <div class="formula" id="rMat"></div>
+      <h3>Überschlag nach Formel</h3>
+      <div class="formula" id="rForm"></div>
+    </div>
+    <div id="resPV" hidden style="display:contents">
+      <div class="stats">
+        <div class="stat hot"><div class="v" id="pvRn">–</div><div class="l" id="pvRnL">Fahrzeuge</div></div>
+        <div class="stat"><div class="v" id="pvRu">–</div><div class="l">Umlaufzeit</div></div>
+        <div class="stat"><div class="v" id="pvRd">–</div><div class="l" id="pvRdL">Fahrstrecke</div></div>
+      </div>
+      <div id="pvMsgs" style="display:flex;flex-direction:column;gap:8px"></div>
+      <h3>Zeitstrahl</h3>
+      <div class="chartbox">
+        <canvas id="gantt" aria-label="Zeitstrahl der Fahrzeuge im Pendelverkehr"></canvas>
+        <div class="legend" id="ganttLegend"></div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Fahrzeug</th><th>Inhalt</th><th>km/h</th><th>Umlauf</th><th>allein nötig</th></tr></thead>
+        <tbody id="pvTbl"></tbody>
+      </table></div>
+      <div id="pvProfBox" style="display:contents">
+        <h3>Höhenprofil der Fahrstrecke</h3>
+        <div class="chartbox"><canvas id="pvProf" style="height:150px" aria-label="Höhenprofil der Fahrstrecke"></canvas></div>
+      </div>
+      <h3>Berechnung nach HLFS</h3>
+      <div class="formula" id="pvForm"></div>
+      <h3>Hinweise zum Pendelverkehr</h3>
+      <ul class="hints" id="pvHints"></ul>
+    </div>
+    <div id="share" hidden style="display:contents">
+      <h3>Ausdruck für die Einsatzstelle</h3>
+      <label class="f">Einsatzstelle / Objekt (steht auf dem Ausdruck)<input id="planName" type="text" placeholder="z. B. Waldbrand Distrikt 12" autocomplete="off"></label>
+      <button class="btn primary" id="pdfBtn">PDF erstellen</button>
+      <h3>Navigation in Google Maps</h3>
+      <div class="navbtns" id="navBtns"></div>
+      <div class="row">
+        <button class="btn" id="shareBtn" style="flex:1">Link kopieren</button>
+        <button class="btn" id="saveBtn" style="flex:1">Als Plan speichern</button>
+      </div>
+    </div>
+    <h3>Gespeicherte Pläne</h3>
+    <div id="plans" class="plans" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div class="foot"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b>Löschwasser-Planung</b><span>Lange Wegstrecke · Pendelverkehr</span></div></div>
+    <p class="note" style="margin:0">Berechnung nach HLFS-Lernunterlage „Löschwasserförderung“ (2019). Höhendaten: Copernicus-DEM ca. 30–90 m Raster über Open-Meteo. Ergebnis ist eine Planungshilfe und ersetzt nicht die Lagebeurteilung vor Ort.</p>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden></div>
+<div class="modal" id="pdfReady" hidden>
+  <div class="dlg" role="dialog" aria-labelledby="pdfTitle">
+    <b id="pdfTitle">PDF ist fertig</b>
+    <p class="note" id="pdfInfo" style="margin:0"></p>
+    <button class="btn primary" id="pdfShare">Teilen / Drucken</button>
+    <button class="btn" id="pdfDl">Herunterladen</button>
+    <button class="btn" id="pdfClose">Schließen</button>
+  </div>
+</div>
+<div class="modal" id="fleetDlg" hidden>
+  <div class="dlg fleet" role="dialog" aria-labelledby="fleetTitle">
+    <div class="fl-head"><b id="fleetTitle">Fuhrpark</b><button class="btn" id="fleetClose" type="button">Schließen</button></div>
+    <div id="fleetListBox" style="display:flex;flex-direction:column;gap:10px">
+      <p class="note" style="margin:0" id="fleetCount"></p>
+      <div id="fleetList" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button class="btn primary" id="fleetNew" type="button">+ Fahrzeug anlegen</button>
+      <h3>Fuhrpark für alle Geräte</h3>
+      <p class="note" style="margin:0">Fahrzeuge, die hier angelegt oder importiert werden, liegen zunächst nur auf diesem Gerät. Damit alle Kameraden denselben Fuhrpark sehen, die Liste als <b>fahrzeuge.csv</b> (aus Excel) oder <b>fahrzeuge.json</b> (Export für Server) in den App-Ordner auf der Synology legen. Danach erscheinen die Fahrzeuge auf allen Geräten mit „Server-Datei“.</p>
+      <div class="msg ok" id="fleetMsg" hidden></div>
+      <div class="grid2">
+        <label class="btn" style="text-align:center">Importieren (CSV/JSON)<input type="file" id="fleetImport" accept=".csv,.json,.txt,text/csv,application/json" hidden></label>
+        <button class="btn" id="fleetTpl" type="button">CSV-Vorlage</button>
+        <button class="btn" id="fleetCsv" type="button">Export CSV (Excel)</button>
+        <button class="btn" id="fleetExport" type="button">Export für Server (JSON)</button>
+      </div>
+      <p class="note" style="margin:0">CSV-Spalten: Bezeichnung; Einheit; Art; Inhalt; Geschwindigkeit; Anfahrt; Füllstrom; Abgabestrom; Bemerkung. Pflicht sind Bezeichnung und Inhalt. Art: Feuerwehr, Landwirtschaft, THW oder Sonstiges. Ein Fahrzeug mit gleicher Bezeichnung und Einheit wird beim erneuten Import aktualisiert, nicht doppelt angelegt.</p>
+    </div>
+    <div id="fleetForm" hidden style="display:flex;flex-direction:column;gap:10px">
+      <h3 id="ffTitle">Neues Fahrzeug</h3>
+      <label class="f">Bezeichnung<input id="ffName" type="text" placeholder="z. B. TLF 3000 oder Traktor mit Wasserfass" autocomplete="off"></label>
+      <label class="f">Einheit / Halter<input id="ffUnit" type="text" placeholder="z. B. FF Musterort oder Landwirt Hof Muster" autocomplete="off"></label>
+      <div class="grid2">
+        <label class="f">Art
+          <select id="ffKind"><option value="fw">Feuerwehr</option><option value="lw">Landwirtschaft</option><option value="thw">THW / Hilfsorganisation</option><option value="so">Sonstiges</option></select>
+        </label>
+        <label class="f">Inhalt [l]<input id="ffVol" type="number" inputmode="numeric" min="200" max="40000" step="100" placeholder="12000"></label>
+        <label class="f">Max. Pendelgeschw. [km/h]<input id="ffVmax" type="number" inputmode="numeric" min="5" max="100" step="5" placeholder="40"></label>
+        <label class="f">Anfahrt bis ES [min]<input id="ffArr" type="number" inputmode="numeric" min="0" max="240" step="1" placeholder="optional"></label>
+        <label class="f">Füllstrom [l/min]<input id="ffFill" type="number" inputmode="numeric" min="100" max="10000" step="100" placeholder="optional"></label>
+        <label class="f">Abgabestrom [l/min]<input id="ffOut" type="number" inputmode="numeric" min="100" max="10000" step="100" placeholder="optional"></label>
+      </div>
+      <p class="note" style="margin:0">Füll- und Abgabestrom nur eintragen, wenn das Fahrzeug davon abweicht, z. B. ein Wasserfass mit eigener Pumpe. Leer = Werte der Entnahme- bzw. Abgabestelle.</p>
+      <label class="f">Bemerkung<textarea id="ffNote" rows="2" placeholder="z. B. Kupplung C-Storz, Erreichbarkeit über Leitstelle"></textarea></label>
+      <div class="row">
+        <button class="btn" id="ffCancel" type="button" style="flex:1">Abbrechen</button>
+        <button class="btn primary" id="ffSave" type="button" style="flex:1">Speichern</button>
+      </div>
+      <button class="btn" id="ffDel" type="button" hidden>Löschen</button>
+    </div>
+  </div>
+</div>
+<div class="busy" id="busy" hidden><div id="busyTxt">Lade Höhendaten …</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+/* ---------- Hilfen ---------- */
+const $ = id => document.getElementById(id);
+const fmt = (n, d=0) => Number(n).toLocaleString("de-DE",{minimumFractionDigits:d,maximumFractionDigits:d});
+const store = {
+  get(k,def){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):def; }catch(e){ return def; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+let toastT;
+function toast(t){ const el=$("toast"); el.textContent=t; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true,2600); }
+function busy(on,t){ $("busy").hidden=!on; if(t) $("busyTxt").textContent=t; }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function hav(a,b){ const R=6371000, r=Math.PI/180;
+  const dLa=(b[0]-a[0])*r, dLo=(b[1]-a[1])*r;
+  const x=Math.sin(dLa/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x)); }
+function pathLen(p){ let s=0; for(let i=1;i<p.length;i++) s+=hav(p[i-1],p[i]); return s; }
+
+/* ---------- Fachlogik (HLFS) ---------- */
+// Druckverlust pR [bar / 100 m B-Schlauch] je Förderstrom einer Leitung
+const PR_TAB=[[400,.3],[500,.4],[600,.6],[700,.8],[800,1.0],[900,1.2],[1000,1.4],[1200,2.0],[1600,4.0]];
+function pR(q){
+  if(q<=PR_TAB[0][0]) return .3*(q/400)**2;
+  for(let i=1;i<PR_TAB.length;i++){ const [q1,p1]=PR_TAB[i-1],[q2,p2]=PR_TAB[i];
+    if(q<=q2) return p1+(p2-p1)*(q-q1)/(q2-q1); }
+  return 4*(q/1600)**2;
+}
+/**
+ * Pumpenstandorte entlang eines Höhenprofils (grafisches Verfahren HLFS, Abb. 5/6).
+ * s: [{d (Kartenmeter), h (m)}], p: Parameter. Liefert Pumpen + Drucklinie.
+ */
+function plan(s,p){
+  const f=1+p.zus/100, n=s.length;
+  const hose=s.map(x=>x.d*f);
+  const qL=p.q/p.lines, r=pR(qL);
+  const th=p.open?0:p.pe;                     // Restdruck, der an der nächsten Pumpe ankommen muss
+  const paNext=(!p.open && p.addPe)? p.pa+p.pe : p.pa;
+  const hl=p.hoseLen||20;
+  const pumps=[]; const press=new Array(n).fill(null);
+  let k=0, pa=p.pa, warn=[], maxP=pa, guard=0;
+  while(guard++<500){
+    pumps.push({i:k,pa});
+    let fail=-1;
+    for(let j=k;j<n;j++){
+      const pr=pa - r*(hose[j]-hose[k])/100 - (s[j].h-s[k].h)/10;
+      const need=(j===n-1)? p.pstr : th;
+      if(pr<need){ fail=j; break; }
+      press[j]=pr; if(pr>maxP) maxP=pr;
+    }
+    if(fail<0){ pumps[pumps.length-1].endP=press[n-1]; break; }
+    let nx=fail-1;
+    if(nx<=k){ nx=k+1; warn.push("steep"); if(nx>=n) break; }
+    // Verstärker steht an einer Kupplung: auf ganze B-Längen abrunden
+    const nb=Math.max(1,Math.floor((hose[nx]-hose[k])/hl+1e-6)), tgt=nb*hl;
+    let j=nx; while(j>k+1 && hose[j]-hose[k]>tgt+0.01) j--;
+    if(j+1<=nx && Math.abs(hose[j+1]-hose[k]-tgt)<Math.abs(hose[j]-hose[k]-tgt)) j++;
+    nx=j;
+    const arr=pa - r*(hose[nx]-hose[k])/100 - (s[nx].h-s[k].h)/10;
+    pumps[pumps.length-1].next=nx; pumps[pumps.length-1].arrive=arr; pumps[pumps.length-1].bl=nb;
+    k=nx; pa=paNext;
+  }
+  let acc=0; pumps.forEach(pp=>{ pp.bNr=acc; acc+=pp.bl||0; });
+  const lastP=pumps[pumps.length-1]; lastP.bl=Math.max(1,Math.ceil((hose[n-1]-hose[lastP.i])/hl-1e-6)); const bTotal=acc+lastP.bl;
+  const H=s[n-1].h-s[0].h, L=hose[n-1];
+  const pges=H/10 + r*L/100 + p.pstr;
+  const pv=p.pa-th;
+  return {pumps,press,hose,r,qL,warn,maxP,H,L,pges,pv,hl,bTotal,nForm:Math.max(1,Math.ceil(pges/pv-0.05)),paNext,th};
+}
+
+/* ---------- Karte ---------- */
+const map=L.map("map",{zoomControl:false,attributionControl:true}).setView([50.272,7.842],14);
+const layers=[
+  ["Karte",L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"})],
+  ["Topo",L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenStreetMap, SRTM · © OpenTopoMap"})],
+  ["Luftbild",L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri, Maxar, Earthstar"})]
+];
+let layerIx=store.get("lwf.layer",1)%layers.length; layers[layerIx][1].addTo(map);
+$("layerBtn").onclick=()=>{ map.removeLayer(layers[layerIx][1]); layerIx=(layerIx+1)%layers.length; layers[layerIx][1].addTo(map); store.set("lwf.layer",layerIx); toast("Kartenart: "+layers[layerIx][0]); };
+
+const icon=(cls,txt,size)=>L.divIcon({className:"",html:`<div class="mk ${cls}" style="width:${size}px;height:${size}px">${txt}</div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
+const S={pts:[],road:false,path:null,result:null,mode:"lw",saved:{},ring:false,ret:[],retPath:null,editRet:false};
+let CUR_TAB="strecke";
+const gLine=L.layerGroup().addTo(map), gPts=L.layerGroup().addTo(map), gRes=L.layerGroup().addTo(map);
+
+function drawPts(){
+  gPts.clearLayers();
+  S.pts.forEach((pt,i)=>{
+    const last=i===S.pts.length-1 && i>0;
+    const m=L.marker(pt,{draggable:true,icon: i===0?icon("we","WE",30): last?(S.mode==="pv"?icon("end","ES",30):icon("end","V",28)):icon("wp",i,20)}).addTo(gPts);
+    m.on("dragend",e=>{ const ll=e.target.getLatLng(); S.pts[i]=[ll.lat,ll.lng]; changed(); });
+  });
+  if(S.mode==="pv" && S.ring) S.ret.forEach((pt,i)=>{
+    const m=L.marker(pt,{draggable:true,icon:icon("rp","R"+(i+1),24)}).addTo(gPts);
+    m.on("dragend",e=>{ const ll=e.target.getLatLng(); S.ret[i]=[ll.lat,ll.lng]; changed(); });
+  });
+}
+function changed(){ S.path=null; S.retPath=null; S.result=null; gRes.clearLayers(); drawPts(); drawLine(); updStats(); showAny(); }
+function drawLine(){
+  gLine.clearLayers();
+  const p=S.path||S.pts; if(p.length>1) L.polyline(p,{color:getVar("--water"),weight:5,opacity:.85,dashArray:S.path?null:"8 8"}).addTo(gLine);
+  if(S.mode==="pv" && S.ring && S.pts.length>1){
+    const rp=S.retPath||[S.pts[S.pts.length-1],...S.ret,S.pts[0]];
+    L.polyline(rp,{color:"#e07a10",weight:5,opacity:.9,dashArray:S.retPath?null:"8 8"}).addTo(gLine);
+  }
+}
+function updStats(){
+  if(S.mode==="pv") return updStatsPV();
+  $("sL1").textContent="Punkte"; $("sL2").textContent="Karte"; $("sL3").textContent="Schlauch";
+  const p=S.path||S.pts, len=pathLen(p), z=num("zus",10);
+  $("sPts").textContent=S.pts.length; $("sLen").textContent=fmt(len)+" m"; $("sHose").textContent=fmt(len*(1+z/100))+" m";
+  const h=$("hint");
+  if(S.pts.length===0) h.innerHTML='<b>1</b><span>Auf der Karte die <strong>Wasserentnahmestelle</strong> antippen.</span>';
+  else if(S.pts.length===1) h.innerHTML='<b>2</b><span>Weitere Punkte entlang der <strong>Schlauchtrasse</strong> setzen. Der letzte Punkt ist der <strong>Verteiler</strong> an der Brandstelle.</span>';
+  else h.innerHTML='<b>3</b><span>Trasse fertig? <strong>Berechnen</strong> tippen. Weitere Punkte verlängern die Strecke.</span>';
+  $("calcBtn").disabled=S.pts.length<2; $("undoBtn").disabled=!S.pts.length;
+}
+map.on("click",e=>{
+  const ll=[e.latlng.lat,e.latlng.lng];
+  if(S.mode==="pv" && S.ring && S.editRet){ if(S.pts.length<2){ toast("Erst Entnahmestelle und Einsatzstelle setzen"); return; } S.ret.push(ll); }
+  else S.pts.push(ll);
+  changed();
+});
+$("undoBtn").onclick=()=>{ if(S.mode==="pv" && S.ring && S.editRet) S.ret.pop(); else S.pts.pop(); changed(); };
+$("clearBtn").onclick=()=>{ S.pts=[]; S.ret=[]; S.editRet=false; changed(); if(S.mode==="pv") renderRingUI(); history.replaceState(null,"",location.pathname); };
+function setMode(road){ S.road=road; $("modeFree").setAttribute("aria-pressed",!road); $("modeRoad").setAttribute("aria-pressed",road); changed(); }
+function updStatsPV(){
+  const p=S.path||S.pts, len=pathLen(p), v=PV.v||30;
+  const h=$("hint");
+  if(S.ring && S.pts.length>=2){
+    const rp=S.retPath||[S.pts[S.pts.length-1],...S.ret,S.pts[0]], lenR=pathLen(rp);
+    $("sL1").textContent="Hinweg"; $("sL2").textContent="Rückweg"; $("sL3").textContent="Fahrt hin + rück";
+    $("sPts").textContent=fmt(len/1000,1)+" km"; $("sLen").textContent=fmt(lenR/1000,1)+" km"; $("sHose").textContent=fmt((len+lenR)/1000/v*60)+" min";
+    if(S.editRet) h.innerHTML='<b>R</b><span><strong>Rückweg</strong> (leer): Punkte von der Einsatzstelle zurück zur Wasserentnahme antippen, über andere Straßen als der Hinweg. Start und Ziel sind schon gesetzt.</span>';
+    else if(!S.ret.length) h.innerHTML='<b>3</b><span>Ringverkehr: <strong>Rückweg bearbeiten</strong> wählen und den Rückweg über andere Straßen antippen.</span>';
+    else h.innerHTML='<b>4</b><span>Hin- und Rückweg stehen. <strong>Berechnen</strong> tippen.</span>';
+    $("calcBtn").disabled=false; $("undoBtn").disabled=S.editRet? !S.ret.length : !S.pts.length;
+    return;
+  }
+  $("sL1").textContent="Punkte"; $("sL2").textContent="Fahrstrecke"; $("sL3").textContent="Fahrzeit";
+  $("sPts").textContent=S.pts.length; $("sLen").textContent=fmt(len/1000,1)+" km"; $("sHose").textContent=fmt(len/1000/v*60)+" min";
+  if(S.pts.length===0) h.innerHTML='<b>1</b><span>Auf der Karte die <strong>Wasserentnahmestelle</strong> antippen, an der die Fahrzeuge befüllt werden (Hydrant, Gewässer, Zisterne).</span>';
+  else if(S.pts.length===1) h.innerHTML='<b>2</b><span>Die <strong>Einsatzstelle</strong> antippen, an der das Wasser abgegeben wird. Sollen die Fahrzeuge einen bestimmten Weg nehmen, vorher Zwischenpunkte setzen.</span>';
+  else h.innerHTML='<b>3</b><span>Strecke fertig? <strong>Berechnen</strong> tippen. Der letzte Punkt ist immer die Einsatzstelle.</span>';
+  $("calcBtn").disabled=S.pts.length<2; $("undoBtn").disabled=!S.pts.length;
+}
+
+/* ---------- Art der Planung ---------- */
+const MODE_TXT={
+  lw:{t1:"Lange Wegstrecke",free:"Freihand / Gelände",road:"Wegen folgen",note:"Punkte lassen sich verschieben. Der letzte Punkt ist der Verteiler an der Brandstelle. Höhen werden automatisch aus einem Geländemodell geladen."},
+  pv:{t1:"Pendelverkehr",free:"Gerade Linie",road:"Straße folgen",note:"Punkte lassen sich verschieben. „Straße folgen“ legt die Fahrstrecke über befahrbare Straßen. Für Wald- und Feldwege „Gerade Linie“ wählen und Zwischenpunkte setzen."}};
+function setPlanMode(m){
+  if(m!=="lw" && m!=="pv") m="lw";
+  if(m!==S.mode){
+    S.saved[S.mode]={pts:S.pts,road:S.road,path:S.path,result:S.result,ring:S.ring,ret:S.ret,retPath:S.retPath,editRet:S.editRet};
+    S.mode=m;
+    Object.assign(S,S.saved[m]||{pts:[],road:m==="pv",path:null,result:null,ring:false,ret:[],retPath:null,editRet:false});
+  }
+  const T=MODE_TXT[m];
+  $("brandT1").textContent=T.t1; $("modeFree").textContent=T.free; $("modeRoad").textContent=T.road; $("streckeNote").textContent=T.note;
+  $("mLW").setAttribute("aria-pressed",m==="lw"); $("mPV").setAttribute("aria-pressed",m==="pv");
+  $("modeFree").setAttribute("aria-pressed",!S.road); $("modeRoad").setAttribute("aria-pressed",S.road);
+  document.querySelectorAll(".mp-card").forEach(b=>b.setAttribute("aria-current",b.dataset.mode===m));
+  renderRingUI();
+  gRes.clearLayers(); drawPts(); drawLine(); updStats(); showAny();
+  if(S.result){ if(m==="lw") drawResOnMap(S.result); else drawPVOnMap(S.result); }
+  tab(CUR_TAB);
+  store.set("lwf.mode",m);
+}
+$("mLW").onclick=()=>setPlanMode("lw"); $("mPV").onclick=()=>setPlanMode("pv");
+function openPicker(){ document.querySelectorAll(".mp-card").forEach(b=>b.setAttribute("aria-current",b.dataset.mode===S.mode)); $("modePick").hidden=false; }
+$("brandBtn").onclick=openPicker;
+document.querySelectorAll(".mp-card").forEach(b=>b.onclick=()=>{ setPlanMode(b.dataset.mode); $("modePick").hidden=true; tab("strecke"); });
+$("modePick").addEventListener("click",e=>{ if(e.target.id==="modePick") $("modePick").hidden=true; });
+$("modeFree").onclick=()=>setMode(false); $("modeRoad").onclick=()=>setMode(true);
+
+/* Standort */
+let locM;
+$("locBtn").onclick=()=>{
+  if(!navigator.geolocation){ toast("Standort wird von diesem Gerät nicht unterstützt"); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const ll=[pos.coords.latitude,pos.coords.longitude];
+    if(locM) map.removeLayer(locM);
+    locM=L.circleMarker(ll,{radius:8,color:"#fff",weight:3,fillColor:getVar("--water"),fillOpacity:1}).addTo(map);
+    map.setView(ll,16);
+  },()=>toast("Standort nicht verfügbar – Freigabe im Browser prüfen (HTTPS nötig)"),{enableHighAccuracy:true,timeout:10000});
+};
+
+/* Suche (Nominatim) */
+$("searchForm").onsubmit=async e=>{
+  e.preventDefault(); const q=$("q").value.trim(); if(!q) return;
+  try{
+    const r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=6&countrycodes=de&q="+encodeURIComponent(q),{headers:{"Accept-Language":"de"}});
+    const js=await r.json(); const box=$("results");
+    if(!js.length){ toast("Nichts gefunden"); box.hidden=true; return; }
+    box.innerHTML=js.map((x,i)=>`<button data-i="${i}">${esc(x.display_name)}</button>`).join("");
+    box.hidden=false;
+    box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const x=js[b.dataset.i]; map.setView([+x.lat,+x.lon],16); box.hidden=true; $("q").blur(); });
+  }catch(err){ toast("Suche nicht erreichbar"); }
+};
+
+/* ---------- Bedienblatt ---------- */
+function tab(name){
+  CUR_TAB=name;
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===name));
+  $("tab-strecke").hidden=name!=="strecke";
+  $("tab-daten").hidden=!(name==="daten" && S.mode==="lw");
+  $("tab-datenpv").hidden=!(name==="daten" && S.mode==="pv");
+  $("tab-ergebnis").hidden=name!=="ergebnis";
+  if(name==="ergebnis" && S.result) requestAnimationFrame(drawCharts);
+}
+function drawCharts(){ if(!S.result) return; if(S.mode==="lw") drawChart(); else drawPVCharts(); }
+function showAny(){
+  const r=S.result, lw=S.mode==="lw";
+  $("resEmpty").hidden=!!r; $("share").hidden=!r;
+  $("res").hidden=!(r&&lw); $("resPV").hidden=!(r&&!lw);
+  if(r){ if(lw) showResult(r); else showPV(r);
+    $("navBtns").innerHTML=navItems().map(it=>`<a href="${esc(it.url)}" target="_blank" rel="noopener"><span style="background:rgb(${it.col.join(",")})">${esc(it.tag)}</span>${esc(it.title)}</a>`).join(""); }
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{ $("sheet").classList.remove("min"); tab(b.dataset.tab); });
+$("grip").onclick=()=>{ const s=$("sheet");
+  if(s.classList.contains("min")) s.classList.remove("min");
+  else if(s.classList.contains("big")){ s.classList.remove("big"); s.classList.add("min"); }
+  else s.classList.add("big");
+  setTimeout(()=>{ map.invalidateSize(); drawCharts(); },280);
+};
+
+/* ---------- Parameter ---------- */
+const P=store.get("lwf.params",{q:800,lines:1,open:false,pa:8,pe:1.5,pstr:5,addPe:false,hoseLen:20,zus:10});
+function num(id,def){ const v=parseFloat(String($(id).value).replace(",",".")); return isFinite(v)?v:def; }
+function readP(){
+  P.q=num("qIn",800); P.pa=num("pa",8); P.pe=num("pe",1.5); P.pstr=num("pstr",5);
+  P.hoseLen=num("hoseLen",20); P.zus=num("zus",10); P.addPe=$("addPe").checked;
+  store.set("lwf.params",P); return P;
+}
+function writeP(){
+  $("qIn").value=P.q; $("pa").value=P.pa; $("pe").value=P.pe; $("pstr").value=P.pstr;
+  $("hoseLen").value=P.hoseLen; $("zus").value=P.zus; $("addPe").checked=P.addPe;
+  $("l1").setAttribute("aria-pressed",P.lines===1); $("l2").setAttribute("aria-pressed",P.lines===2);
+  $("srG").setAttribute("aria-pressed",!P.open); $("srO").setAttribute("aria-pressed",P.open);
+  document.querySelectorAll("#qChips button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.q===P.q));
+  document.querySelectorAll("#peChips button").forEach(b=>{ b.setAttribute("aria-pressed",+b.dataset.pe===P.pe); b.disabled=P.open; });
+  $("pe").disabled=P.open;
+  $("peNote").textContent=P.open
+    ? "Offene Schaltreihe: Das Wasser läuft frei in den Behälter, die nächste Pumpe saugt an. Ein Eingangsdruck wird nicht benötigt."
+    : (P.pe<1.5 ? "Achtung: unter 1,5 bar. HLFS empfiehlt mindestens 1,5 bar an jeder Verstärkerpumpe."
+      : "So viel Druck soll an jeder Verstärkerpumpe noch ankommen. HLFS: nicht unter 1,5 bar. Ein höherer Wert gibt mehr Reserve, die Pumpen stehen dann dichter.");
+}
+$("qChips").innerHTML=[400,600,800,1000,1200,1600].map(q=>`<button data-q="${q}">${fmt(q)}</button>`).join("");
+$("qChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ P.q=+b.dataset.q; writeP(); readP(); });
+["qIn","pa","pe","pstr","hoseLen","zus","addPe"].forEach(id=>$(id).addEventListener("change",()=>{ readP(); writeP(); updStats(); }));
+$("l1").onclick=()=>{P.lines=1;writeP();readP();}; $("l2").onclick=()=>{P.lines=2;writeP();readP();};
+$("srG").onclick=()=>{P.open=false;writeP();readP();}; $("srO").onclick=()=>{P.open=true;writeP();readP();};
+$("peChips").innerHTML=[1.5,2,2.5,3].map(v=>`<button data-pe="${v}">${fmt(v,1)} bar</button>`).join("");
+$("peChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ P.pe=+b.dataset.pe; writeP(); readP(); });
+$("pumpPreset").onchange=e=>{ $("pa").value=e.target.value; readP(); };
+writeP();
+
+/* ---------- Daten holen ---------- */
+async function getRoad(pts,profile){
+  const c=pts.map(p=>p[1].toFixed(6)+","+p[0].toFixed(6)).join(";");
+  const url=profile==="car"
+    ? `https://routing.openstreetmap.de/routed-car/route/v1/driving/${c}?overview=full&geometries=geojson`
+    : `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${c}?overview=full&geometries=geojson`;
+  const r=await fetch(url);
+  if(!r.ok) throw new Error("route");
+  const js=await r.json(); if(!js.routes||!js.routes.length) throw new Error("route");
+  const rt=js.routes[0];
+  return {path:rt.geometry.coordinates.map(c=>[c[1],c[0]]), dist:rt.distance, dur:rt.duration};
+}
+function densify(path,step){
+  const cum=[0]; for(let i=1;i<path.length;i++) cum.push(cum[i-1]+hav(path[i-1],path[i]));
+  const tot=cum[cum.length-1], out=[]; let seg=1;
+  for(let d=0; d<tot; d+=step){
+    while(seg<path.length-1 && cum[seg]<d) seg++;
+    const a=path[seg-1], b=path[seg], L=(cum[seg]-cum[seg-1])||1, t=(d-cum[seg-1])/L;
+    out.push({lat:a[0]+(b[0]-a[0])*t, lng:a[1]+(b[1]-a[1])*t, d});
+  }
+  const e=path[path.length-1]; out.push({lat:e[0],lng:e[1],d:tot});
+  return out;
+}
+async function elevations(s){
+  for(let i=0;i<s.length;i+=100){
+    const part=s.slice(i,i+100);
+    busy(true,`Lade Höhendaten … ${Math.min(100,Math.round((i+part.length)/s.length*100))} %`);
+    const url="https://api.open-meteo.com/v1/elevation?latitude="+part.map(x=>x.lat.toFixed(5)).join(",")+"&longitude="+part.map(x=>x.lng.toFixed(5)).join(",");
+    let js, tries=0;
+    while(true){
+      const r=await fetch(url);
+      if(r.ok){ js=await r.json(); break; }
+      if(++tries>3) throw new Error("elev");
+      await new Promise(res=>setTimeout(res,1200*tries));
+    }
+    part.forEach((x,k)=>x.h=js.elevation[k]);
+  }
+  // leichte Glättung gegen Rasterrauschen (3er-Mittel), Endpunkte bleiben
+  const h=s.map(x=>x.h);
+  for(let i=1;i<s.length-1;i++) s[i].h=(h[i-1]+h[i]+h[i+1])/3;
+}
+
+/* ---------- Berechnen ---------- */
+$("calcBtn").onclick=calc;
+async function calc(){
+  if(S.pts.length<2) return;
+  if(S.mode==="pv") return calcPV();
+  readP(); busy(true,"Berechne Trasse …");
+  try{
+    if(S.road && S.pts.length>=2){
+      try{ S.path=(await getRoad(S.pts,"foot")).path; }catch(e){ S.path=S.pts.slice(); toast("Wegeführung nicht verfügbar – gerade Linien verwendet"); }
+    } else S.path=S.pts.slice();
+    drawLine(); updStats();
+    const len=pathLen(S.path), step=Math.max(10,Math.ceil(len/800/5)*5);
+    const s=densify(S.path,step);
+    await elevations(s);
+    const res=plan(s,P); res.s=s; res.step=step; res.params={...P};
+    S.result=res; showAny(); drawResOnMap(res); writeHash();
+    tab("ergebnis"); $("sheet").classList.remove("min");
+  }catch(e){
+    console.error(e); toast("Höhendaten konnten nicht geladen werden – Internetverbindung prüfen");
+  }finally{ busy(false); }
+}
+
+function drawResOnMap(r){
+  gRes.clearLayers();
+  r.pumps.forEach((pp,ix)=>{
+    const x=r.s[pp.i];
+    const m=L.marker([x.lat,x.lng],{icon:icon("fp","FP "+(ix+1),40),zIndexOffset:1000}).addTo(gRes);
+    m.bindPopup(`<b>FP ${ix+1}</b>${ix===0?" · Wasserentnahme":` · nach <b>${r.pumps[ix-1].bl} B-Längen</b> ab FP ${ix} (${pp.bNr}. B-Schlauch ab WE)`}<br>Schlauch-km ${fmt(r.hose[pp.i])} m · Höhe ${fmt(x.h)} m<br>Ausgangsdruck ${fmt(pp.pa,1)} bar`+
+      (pp.arrive!=null?`<br>Ankunft nächste FP ${fmt(pp.arrive,1)} bar · bis dahin ${pp.bl} B`:`<br>${pp.bl} B bis Verteiler · Druck dort ${fmt(pp.endP,1)} bar`));
+  });
+  map.fitBounds(L.latLngBounds(r.s.map(x=>[x.lat,x.lng])),{padding:[40,40],paddingBottomRight:[0,Math.round(innerHeight*.45)]});
+}
+
+function showResult(r){
+  if(!r) return;
+  const p=r.params, nFP=r.pumps.length, perLine=Math.ceil(r.L/p.hoseLen);
+  const hoses=perLine*p.lines, resH=Math.ceil(r.L*p.lines/100), resFP=Math.ceil(nFP/4);
+  $("rFp").textContent=nFP; $("rB").textContent=hoses; $("rH").textContent=(r.H>=0?"+":"")+fmt(r.H)+" m";
+  const msgs=[];
+  if(r.warn.includes("steep")) msgs.push(["warn","Sehr steiler Abschnitt: Auf mindestens einer Teilstrecke reicht der Pumpendruck nicht einmal für einen Schlauch. Trasse oder Förderstrom ändern."]);
+  if(!p.open && p.pe<1.5) msgs.push(["warn",`Eingangsdruck ${fmt(p.pe,1)} bar liegt unter den empfohlenen 1,5 bar. Bei Druckschwankungen kann die Verstärkerpumpe abreißen.`]);
+  $("thArr").innerHTML=p.open?"Ankunft":`Ankunft<br><span style="text-transform:none">Soll ${fmt(p.pe,1)}</span>`;
+  if(r.qL>1000) msgs.push(["warn",`${fmt(r.qL)} l/min in einer B-Leitung: HLFS empfiehlt höchstens 1.000 l/min je Leitung. Doppelleitung prüfen.`]);
+  if(r.maxP>16) msgs.push(["warn",`Durch Gefälle steigt der Leitungsdruck auf ${fmt(r.maxP,1)} bar. Über dem Betriebsdruck der B-Schläuche (16 bar): Druck reduzieren oder Druckbegrenzung einbauen.`]);
+  if(p.q<500 && r.L>3000) msgs.push(["warn","Kleiner Förderstrom über mehr als 3 km: Pendelverkehr mit Tanklöschfahrzeugen als Alternative prüfen."]);
+  if(nFP>1){ const bls=r.pumps.slice(0,-1).map(x=>x.bl), mn=Math.min(...bls), mx=Math.max(...bls);
+    msgs.push(["ok",`<b>Verstärkerpumpe ${mn===mx?"alle "+mn:"nach "+mn+"–"+mx} B-Längen setzen</b> (à ${fmt(p.hoseLen)} m). Die genaue Zahl je Pumpe steht in der Tabelle.`]); }
+  const ep=r.pumps[nFP-1].endP;
+  if(ep!=null) msgs.push(["ok",`Am Verteiler kommen rechnerisch ${fmt(ep,1)} bar an (benötigt ${fmt(p.pstr,1)} bar). Q je Leitung ${fmt(r.qL)} l/min, Reibung ${fmt(r.r,2)} bar/100 m.`]);
+  $("rMsgs").innerHTML=msgs.map(m=>`<div class="msg ${m[0]}">${m[1]}</div>`).join("");
+  const sm=t=>`<br><span class="note">${t}</span>`;
+  $("rTbl").innerHTML=r.pumps.map((pp,i)=>`<tr class="go" data-i="${i}"><td><b>FP ${i+1}</b></td><td>${i===0?"WE":`<b>${r.pumps[i-1].bl} × B</b>`+sm(`${pp.bNr}. B · ${fmt(pp.bNr*r.hl)} m`)}</td><td>${fmt(r.s[pp.i].h)} m</td><td>${fmt(pp.pa,1)}</td><td>${pp.arrive!=null?fmt(pp.arrive,1)+" bar":"–"}</td></tr>`).join("")+
+    `<tr><td><b>V</b></td><td><b>${r.pumps[nFP-1].bl} × B</b>${sm(`${r.bTotal}. B · ${fmt(r.L)} m`)}</td><td>${fmt(r.s[r.s.length-1].h)} m</td><td>–</td><td>${fmt(r.pumps[nFP-1].endP,1)} bar</td></tr>`;
+  $("rTbl").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>{ const x=r.s[r.pumps[+tr.dataset.i].i]; map.setView([x.lat,x.lng],17); $("sheet").classList.add("min"); });
+  $("rMat").innerHTML=
+    `${nFP} Feuerlöschkreiselpumpen + ${resFP} Reserve<br>`+
+    `${hoses} B-Schläuche à ${fmt(p.hoseLen)} m (${p.lines===2?"2 × ":""}${fmt(perLine)}) + ${resH} Reserve<br>`+
+    `Schlauchstrecke ${fmt(r.L)} m · ${p.open?"offene Schaltreihe: "+Math.max(0,nFP-1)+" Auffangbehälter":"geschlossene Schaltreihe"}`;
+  $("rForm").innerHTML=
+    `p<sub>ges</sub> = p<sub>geo</sub> + p<sub>R</sub> + p<sub>Str</sub> = ${fmt(r.H/10,1)} + ${fmt(r.r*r.L/100,1)} + ${fmt(p.pstr,1)} = <b>${fmt(r.pges,1)} bar</b><br>`+
+    `n<sub>FP</sub> = p<sub>ges</sub> / p<sub>v</sub> = ${fmt(r.pges,1)} / ${fmt(r.pv,1)} ≈ <b>${r.nForm} Pumpen</b><br>`+
+    `<span class="note">Die Formel nimmt nur Start- und Endhöhe. Die Pumpenzahl oben berücksichtigt den Geländeverlauf dazwischen.</span>`;
+  if(!$("tab-ergebnis").hidden) requestAnimationFrame(drawChart);
+}
+
+/* ---------- Profil-Grafik (grafisches Verfahren) ---------- */
+function getVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function drawChart(){
+  const r=S.result, cv=$("prof"); if(!r||!cv.offsetWidth) return;
+  const dpr=devicePixelRatio||1, W=cv.offsetWidth, H=cv.offsetHeight;
+  cv.width=W*dpr; cv.height=H*dpr; const c=cv.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+  drawProfile(c,W,H,r,{muted:getVar("--muted"),line:getVar("--line"),terrain:getVar("--terrain"),drop:getVar("--drop"),red:getVar("--red"),fg:getVar("--fg"),font:getVar("--f-body")});
+}
+function drawProfile(c,W,H,r,C){
+  const getVar=n=>({"--muted":C.muted,"--line":C.line,"--terrain":C.terrain,"--drop":C.drop,"--red":C.red,"--fg":C.fg,"--f-body":C.font})[n];
+  const padL=40,padR=10,padT=10,padB=24, iw=W-padL-padR, ih=H-padT-padB;
+  const hs=r.s.map(x=>x.h); let hMin=Math.min(...hs), hMax=Math.max(...hs);
+  hMin=Math.floor((hMin-5)/10)*10; hMax=Math.ceil((hMax+15)/10)*10;
+  const X=d=>padL+d/r.L*iw, Y=h=>padT+(1-(h-hMin)/(hMax-hMin))*ih;
+  const fg=getVar("--muted"), line=getVar("--line");
+  c.font="11px "+getVar("--f-body"); c.fillStyle=fg; c.strokeStyle=line; c.lineWidth=1;
+  const yStep=niceStep((hMax-hMin)/4);
+  for(let h=Math.ceil(hMin/yStep)*yStep; h<=hMax; h+=yStep){ c.beginPath(); c.moveTo(padL,Y(h)); c.lineTo(W-padR,Y(h)); c.stroke(); c.textAlign="right"; c.fillText(fmt(h),padL-4,Y(h)+4); }
+  const xStep=niceStep(r.L/4); c.textAlign="center";
+  for(let d=0; d<=r.L; d+=xStep) c.fillText(fmt(d)+(d===0?"":" m"),Math.min(X(d),W-padR-14),H-6);
+  // Gelände
+  c.beginPath(); r.s.forEach((x,i)=>{ const px=X(r.hose[i]),py=Y(x.h); i?c.lineTo(px,py):c.moveTo(px,py); });
+  c.strokeStyle=getVar("--terrain"); c.lineWidth=2.5; c.stroke();
+  c.lineTo(X(r.L),padT+ih); c.lineTo(X(0),padT+ih); c.closePath(); c.globalAlpha=.12; c.fillStyle=getVar("--terrain"); c.fill(); c.globalAlpha=1;
+  // Druckabfalllinien: verfügbare Höhe = h_Pumpe + (pa − Restdruck)·10 − Reibung·10
+  c.setLineDash([6,5]); c.strokeStyle=getVar("--drop"); c.lineWidth=2;
+  r.pumps.forEach((pp,ix)=>{
+    const last=ix===r.pumps.length-1, need=last?r.params.pstr:r.th;
+    const h0=r.s[pp.i].h+(pp.pa-need)*10, d0=r.hose[pp.i];
+    const dEnd=last? r.L : Math.min(r.L,d0+ (pp.pa-need)/r.r*100*1.05);
+    c.beginPath(); c.moveTo(X(d0),Y(h0)); c.lineTo(X(dEnd),Y(h0-r.r*(dEnd-d0)/100*10)); c.stroke();
+  });
+  c.setLineDash([]);
+  // Pumpen
+  r.pumps.forEach((pp,ix)=>{
+    const px=X(r.hose[pp.i]), py=Y(r.s[pp.i].h);
+    c.strokeStyle=getVar("--red"); c.lineWidth=1.5; c.setLineDash([2,3]); c.beginPath(); c.moveTo(px,padT); c.lineTo(px,padT+ih); c.stroke(); c.setLineDash([]);
+    c.fillStyle=getVar("--red"); c.fillRect(px-4,py-4,8,8);
+    c.fillStyle=getVar("--fg"); c.textAlign=px>W-40?"right":"left"; c.font="600 11px "+getVar("--f-body"); c.fillText("FP "+(ix+1),px+(px>W-40?-5:5),padT+11);
+    // B-Längen bis zur nächsten Pumpe bzw. zum Verteiler
+    const nx=ix<r.pumps.length-1? X(r.hose[r.pumps[ix+1].i]) : X(r.L);
+    if(nx-px>34){ c.fillStyle=getVar("--muted"); c.textAlign="center"; c.font="600 10px "+getVar("--f-body"); c.fillText(pp.bl+" B",(px+nx)/2,padT+24); }
+  });
+}
+function niceStep(v){ const e=10**Math.floor(Math.log10(v||1)), m=v/e; return (m<1.5?1:m<3?2:m<7?5:10)*e; }
+addEventListener("resize",()=>drawCharts());
+
+/* ---------- PDF für die Einsatzstelle ---------- */
+const JSPDF_URL="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+const QR_URL="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+const _ls={};
+function loadScript(src){ return _ls[src]||(_ls[src]=new Promise((res,rej)=>{ const el=document.createElement("script"); el.src=src; el.onload=res; el.onerror=()=>{ delete _ls[src]; el.remove(); rej(new Error("Skript nicht ladbar")); }; document.head.appendChild(el); })); }
+function loadImg(u){ return new Promise((res,rej)=>{ const i=new Image(); i.crossOrigin="anonymous"; i.onload=()=>res(i); i.onerror=()=>rej(new Error("Bild")); i.src=u; }); }
+const wX=(lon,z)=>(lon+180)/360*256*2**z;
+const wY=(lat,z)=>{ const a=lat*Math.PI/180; return (1-Math.log(Math.tan(a)+1/Math.cos(a))/Math.PI)/2*256*2**z; };
+const PRINT_TILES=[
+  {url:"https://a.tile.opentopomap.org/{z}/{x}/{y}.png",max:17,attr:"Kartendaten © OpenStreetMap-Mitwirkende, SRTM | Darstellung © OpenTopoMap (CC-BY-SA)"},
+  {url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png",max:18,attr:"Kartendaten © OpenStreetMap-Mitwirkende"}];
+
+async function staticMap(r,W,H,ov){
+  const k=2, w=W/k, h=H/k, pad=55;
+  const route=(S.path||S.pts).map(q=>({lat:q[0],lng:q[1]}));
+  const extra=(S.mode==="pv" && S.ring && S.retPath ? S.retPath : []).map(q=>({lat:q[0],lng:q[1]}));
+  const lats=route.concat(extra).map(q=>q.lat), lngs=route.concat(extra).map(q=>q.lng);
+  const la0=Math.min(...lats), la1=Math.max(...lats), lo0=Math.min(...lngs), lo1=Math.max(...lngs);
+  for(const src of PRINT_TILES){
+    try{
+      let z=src.max;
+      while(z>4 && (wX(lo1,z)-wX(lo0,z)>w-2*pad || wY(la0,z)-wY(la1,z)>h-2*pad)) z--;
+      const cx=(wX(lo0,z)+wX(lo1,z))/2, cy=(wY(la1,z)+wY(la0,z))/2, x0=cx-w/2, y0=cy-h/2;
+      const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const c=cv.getContext("2d");
+      c.setTransform(k,0,0,k,0,0); c.fillStyle="#e9edf2"; c.fillRect(0,0,w,h);
+      const jobs=[], N=2**z;
+      for(let tx=Math.floor(x0/256); tx<=Math.floor((x0+w)/256); tx++)
+        for(let ty=Math.floor(y0/256); ty<=Math.floor((y0+h)/256); ty++){
+          if(ty<0||ty>=N) continue;
+          const u=src.url.replace("{z}",z).replace("{x}",((tx%N)+N)%N).replace("{y}",ty);
+          jobs.push(loadImg(u).then(img=>c.drawImage(img,tx*256-x0,ty*256-y0,256,256)));
+        }
+      await Promise.all(jobs);
+      c.getImageData(0,0,1,1); // wirft, falls Kacheln ohne Freigabe geladen wurden
+      const P=(lat,lng)=>[wX(lng,z)-x0, wY(lat,z)-y0];
+      c.fillStyle="rgba(255,255,255,.18)"; c.fillRect(0,0,w,h);
+      // Leitung
+      c.lineJoin=c.lineCap="round";
+      c.beginPath(); route.forEach((q,i)=>{ const [x,y]=P(q.lat,q.lng); i?c.lineTo(x,y):c.moveTo(x,y); });
+      c.strokeStyle="#fff"; c.lineWidth=7; c.stroke(); c.strokeStyle="#0190b3"; c.lineWidth=4; c.stroke();
+      if(ov) ov(c,P); else {
+      // B-Längen zwischen den Pumpen
+      c.font="bold 9px Helvetica, Arial, sans-serif"; c.textAlign="center"; c.textBaseline="middle";
+      r.pumps.forEach((pp,ix)=>{
+        const a=r.hose[pp.i], b=ix<r.pumps.length-1? r.hose[r.pumps[ix+1].i] : r.L, mid=(a+b)/2;
+        let m=r.s[0]; for(let i=0;i<r.s.length;i++){ if(r.hose[i]>=mid){ m=r.s[i]; break; } }
+        const qa=r.s[pp.i], qb=ix<r.pumps.length-1? r.s[r.pumps[ix+1].i] : r.s[r.s.length-1];
+        const [ax,ay]=P(qa.lat,qa.lng), [bx,by]=P(qb.lat,qb.lng); if(Math.hypot(bx-ax,by-ay)<48) return;
+        const [x,y]=P(m.lat,m.lng), t=pp.bl+" B", tw=c.measureText(t).width+8;
+        c.fillStyle="#fff"; c.strokeStyle="#0190b3"; c.lineWidth=1.2; rr(c,x-tw/2,y-7,tw,14,7); c.fill(); c.stroke();
+        c.fillStyle="#07275C"; c.fillText(t,x,y+.5);
+      });
+      // Verteiler
+      const e=r.s[r.s.length-1], [ex,ey]=P(e.lat,e.lng);
+      c.fillStyle="#07275C"; c.strokeStyle="#fff"; c.lineWidth=2; rr(c,ex-9,ey-9,18,18,3); c.fill(); c.stroke();
+      c.fillStyle="#fff"; c.font="bold 10px Helvetica, Arial, sans-serif"; c.fillText("V",ex,ey+.5);
+      // Pumpen
+      r.pumps.forEach((pp,ix)=>{
+        const q=r.s[pp.i], [x,y]=P(q.lat,q.lng), t="FP "+(ix+1);
+        c.font="bold 10px Helvetica, Arial, sans-serif"; const tw=c.measureText(t).width+10;
+        c.fillStyle=ix===0?"#0190b3":"#c8141e"; c.strokeStyle="#fff"; c.lineWidth=2; rr(c,x-tw/2,y-9,tw,18,4); c.fill(); c.stroke();
+        c.fillStyle="#fff"; c.fillText(t,x,y+.5);
+      });
+      }
+      // Maßstab
+      const mpp=156543.034*Math.cos(((la0+la1)/2)*Math.PI/180)/N, target=w*.22*mpp;
+      const nice=[50,100,200,250,500,1000,2000,2500,5000].reduce((a,b)=>Math.abs(b-target)<Math.abs(a-target)?b:a), bw=nice/mpp;
+      c.fillStyle="rgba(255,255,255,.9)"; c.fillRect(8,h-26,bw+16,20);
+      c.fillStyle="#07275C"; c.fillRect(16,h-12,bw,3); c.fillRect(16,h-16,1.5,7); c.fillRect(16+bw-1.5,h-16,1.5,7);
+      c.font="bold 8px Helvetica, Arial, sans-serif"; c.textAlign="left"; c.fillText(nice>=1000?(nice/1000).toLocaleString("de-DE")+" km":nice+" m",18,h-20);
+      // Nordpfeil
+      c.fillStyle="rgba(255,255,255,.9)"; c.beginPath(); c.arc(w-20,22,13,0,7); c.fill();
+      c.fillStyle="#07275C"; c.beginPath(); c.moveTo(w-20,11); c.lineTo(w-26,27); c.lineTo(w-20,23); c.lineTo(w-14,27); c.closePath(); c.fill();
+      c.font="bold 7px Helvetica, Arial, sans-serif"; c.textAlign="center"; c.fillText("N",w-20,32.5);
+      return {img:cv.toDataURL("image/jpeg",.88), attr:src.attr};
+    }catch(err){ console.warn("Kartenausschnitt",src.url,err); }
+  }
+  return null;
+}
+function rr(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function lionPng(){
+  return new Promise(res=>{
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 67 67" width="268" height="268"><path fill="#D8AD14" d="M33.5 3C33.5 3 11 30.5 11 44a22.5 22.5 0 0 0 45 0C56 30.5 33.5 3 33.5 3Z"/><path d="M17.5 45.5c3.2-3.4 6.4-3.4 9.6 0s6.4 3.4 9.6 0 6.4-3.4 9.6 0 4.8 3 6.2 1.6" fill="none" stroke="#07275C" stroke-width="4.2" stroke-linecap="round"/></svg>`;
+    const img=new Image();
+    img.onload=()=>{ const c=document.createElement("canvas"); c.width=c.height=268; c.getContext("2d").drawImage(img,0,0,268,268); res(c.toDataURL("image/png")); };
+    img.onerror=()=>res(null); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+  });
+}
+/* ---------- Navigation (Google Maps) ---------- */
+const ll6=p=>p[0].toFixed(5)+","+p[1].toFixed(5);
+function gmapsUrl(dest,wps){ let u=`https://www.google.com/maps/dir/?api=1&destination=${ll6(dest)}&travelmode=driving`; if(wps&&wps.length) u+="&waypoints="+wps.map(ll6).join("%7C"); return u; }
+// wichtigste Knickpunkte einer Strecke (größte Abweichung von der Verbindungslinie), höchstens k Stück
+function keyPoints(path,k){
+  if(!path||path.length<3||k<1) return [];
+  const lat0=path[0][0]*Math.PI/180, P=path.map(q=>[q[1]*111320*Math.cos(lat0), q[0]*110540]);
+  const dist=(p,a,b)=>{ const dx=b[0]-a[0], dy=b[1]-a[1], L=dx*dx+dy*dy; if(!L) return Math.hypot(p[0]-a[0],p[1]-a[1]);
+    let t=((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L; t=Math.max(0,Math.min(1,t)); return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy); };
+  const keep=[0,path.length-1];
+  while(keep.length-2<k){
+    let best=-1,bi=-1; keep.sort((x,y)=>x-y);
+    for(let s=0;s<keep.length-1;s++){ const a=keep[s], b=keep[s+1]; for(let i=a+1;i<b;i++){ const d=dist(P[i],P[a],P[b]); if(d>best){ best=d; bi=i; } } }
+    if(bi<0 || best<40) break; keep.push(bi);
+  }
+  return keep.sort((x,y)=>x-y).slice(1,-1).map(i=>path[i]);
+}
+// Navigationsziele für Ausdruck und App
+function navItems(){
+  const r=S.result; if(!r) return [];
+  if(S.mode==="lw"){
+    const we=[r.s[0].lat,r.s[0].lng], v=[r.s[r.s.length-1].lat,r.s[r.s.length-1].lng];
+    const fps=r.pumps.map(pp=>[r.s[pp.i].lat,r.s[pp.i].lng]), stops=fps.slice(0,9);
+    return [
+      {tag:"WE",title:"Wasserentnahme (FP 1)",sub:`${we[0].toFixed(5)}, ${we[1].toFixed(5)}`,url:gmapsUrl(we),col:[1,160,198]},
+      {tag:"FP",title:"Pumpen abfahren",sub:`${stops.length} Stopp${stops.length>1?"s":""} FP 1${stops.length>1?"–"+stops.length:""}, dann Verteiler${fps.length>9?" (nur FP 1–9)":""}`,url:gmapsUrl(v,stops),col:[200,20,30]},
+      {tag:"V",title:"Verteiler (Brandstelle)",sub:`${v[0].toFixed(5)}, ${v[1].toFixed(5)}`,url:gmapsUrl(v),col:[7,39,92]}];
+  }
+  const hin=S.path||S.pts, we=hin[0], es=hin[hin.length-1];
+  const ret=(r.ring&&S.retPath)?S.retPath:hin.slice().reverse();
+  const wH=keyPoints(hin,8), wR=keyPoints(ret,8);
+  return [
+    {tag:"WE",title:"Anfahrt zur Wasserentnahme",sub:`${we[0].toFixed(5)}, ${we[1].toFixed(5)}`,url:gmapsUrl(we),col:[1,160,198]},
+    {tag:"HIN",title:"Hinweg beladen zur Einsatzstelle",sub:`Strecke laut Plan, ${wH.length} Zwischenpunkt${wH.length===1?"":"e"}`,url:gmapsUrl(es,wH),col:[7,39,92]},
+    {tag:"RÜCK",title:r.ring?"Rückweg leer (Ringverkehr)":"Rückweg leer zur Entnahme",sub:`Strecke laut Plan, ${wR.length} Zwischenpunkt${wR.length===1?"":"e"}`,url:gmapsUrl(we,wR),col:[224,122,16]}];
+}
+async function navQrs(items){ for(const it of items) it.img=await qrPng(it.url); return items.length&&items.some(it=>it.img)?items:null; }
+// Abschnitt „Anfahrt mit dem Handy“: QR-Codes nebeneinander, liefert die Höhe in mm
+function pdfNav(doc,x,y,w,items,C){
+  const n=items.length, gap=4, bw=(w-gap*(n-1))/n, q=n>2?31:32;
+  items.forEach((it,i)=>{ const bx=x+i*(bw+gap);
+    doc.setDrawColor(...C.line); doc.setLineWidth(.3); doc.roundedRect(bx,y,bw,q+4,1.5,1.5,"S");
+    if(it.img) doc.addImage(it.img,"PNG",bx+2,y+2,q,q);
+    const tx=bx+q+3, tw=bw-q-4.5;
+    doc.setFont("helvetica","bold"); doc.setFontSize(7.5);
+    doc.setFillColor(...it.col); doc.roundedRect(tx,y+3,doc.getTextWidth(it.tag)+5,5,1,1,"F");
+    doc.setTextColor(255,255,255); doc.text(it.tag,tx+2.5,y+6.6);
+    doc.setTextColor(...C.ink); doc.setFontSize(8); const tl=doc.splitTextToSize(it.title,tw).slice(0,3); doc.text(tl,tx,y+13); const dy=(tl.length-1)*3.5;
+    doc.setFont("helvetica","normal"); doc.setFontSize(6.5); doc.setTextColor(...C.mut);
+    doc.text(doc.splitTextToSize(it.sub,tw).slice(0,3),tx,y+18+dy);
+  });
+  return q+4;
+}
+async function qrPng(text){
+  try{ await loadScript(QR_URL); const d=document.createElement("div");
+    new QRCode(d,{text,width:320,height:320,correctLevel:QRCode.CorrectLevel.L});
+    const cv=d.querySelector("canvas"); return cv? cv.toDataURL("image/png") : null;
+  }catch(e){ return null; }
+}
+function profilePng(r){
+  const W=1500,H=420,k=2, cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const c=cv.getContext("2d"); c.fillStyle="#fff"; c.fillRect(0,0,W,H); c.setTransform(k,0,0,k,0,0);
+  drawProfile(c,W/k,H/k,r,{muted:"#55657f",line:"#d5dce6",terrain:"#2f8a3e",drop:"#e07a10",red:"#c8141e",fg:"#0b1f45",font:"Helvetica, Arial, sans-serif"});
+  return cv.toDataURL("image/jpeg",.9);
+}
+
+let pdfFile=null;
+$("pdfBtn").onclick=makePdf;
+async function makePdf(){
+  if(S.mode==="pv") return makePdfPV();
+  const r=S.result; if(!r){ toast("Erst berechnen"); return; }
+  busy(true,"Erstelle PDF …");
+  try{
+    await loadScript(JSPDF_URL);
+    busy(true,"Lade Kartenausschnitt …");
+    const [mapImg,lion]=await Promise.all([staticMap(r,1820,1000),lionPng()]);
+    const nav=await navQrs(navItems());
+    busy(true,"Erstelle PDF …");
+    const {jsPDF}=window.jspdf, doc=new jsPDF({unit:"mm",format:"a4",compress:true});
+    const p=r.params, nFP=r.pumps.length, name=$("planName").value.trim();
+    const BLUE=[7,39,92], GOLD=[216,173,20], CYAN=[1,160,198], RED=[200,20,30], INK=[11,31,69], MUT=[85,101,127], LINE=[213,220,230];
+    const n0=(v,d=0)=>fmt(v,d);
+    const now=new Date(), stamp=now.toLocaleDateString("de-DE")+" "+now.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr";
+    const perLine=Math.ceil(r.L/p.hoseLen), hoses=perLine*p.lines, resH=Math.ceil(r.L*p.lines/100), resFP=Math.ceil(nFP/4);
+    const bls=r.pumps.slice(0,-1).map(x=>x.bl), mn=bls.length?Math.min(...bls):0, mx=bls.length?Math.max(...bls):0;
+    const M=10, CW=190; let y;
+
+    const header=()=>{
+      doc.setFillColor(...BLUE); doc.rect(0,0,210,25,"F"); doc.setFillColor(...GOLD); doc.rect(0,25,210,1.2,"F");
+      if(lion) doc.addImage(lion,"PNG",M,3.5,18,18);
+      doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(15);
+      doc.text("Löschwasserförderung über lange Wegstrecke",M+22,11.5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...CYAN);
+      doc.text("Planungshilfe Löschwasserversorgung",M+22,17.5);
+      doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.text(stamp,210-M,11.5,{align:"right"});
+    };
+    const footer=()=>{
+      const n=doc.getNumberOfPages();
+      for(let i=1;i<=n;i++){ doc.setPage(i); doc.setDrawColor(...LINE); doc.setLineWidth(.2); doc.line(M,287,210-M,287);
+        doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
+        doc.text("Planungshilfe nach HLFS-Lernunterlage Löschwasserförderung. Eingangsdruck an jeder Pumpe vor Ort kontrollieren.",M,291);
+        doc.text("Seite "+i+" von "+n,210-M,291,{align:"right"}); }
+    };
+    const sect=(t)=>{ doc.setFillColor(...GOLD); doc.rect(M,y-3.2,1.2,4,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.setTextColor(...INK); doc.text(t.toUpperCase(),M+3,y); y+=4; };
+    const need=(h)=>{ if(y+h>283){ doc.addPage(); header(); y=34; } };
+
+    header(); y=34;
+    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...INK);
+    doc.text(name||"Förderstrecke",M,y, {maxWidth:CW});
+    doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...MUT);
+    doc.text(`${n0(p.q)} l/min · ${p.lines===2?"Doppelleitung":"Einfachleitung"} · ${p.open?"offene":"geschlossene"} Schaltreihe · pa ${n0(p.pa,1)} bar · pe ${p.open?"–":n0(p.pe,1)+" bar"} · Strahlrohr ${n0(p.pstr,1)} bar · B-Schlauch ${n0(p.hoseLen)} m`,M,y+5);
+    y+=10;
+
+    // Kennzahlen
+    const tiles=[
+      ["Pumpen",`${nFP}`,`+ ${resFP} Reserve`,true],
+      ["Verstärker alle",nFP>1?(mn===mx?`${mn} B`:`${mn}–${mx} B`):"–",nFP>1?`= ${n0(mn*p.hoseLen)}${mn!==mx?"–"+n0(mx*p.hoseLen):""} m`:"keine nötig",false],
+      ["B-Schläuche",`${hoses}`,`+ ${resH} Reserve`,false],
+      ["Schlauchstrecke",`${n0(r.L)} m`,`Karte ${n0(pathLen(S.path||S.pts))} m`,false],
+      ["Höhe WE bis V",`${r.H>=0?"+":""}${n0(r.H)} m`,`max. ${n0(r.maxP,1)} bar in Leitung`,false]];
+    const tw=(CW-4*3)/5;
+    tiles.forEach((t,i)=>{ const x=M+i*(tw+3);
+      doc.setFillColor(...(t[3]?BLUE:[232,237,244])); doc.roundedRect(x,y,tw,17,1.5,1.5,"F");
+      if(t[3]){ doc.setFillColor(...GOLD); doc.rect(x,y+16,tw,1,"F"); }
+      doc.setTextColor(...(t[3]?[255,255,255]:MUT)); doc.setFont("helvetica","bold"); doc.setFontSize(6.5); doc.text(t[0].toUpperCase(),x+2.5,y+4.5);
+      doc.setTextColor(...(t[3]?[255,255,255]:INK)); doc.setFontSize(14); doc.text(t[1],x+2.5,y+11);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.5); doc.setTextColor(...(t[3]?[200,215,235]:MUT)); doc.text(t[2],x+2.5,y+15);
+    });
+    y+=22;
+
+    // Lageskizze
+    if(mapImg){
+      sect("Lageskizze"); const mh=CW*1000/1820;
+      doc.addImage(mapImg.img,"JPEG",M,y,CW,mh); doc.setDrawColor(...LINE); doc.setLineWidth(.3); doc.rect(M,y,CW,mh);
+      y+=mh+3; doc.setFontSize(6); doc.setTextColor(...MUT); doc.text(mapImg.attr+" | FP = Feuerlöschpumpe, V = Verteiler, Zahl = B-Längen",M,y); y+=6;
+    }
+
+    // Pumpentabelle
+    need(30); sect("Pumpenstandorte");
+    const cols=[["Stelle",15],["Abstand",22],["B-Nr. ab WE",22],["Schlauch",20],["Höhe",16],["pa",14],["Ankunft",20],["Koordinaten (WGS84)",61]];
+    const th=()=>{ let x=M; doc.setFillColor(...BLUE); doc.rect(M,y,CW,6.5,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
+      cols.forEach(c=>{ doc.text(c[0],x+1.5,y+4.4); x+=c[1]; }); y+=6.5; };
+    th();
+    const rows=r.pumps.map((pp,i)=>{ const q=r.s[pp.i];
+      return [`FP ${i+1}`, i===0?"WE":`${r.pumps[i-1].bl} × B`, i===0?"–":`nach ${pp.bNr}.`, `${n0(i===0?0:pp.bNr*p.hoseLen)} m`, `${n0(q.h)} m`, `${n0(pp.pa,1)} bar`, pp.arrive!=null?`${n0(pp.arrive,1)} bar`:"–", `${q.lat.toFixed(5)}, ${q.lng.toFixed(5)}`]; });
+    const e=r.s[r.s.length-1];
+    rows.push(["V",`${r.pumps[nFP-1].bl} × B`,`nach ${r.bTotal}.`,`${n0(r.L)} m`,`${n0(e.h)} m`,"–",`${n0(r.pumps[nFP-1].endP,1)} bar`,`${e.lat.toFixed(5)}, ${e.lng.toFixed(5)}`]);
+    doc.setFontSize(8);
+    rows.forEach((row,ri)=>{
+      if(y+6>283){ doc.addPage(); header(); y=34; th(); doc.setFontSize(8); }
+      if(ri%2){ doc.setFillColor(243,246,250); doc.rect(M,y,CW,6,"F"); }
+      let x=M; row.forEach((v,ci)=>{ doc.setFont("helvetica",ci<2?"bold":"normal"); doc.setTextColor(...(ci===0&&row[0]!=="V"?(ri===0?CYAN:RED):INK)); doc.text(String(v),x+1.5,y+4.1); x+=cols[ci][1]; });
+      y+=6;
+    });
+    doc.setDrawColor(...LINE); doc.line(M,y,M+CW,y); y+=3;
+    doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
+    doc.text(`Abstand = B-Längen ab vorheriger Stelle. B-Nr. = Verstärker an der Kupplung nach dem n-ten B-Schlauch ab Wasserentnahme${p.lines===2?" (je Leitung)":""}. Ankunft = Eingangsdruck an der nächsten Pumpe.`,M,y+1,{maxWidth:CW});
+    y+=9;
+
+    // Höhenprofil
+    need(62); sect("Höhenprofil mit Druckabfalllinien");
+    const ph=CW*420/1500; doc.addImage(profilePng(r),"JPEG",M,y,CW,ph); y+=ph+2;
+    doc.setFontSize(6.5); doc.setTextColor(...MUT); doc.text("Grün: Gelände (Copernicus-DEM) · Orange gestrichelt: Druckabfalllinie · Rot: Pumpenstandort · x-Achse: Schlauchmeter",M,y+1); y+=7;
+
+    // Material + Hinweise + QR
+    need(58); const colW=(CW-6)/2, y0=y;
+    sect("Material");
+    const mat=[`${nFP} Feuerlöschkreiselpumpen (+ ${resFP} Reserve)`,`${hoses} B-Schläuche à ${n0(p.hoseLen)} m${p.lines===2?" (2 × "+perLine+")":""} (+ ${resH} Reserve)`,
+      p.open?`${Math.max(0,nFP-1)} Auffangbehälter (offene Schaltreihe)`:"Geschlossene Schaltreihe, keine Behälter",
+      `Förderstrom ${n0(p.q)} l/min, je Leitung ${n0(r.qL)} l/min`,`Reibungsverlust ${n0(r.r,2)} bar je 100 m`,`Formel-Überschlag: ${r.nForm} Pumpen (pges ${n0(r.pges,1)} bar)`];
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);
+    mat.forEach(t=>{ const l=doc.splitTextToSize("• "+t,colW); doc.text(l,M,y+1); y+=l.length*3.8; });
+    const yA=y; y=y0; const x2=M+colW+6;
+    doc.setFillColor(...GOLD); doc.rect(x2,y-3.2,1.2,4,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.text("HINWEISE",x2+3,y); y+=4;
+    const hin=[`Eingangsdruck an jeder Verstärkerpumpe mind. ${n0(Math.max(1.5,p.open?1.5:p.pe),1)} bar halten.`,"Leitung vor dem Fördern vollständig füllen und entlüften.","Druckbegrenzungsventile und Schieber langsam bedienen (Druckstöße).","Funkverbindung zwischen allen Pumpen sicherstellen.","Schlauchbrücken an Straßen, Reserve an Knickstellen."];
+    doc.setFont("helvetica","normal"); doc.setFontSize(8);
+    hin.forEach(t=>{ const l=doc.splitTextToSize("• "+t,colW); doc.text(l,x2,y+1); y+=l.length*3.8; });
+    y=Math.max(y,yA)+6;
+    if(nav){ need(48); sect("Anfahrt mit dem Handy"); y+=pdfNav(doc,M,y,CW,nav,{line:LINE,ink:INK,mut:MUT})+2;
+      doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
+      doc.text(doc.splitTextToSize("Mit der Handy-Kamera scannen, die Navigation startet in Google Maps. „Pumpen abfahren“ führt über Straßen nacheinander zu allen Pumpen, z. B. zum Absetzen der Tragkraftspritzen. Die Schlauchtrasse selbst kann abseits der Straße verlaufen. Mit der Google-Maps-App werden bis zu 9 Stopps übernommen, im Handy-Browser nur 3.",CW),M,y+1); y+=11; }
+
+    footer();
+    const fname=`Wasserfoerderung_${(name||"Plan").replace(/[^\wäöüÄÖÜß-]+/g,"_").slice(0,40)}_${now.toISOString().slice(0,10)}.pdf`;
+    const blob=doc.output("blob");
+    pdfFile={blob,file:new File([blob],fname,{type:"application/pdf"}),name:fname};
+    $("pdfInfo").textContent=`${fname} · ${doc.getNumberOfPages()} Seite(n)${mapImg?"":" · ohne Kartenausschnitt (Karte nicht erreichbar)"}`;
+    $("pdfShare").hidden=!(navigator.canShare && navigator.canShare({files:[pdfFile.file]}));
+    $("pdfReady").hidden=false;
+  }catch(err){
+    console.error(err); toast("PDF konnte nicht erstellt werden – Internetverbindung prüfen");
+  }finally{ busy(false); }
+}
+$("pdfShare").onclick=async()=>{
+  try{ await navigator.share({files:[pdfFile.file],title:"Wasserförderung"}); $("pdfReady").hidden=true; }
+  catch(e){ if(e.name!=="AbortError") toast("Teilen nicht möglich – Herunterladen verwenden"); }
+};
+$("pdfDl").onclick=()=>{
+  const a=document.createElement("a"); a.href=URL.createObjectURL(pdfFile.blob); a.download=pdfFile.name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },5000); $("pdfReady").hidden=true;
+};
+$("pdfClose").onclick=()=>$("pdfReady").hidden=true;
+
+/* ================= PENDELVERKEHR ================= */
+const STD_TYPES=[
+  {id:"std-tlf3000",name:"TLF 3000",vol:3000,vmax:80,kind:"fw"},
+  {id:"std-tlf4000",name:"TLF 4000",vol:4000,vmax:80,kind:"fw"},
+  {id:"std-tlf1625",name:"TLF 16/25",vol:2500,vmax:80,kind:"fw"},
+  {id:"std-tlf1624",name:"TLF 16/24-Tr",vol:2400,vmax:80,kind:"fw"},
+  {id:"std-tlf2040",name:"TLF 20/40",vol:4000,vmax:80,kind:"fw"},
+  {id:"std-tlf2450",name:"TLF 24/50",vol:5000,vmax:80,kind:"fw"},
+  {id:"std-stlf20",name:"StLF 20",vol:2500,vmax:80,kind:"fw"},
+  {id:"std-gtlf",name:"GTLF",vol:10000,vmax:80,kind:"fw"},
+  {id:"std-traktor",name:"Traktor mit Wasserfass",vol:12000,vmax:40,kind:"lw"}];
+const KIND_TXT={fw:"Feuerwehr",lw:"Landwirtschaft",thw:"THW / Hilfsorganisation",so:"Sonstiges"};
+const PV_DEF={q:400,v:30,rust:8,fill:1000,fs:1,buf:0,pump:1200,dur:120,veh:[{id:"std-tlf3000",c:2,t:10},{id:"std-tlf4000",c:1,t:15}]};
+const PV=Object.assign(JSON.parse(JSON.stringify(PV_DEF)),store.get("lwf.pv",{}));
+if(!Array.isArray(PV.veh)) PV.veh=JSON.parse(JSON.stringify(PV_DEF.veh));
+// ältere Einträge {n,vol} übernehmen
+PV.veh.forEach(r=>{ if(!r.id){ const s=STD_TYPES.find(t=>t.name===r.n); r.id=s?s.id:"snap"; r.snap={name:r.n||"Fahrzeug",vol:r.vol||3000,vmax:80}; delete r.n; delete r.vol; } });
+
+const PV_HINTS=[
+  "Nur Fahrzeuge mit mindestens 2.500 l Löschwasser einsetzen (TLF, StLF, Wasserfass). Kleinere Fahrzeuge verlängern den Umlauf und blockieren die Abgabestelle.",
+  "Wasserentnahmestelle und Abgabestelle für die gesamte Einsatzdauer mit einer eigenen Einheit besetzen. Das verkürzt die Rüstzeiten.",
+  "An der Einsatzstelle einen Pufferbehälter oder ein Pufferfahrzeug einsetzen. Er überbrückt Wechsel- und Rüstzeiten und verspätete Fahrzeuge.",
+  "Fahrstrecke festlegen und möglichst als Ringverkehr führen: beladen auf einem Weg hin, leer auf einem anderen zurück. Begegnungsverkehr auf engen Wegen vermeiden.",
+  "Lotsenstellen, Einweiser und Beschilderung an Abzweigungen einrichten, besonders dort, wo Hin- und Rückweg sich trennen. Wendemöglichkeiten an Entnahme- und Einsatzstelle sicherstellen.",
+  "Breite und Tragfähigkeit von Wald- und Feldwegen prüfen. Beladene Tanklöschfahrzeuge wiegen bis 18 t, Traktoren mit Wasserfass oft mehr.",
+  "Landwirtschaftliche Gespanne: Höchstgeschwindigkeit beachten, Übergänge auf Storz-Kupplungen vorab klären, Fahrer einweisen. Langsame Fahrzeuge bremsen auf engen Wegen ohne Überholmöglichkeit alle nachfolgenden.",
+  "Angepasst fahren: Beladene Fahrzeuge haben längere Bremswege. Sonderrechte nur dort nutzen, wo es nötig ist.",
+  "Einen eigenen Einsatzabschnitt Wasserversorgung mit Führungskraft und eigenem Funkverkehr bilden.",
+  "Sicherheitsreserve von mindestens einem Fahrzeug einplanen.",
+  "Bei langen Einsätzen an Kraftstoff, Ablösung der Fahrer und Maschinisten, Reservefahrzeuge und Beleuchtung denken."
+];
+const GANTT_KEYS=[
+  ["abgabe","Abgabe","#0190b3"],["hin","Fahrt beladen","#07275C"],["rueck","Rückfahrt leer","#9fb3d1"],
+  ["fuellen","Füllen","#2f8a3e"],["ruest","Rüsten","#D8AD14"],["warten","Warten","#e07a10"],["anfahrt","Anfahrt","#cfd8e4"]];
+const gKey=k=>k==="aufES"||k==="abES"||k==="aufWE"||k==="abWE"?"ruest":k==="wartenES"||k==="wartenWE"?"warten":k;
+
+/* ---------- Fuhrpark ---------- */
+let FLEET_SRV=[];
+const validVeh=x=>x && typeof x==="object" && x.id && x.name && +x.vol>0;
+function fleetLocal(){ const a=store.get("lwf.fleet",[]); return Array.isArray(a)?a:[]; }
+function fleet(){
+  const m=new Map();
+  FLEET_SRV.forEach(v=>m.set(v.id,{...v,src:"vg"}));
+  fleetLocal().forEach(v=>{ if(v.deleted){ m.delete(v.id); return; } const had=m.has(v.id); m.set(v.id,{...v,src:had?"mod":"lokal"}); });
+  return [...m.values()].filter(validVeh).sort((a,b)=>(a.unit||"").localeCompare(b.unit||"","de")||a.name.localeCompare(b.name,"de"));
+}
+function vehById(id){ return fleet().find(v=>v.id===id)||STD_TYPES.find(v=>v.id===id)||null; }
+function rowVeh(r){ const v=vehById(r.id); if(v){ r.snap={name:v.name,unit:v.unit||"",vol:+v.vol,vmax:+v.vmax||80,fill:+v.fill||0,out:+v.out||0}; return r.snap; } return r.snap||{name:"Fahrzeug",vol:3000,vmax:80}; }
+const vehLabel=v=>v.name+(v.unit?" · "+v.unit:"");
+const normVeh=v=>({id:String(v.id),name:String(v.name),unit:String(v.unit||""),kind:["fw","lw","thw","so"].includes(v.kind)?v.kind:"fw",vol:+v.vol,vmax:+v.vmax||80,fill:+v.fill||0,out:+v.out||0,arr:v.arr!=null&&v.arr!==""&&isFinite(+v.arr)?+v.arr:null,note:String(v.note||"")});
+/* ---------- CSV (Excel) ---------- */
+const CSV_COLS=["Bezeichnung","Einheit","Art","Inhalt (l)","Geschwindigkeit (km/h)","Anfahrt (min)","Füllstrom (l/min)","Abgabestrom (l/min)","Bemerkung","ID"];
+const slugId=(name,unit)=>"c-"+(name+"-"+unit).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60);
+function decodeText(buf){
+  try{ return new TextDecoder("utf-8",{fatal:true}).decode(buf).replace(/^﻿/,""); }
+  catch(e){ return new TextDecoder("windows-1252").decode(buf); }
+}
+function parseCsvRows(txt){
+  const first=(txt.split(/\r?\n/).find(l=>l.trim())||"");
+  const cnt=c=>first.split(c).length-1, sep=[";","\t",","].sort((a,b)=>cnt(b)-cnt(a))[0];
+  const rows=[]; let row=[], f="", q=false;
+  for(let i=0;i<txt.length;i++){ const ch=txt[i];
+    if(q){ if(ch==='"'){ if(txt[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=ch; }
+    else if(ch==='"') q=true;
+    else if(ch===sep){ row.push(f); f=""; }
+    else if(ch==="\n"||ch==="\r"){ if(ch==="\r"&&txt[i+1]==="\n") i++; row.push(f); rows.push(row); row=[]; f=""; }
+    else f+=ch; }
+  if(f!==""||row.length){ row.push(f); rows.push(row); }
+  return rows.filter(r=>r.some(c=>c.trim()!==""));
+}
+function deNum(v){
+  let t=String(v==null?"":v).trim().replace(/\s|l\/min|km\/h|min|l$/gi,"");
+  if(!t) return NaN;
+  if(t.includes(",")&&t.includes(".")) t=t.replace(/\./g,"").replace(",",".");
+  else if(t.includes(",")) t=t.replace(",",".");
+  else if(/^\d{1,3}(\.\d{3})+$/.test(t)) t=t.replace(/\./g,"");
+  return parseFloat(t);
+}
+function kindOf(v){ const t=String(v||"").toLowerCase();
+  if(/land|lw|traktor|schlepper|bauer|landwirt/.test(t)) return "lw";
+  if(/thw|hilfs|drk|asb|johanniter|malteser/.test(t)) return "thw";
+  if(/sonst|privat|firma|so$/.test(t)) return "so";
+  return "fw"; }
+function parseFleetCsv(txt){
+  const rows=parseCsvRows(txt); if(!rows.length) return {ok:[],bad:["Datei ist leer."]};
+  const norm=h=>String(h).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z]/g,"");
+  const H=rows[0].map(norm), find=(...keys)=>H.findIndex(h=>keys.some(k=>h.startsWith(k)));
+  const ix={name:find("bezeichnung","fahrzeug","name","typ"),unit:find("einheit","halter","wehr","standort","organisation"),kind:find("art","kategorie"),
+    vol:find("inhalt","wasser","tank","liter","volumen"),vmax:find("geschwindigkeit","maxgeschw","vmax","kmh","tempo"),arr:find("anfahrt","eintreffen"),
+    fill:find("fuellstrom","fuell"),out:find("abgabestrom","abgabe"),note:find("bemerkung","hinweis","notiz","kontakt"),id:find("id")};
+  if(ix.name<0||ix.vol<0) return {ok:[],bad:["Spalten „Bezeichnung“ und „Inhalt“ nicht gefunden. Bitte die CSV-Vorlage verwenden."]};
+  const ok=[], bad=[], g=(r,i)=>i>=0&&r[i]!=null?String(r[i]).trim():"";
+  rows.slice(1).forEach((r,k)=>{ const line=k+2;
+    const name=g(r,ix.name), vol=deNum(g(r,ix.vol));
+    if(!name){ bad.push(`Zeile ${line}: Bezeichnung fehlt`); return; }
+    if(!(vol>=200)){ bad.push(`Zeile ${line} (${name}): Inhalt fehlt oder ungültig`); return; }
+    const unit=g(r,ix.unit), kind=g(r,ix.kind)?kindOf(g(r,ix.kind)):kindOf(name+" "+unit), vm=deNum(g(r,ix.vmax)), ar=deNum(g(r,ix.arr));
+    ok.push(normVeh({id:g(r,ix.id)||slugId(name,unit),name,unit,kind,vol,vmax:vm>=5?vm:(kind==="lw"?40:80),
+      arr:isFinite(ar)?ar:null,fill:deNum(g(r,ix.fill))||0,out:deNum(g(r,ix.out))||0,note:g(r,ix.note)}));
+  });
+  return {ok,bad};
+}
+function fleetToCsv(list){
+  const q=v=>{ const t=String(v==null?"":v); return /[;"\n\r]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t; };
+  const kn={fw:"Feuerwehr",lw:"Landwirtschaft",thw:"THW",so:"Sonstiges"};
+  const lines=[CSV_COLS.join(";")].concat(list.map(v=>[v.name,v.unit,kn[v.kind]||"Feuerwehr",v.vol,v.vmax,v.arr==null?"":v.arr,v.fill||"",v.out||"",v.note,v.id].map(q).join(";")));
+  return "﻿"+lines.join("\r\n")+"\r\n";
+}
+function saveFile(name,text,type){
+  const blob=new Blob([text],{type}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },5000);
+}
+async function loadFleetFile(){
+  if(!location.protocol.startsWith("http")) return;
+  const m=new Map();
+  try{ const r=await fetch("fahrzeuge.json",{cache:"no-store"});
+    if(r.ok){ const js=await r.json(); (Array.isArray(js)?js:(js&&Array.isArray(js.fahrzeuge)?js.fahrzeuge:[])).filter(validVeh).forEach(v=>{ const n=normVeh(v); m.set(n.id,n); }); } }catch(e){}
+  try{ const r=await fetch("fahrzeuge.csv",{cache:"no-store"});
+    if(r.ok){ const ct=r.headers.get("content-type")||""; if(!/html/.test(ct)){ parseFleetCsv(decodeText(await r.arrayBuffer())).ok.forEach(v=>m.set(v.id,v)); } } }catch(e){}
+  FLEET_SRV=[...m.values()];
+  renderVeh(); renderFleet();
+}
+
+/* ---------- Eingaben ---------- */
+function readPV(){
+  PV.q=num("pvQ",400); PV.v=Math.max(5,num("pvV",30)); PV.rust=Math.max(0,num("pvR",8));
+  PV.fill=Math.max(100,num("pvFill",1000)); PV.fs=+$("pvFs").value||1; PV.buf=+$("pvBuf").value||0;
+  PV.pump=Math.max(100,num("pvPump",1200)); PV.dur=+$("pvDur").value||120;
+  store.set("lwf.pv",PV); return PV;
+}
+function writePV(){
+  $("pvQ").value=PV.q; $("pvV").value=PV.v; $("pvR").value=PV.rust; $("pvFill").value=PV.fill;
+  $("pvFs").value=String(PV.fs); $("pvBuf").value=String(PV.buf); $("pvPump").value=PV.pump; $("pvDur").value=String(PV.dur);
+  $("pvPump").disabled=!PV.buf;
+  document.querySelectorAll("#pvQChips button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.q===PV.q));
+  document.querySelectorAll("#pvVChips button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===PV.v));
+  renderVeh();
+}
+const isFleetId=id=>fleet().some(v=>v.id===id);
+function vehOptions(sel,used){
+  const F=fleet().filter(v=>v.id===sel || !used.has(v.id)); let h="";
+  const opt=v=>`<option value="${esc(v.id)}"${v.id===sel?" selected":""}>${esc(vehLabel(v))} · ${fmt(v.vol)} l</option>`;
+  if(F.length) h+=`<optgroup label="Fuhrpark (frei)">${F.map(opt).join("")}</optgroup>`;
+  h+=`<optgroup label="Standardtypen">${STD_TYPES.map(opt).join("")}</optgroup>`;
+  return h;
+}
+function dedupeFleetRows(){
+  const F=new Set(fleet().map(v=>v.id)), seen=new Set(); let removed=0;
+  PV.veh=PV.veh.filter(r=>{ if(!F.has(r.id)) return true; if(seen.has(r.id)){ removed++; return false; } seen.add(r.id); r.c=1; return true; });
+  if(removed){ store.set("lwf.pv",PV); toast(`${removed} doppelt eingeplantes Fahrzeug${removed>1?"e":""} entfernt`); }
+}
+function renderVeh(){
+  const box=$("vehList");
+  dedupeFleetRows();
+  const F=fleet(), usedF=PV.veh.filter(r=>F.some(v=>v.id===r.id)).length;
+  $("fleetUse").textContent=F.length? `Fuhrpark: ${usedF} von ${F.length} Fahrzeugen eingeplant${usedF===F.length?" – alle vergeben":""}` : "";
+  $("fleetUse").hidden=!F.length;
+  if(!PV.veh.length){ box.innerHTML='<p class="note" style="margin:0">Noch keine Fahrzeuge. Mit „+ Fahrzeug einplanen“ Fahrzeuge aus dem Fuhrpark auswählen.</p>'; return; }
+  box.innerHTML=PV.veh.map((r,i)=>{ const v=rowVeh(r), found=!!vehById(r.id), fl=F.some(x=>x.id===r.id);
+    const used=new Set(PV.veh.filter((x,j)=>j!==i).map(x=>x.id));
+    return `<div class="veh" data-i="${i}">
+    <select class="vt" id="vt${i}" aria-label="Fahrzeug">${found?"":`<option value="${esc(r.id)}" selected>${esc(vehLabel(v))} (aus Plan)</option>`}${vehOptions(r.id,used)}</select>
+    <button class="btn vdel" type="button" aria-label="Fahrzeug entfernen">✕</button>
+    <span class="vinfo">${fmt(v.vol)} l · max. ${fmt(v.vmax||80)} km/h${v.fill?" · Füllen "+fmt(v.fill)+" l/min":""}${v.out?" · Abgabe "+fmt(v.out)+" l/min":""}</span>
+    ${fl?`<label>Anzahl<span class="vone">1 (Fuhrpark)</span></label>`:`<label>Anzahl<input class="vc" id="vc${i}" type="number" inputmode="numeric" min="1" max="30" step="1" value="${r.c}"></label>`}
+    <label>Eintreffen [min]<input class="ve" id="ve${i}" type="number" inputmode="numeric" min="0" max="240" step="1" value="${r.t}"></label>
+    ${v.vol<2400?'<span class="warnv">Unter 2.500 l nur eingeschränkt geeignet.</span>':""}
+  </div>`; }).join("");
+  box.querySelectorAll(".veh").forEach(row=>{
+    const i=+row.dataset.i, r=PV.veh[i];
+    row.querySelector(".vt").onchange=e=>{ r.id=e.target.value; const v=vehById(r.id); if(v && v.arr!=null) r.t=v.arr; if(isFleetId(r.id)) r.c=1; rowVeh(r); store.set("lwf.pv",PV); renderVeh(); };
+    const vc=row.querySelector(".vc"); if(vc) vc.onchange=e=>{ r.c=Math.max(1,Math.min(30,Math.round(+e.target.value||1))); store.set("lwf.pv",PV); };
+    row.querySelector(".ve").onchange=e=>{ r.t=Math.max(0,+e.target.value||0); store.set("lwf.pv",PV); };
+    row.querySelector(".vdel").onclick=()=>{ PV.veh.splice(i,1); store.set("lwf.pv",PV); renderVeh(); };
+  });
+}
+$("vehAdd").onclick=()=>{
+  const F=fleet(), used=new Set(PV.veh.map(r=>r.id)), last=PV.veh[PV.veh.length-1];
+  const free=F.filter(v=>!used.has(v.id)).sort((a,b)=>(a.arr??999)-(b.arr??999));
+  let next=free[0];
+  if(!next){ next=STD_TYPES[0]; if(F.length) toast("Alle Fahrzeuge aus dem Fuhrpark sind eingeplant – Standardtyp hinzugefügt"); }
+  const r={id:next.id,c:1,t:next.arr!=null?next.arr:(last?last.t:10)}; rowVeh(r); PV.veh.push(r); store.set("lwf.pv",PV); renderVeh();
+};
+$("pvQChips").innerHTML=[200,300,400,500,600,800].map(q=>`<button data-q="${q}">${fmt(q)} l/min</button>`).join("");
+$("pvQChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ PV.q=+b.dataset.q; writePV(); readPV(); });
+$("pvVChips").innerHTML=[20,30,40,50].map(v=>`<button data-v="${v}">${v} km/h</button>`).join("");
+$("pvVChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ PV.v=+b.dataset.v; writePV(); readPV(); updStats(); });
+["pvQ","pvV","pvR","pvFill","pvFs","pvBuf","pvPump","pvDur"].forEach(id=>$(id).addEventListener("change",()=>{ readPV(); writePV(); updStats(); }));
+$("pvHints").innerHTML=PV_HINTS.map(h=>`<li>${h}</li>`).join("");
+$("ganttLegend").innerHTML=GANTT_KEYS.map(k=>`<span><i style="background:${k[2]};height:8px"></i>${k[1]}</span>`).join("")+'<span><i style="background:#c8141e;height:8px"></i>Kein Wasser</span>';
+
+/* ---------- Fuhrpark verwalten ---------- */
+let fleetEditId=null;
+function renderFleet(){
+  const F=fleet(), box=$("fleetList"), inPlan=new Set(PV.veh.map(r=>r.id));
+  $("fleetCount").textContent=F.length? `${F.length} Fahrzeug${F.length>1?"e":""} im Fuhrpark`:"Noch keine Fahrzeuge angelegt";
+  if(!F.length){ box.innerHTML='<p class="note" style="margin:0">Hier die Fahrzeuge anlegen, die im Einsatzgebiet für den Pendelverkehr wirklich zur Verfügung stehen: Tanklöschfahrzeuge der Einheiten, aber auch Traktoren mit Wasserfass von Landwirten oder Fahrzeuge anderer Organisationen.</p>'; return; }
+  const badge={vg:"Server-Datei",mod:"geändert",lokal:"nur dieses Gerät"};
+  box.innerHTML=F.map(v=>`<button class="fl-item" type="button" data-id="${esc(v.id)}">
+    <span class="fl-main"><b>${esc(v.name)}</b>${v.unit?`<span>${esc(v.unit)}</span>`:""}</span>
+    <span class="fl-sub">${fmt(v.vol)} l · max. ${fmt(v.vmax||80)} km/h · ${esc(KIND_TXT[v.kind]||KIND_TXT.so)}${v.arr!=null?" · Anfahrt "+fmt(v.arr)+" min":""}</span>
+    <span class="fl-badge fl-${v.src}">${inPlan.has(v.id)?"eingeplant · ":""}${badge[v.src]}</span></button>`).join("");
+  box.querySelectorAll(".fl-item").forEach(b=>b.onclick=()=>editFleet(b.dataset.id));
+}
+function editFleet(id){
+  fleetEditId=id; const v=id?fleet().find(x=>x.id===id):null;
+  $("ffName").value=v?v.name:""; $("ffUnit").value=v?v.unit||"":""; $("ffKind").value=v?v.kind||"fw":"fw";
+  $("ffVol").value=v?v.vol:""; $("ffVmax").value=v?v.vmax||"":""; $("ffFill").value=v&&v.fill?v.fill:""; $("ffOut").value=v&&v.out?v.out:"";
+  $("ffArr").value=v&&v.arr!=null?v.arr:""; $("ffNote").value=v?v.note||"":"";
+  $("ffTitle").textContent=v?"Fahrzeug bearbeiten":"Neues Fahrzeug"; $("ffDel").hidden=!v; $("ffDel").textContent="Löschen"; delete $("ffDel").dataset.armed;
+  $("fleetForm").hidden=false; $("fleetListBox").hidden=true; $("ffName").focus();
+}
+function closeFleetForm(){ $("fleetForm").hidden=true; $("fleetListBox").hidden=false; fleetEditId=null; }
+function saveLocal(list){ store.set("lwf.fleet",list); }
+$("fleetNew").onclick=()=>editFleet(null);
+$("ffKind").onchange=()=>{ if(!$("ffVmax").value) $("ffVmax").value=$("ffKind").value==="lw"?40:80; };
+$("ffCancel").onclick=closeFleetForm;
+$("ffSave").onclick=()=>{
+  const name=$("ffName").value.trim(), vol=+$("ffVol").value, vmax=+$("ffVmax").value;
+  if(!name){ toast("Bezeichnung fehlt"); $("ffName").focus(); return; }
+  if(!(vol>=200)){ toast("Inhalt in Litern eintragen"); $("ffVol").focus(); return; }
+  if(!(vmax>=5)){ toast("Höchstgeschwindigkeit eintragen"); $("ffVmax").focus(); return; }
+  const id=fleetEditId||("v"+Date.now().toString(36)+Math.random().toString(36).slice(2,5));
+  const rec={id,name,unit:$("ffUnit").value.trim(),kind:$("ffKind").value,vol,vmax,fill:+$("ffFill").value||0,out:+$("ffOut").value||0,
+    arr:$("ffArr").value===""?null:+$("ffArr").value,note:$("ffNote").value.trim()};
+  const list=fleetLocal().filter(x=>x.id!==id); list.push(rec); saveLocal(list);
+  closeFleetForm(); renderFleet(); renderVeh(); toast("Fahrzeug gespeichert");
+};
+$("ffDel").onclick=()=>{
+  const b=$("ffDel"); if(!b.dataset.armed){ b.dataset.armed=1; b.textContent="Wirklich löschen?"; return; }
+  const id=fleetEditId, inSrv=FLEET_SRV.some(x=>x.id===id);
+  const list=fleetLocal().filter(x=>x.id!==id); if(inSrv) list.push({id,deleted:true}); saveLocal(list);
+  closeFleetForm(); renderFleet(); renderVeh(); toast("Fahrzeug gelöscht");
+};
+function openFleet(){ closeFleetForm(); fleetMsg(""); renderFleet(); $("fleetDlg").hidden=false; }
+$("fleetBtn").onclick=openFleet;
+$("fleetClose").onclick=()=>{ $("fleetDlg").hidden=true; };
+function fleetMsg(html,warn){ const el=$("fleetMsg"); el.innerHTML=html; el.className="msg "+(warn?"warn":"ok"); el.hidden=!html; }
+$("fleetExport").onclick=()=>{
+  saveFile("fahrzeuge.json",JSON.stringify(fleet().map(({src,...v})=>v),null,2),"application/json");
+  toast("fahrzeuge.json exportiert");
+};
+$("fleetCsv").onclick=()=>{
+  const F=fleet(); if(!F.length){ toast("Noch keine Fahrzeuge im Fuhrpark"); return; }
+  saveFile("fahrzeuge.csv",fleetToCsv(F.map(({src,...v})=>v)),"text/csv;charset=utf-8"); toast("fahrzeuge.csv exportiert");
+};
+$("fleetTpl").onclick=()=>{
+  const ex=[{id:"",name:"TLF 3000",unit:"FF Musterort",kind:"fw",vol:3000,vmax:80,arr:15,fill:0,out:0,note:"Beispielzeile – überschreiben"},
+            {id:"",name:"Traktor mit Wasserfass",unit:"Landwirt Muster",kind:"lw",vol:12000,vmax:25,arr:40,fill:3000,out:1500,note:"Beispielzeile – überschreiben"}];
+  saveFile("fahrzeuge-vorlage.csv",fleetToCsv(ex),"text/csv;charset=utf-8"); toast("Vorlage gespeichert – in Excel öffnen");
+};
+$("fleetImport").onchange=async e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  try{
+    const txt=decodeText(await f.arrayBuffer());
+    let arr=[], bad=[];
+    if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(txt)){ const js=JSON.parse(txt); arr=(Array.isArray(js)?js:js.fahrzeuge||[]).filter(validVeh).map(normVeh); }
+    else ({ok:arr,bad}=parseFleetCsv(txt));
+    const n0=arr.length; arr=arr.filter(v=>!/beispielzeile/i.test(v.note)); const ex=n0-arr.length;
+    if(!arr.length){ fleetMsg("Keine Fahrzeuge übernommen."+(ex?" Beispielzeilen aus der Vorlage werden ignoriert, bitte durch eigene Fahrzeuge ersetzen.":"")+(bad.length?"<br>"+bad.map(esc).join("<br>"):""),true); return; }
+    const list=fleetLocal().filter(x=>!arr.some(a=>a.id===x.id)); arr.forEach(v=>list.push(v));
+    saveLocal(list); renderFleet(); renderVeh();
+    fleetMsg(`<b>${arr.length} Fahrzeug${arr.length>1?"e":""} importiert.</b>`+(bad.length?`<br>${bad.length} Zeile${bad.length>1?"n":""} übersprungen:<br>`+bad.slice(0,8).map(esc).join("<br>"):""),bad.length>0);
+  }catch(err){ console.error(err); fleetMsg("Datei konnte nicht gelesen werden. Bitte als CSV (Trennzeichen Semikolon) oder JSON speichern.",true); }
+  e.target.value="";
+};
+writePV(); loadFleetFile();
+
+/* ---------- Ringverkehr ---------- */
+function renderRingUI(){
+  const pv=S.mode==="pv";
+  $("ringBox").hidden=!pv;
+  $("retSame").setAttribute("aria-pressed",!S.ring); $("retRing").setAttribute("aria-pressed",!!S.ring);
+  $("ringEdit").hidden=!(pv&&S.ring);
+  $("editHin").setAttribute("aria-pressed",!S.editRet); $("editRet").setAttribute("aria-pressed",!!S.editRet);
+}
+$("retSame").onclick=()=>{ S.ring=false; S.editRet=false; changed(); renderRingUI(); };
+$("retRing").onclick=()=>{ S.ring=true; S.editRet=S.pts.length>=2; changed(); renderRingUI();
+  if(S.pts.length>=2) toast("Rückweg: Punkte von der Einsatzstelle zurück zur Entnahmestelle antippen"); };
+$("editHin").onclick=()=>{ S.editRet=false; renderRingUI(); updStats(); };
+$("editRet").onclick=()=>{ if(S.pts.length<2){ toast("Erst Entnahmestelle und Einsatzstelle setzen"); return; } S.editRet=true; renderRingUI(); updStats(); };
+function overlapLen(a,b){
+  if(!a||!b||a.length<2||b.length<2) return 0;
+  const A=densify(a,15), B=densify(b,15), tot=B[B.length-1].d, lim=20, out=[];
+  let o=0; for(let i=1;i<B.length;i++){
+    const q=B[i]; if(q.d<120 || tot-q.d<120) continue;
+    if(A.some(x=>Math.abs(x.lat-q.lat)<0.0004 && Math.abs(x.lng-q.lng)<0.0006 && hav([x.lat,x.lng],[q.lat,q.lng])<lim)) o+=B[i].d-B[i-1].d;
+  }
+  return o;
+}
+
+/* ---------- Simulation (Zeitschritt 0,05 min) ---------- */
+function simPV(list,p){
+  const dt=0.05, Q=p.q, cap=p.buf, rq=p.rust/4;
+  const V=list.map((v,i)=>({i,ti:v.ti,name:v.name,cap:v.cap,vol:v.cap,tH:v.tH,tR:v.tR,fill:v.fill,R:cap>0?(v.out||Math.max(p.pump,Q)):Math.min(Q,v.out||Q),
+    st:"anfahrt",until:v.eta,since:0,seg:[],cur:{k:"anfahrt",s:0},trips:0}));
+  const set=(v,st,until,t)=>{ if(t-v.cur.s>1e-6) v.seg.push({k:v.cur.k,s:v.cur.s,e:t}); v.st=st; v.until=until; v.since=t; v.cur={k:st,s:t}; };
+  let B=0,t=0,t0=null,tEnd=600,es=null; const we=[], gaps=[]; let gap=null, delivered=0, minB=Infinity;
+  while(t<tEnd-1e-9){
+    for(const v of V){
+      let guard=0;
+      while(v.until!=null && t>=v.until-1e-9 && guard++<10){
+        switch(v.st){
+          case "fuellen": v.vol=v.cap; we.splice(we.indexOf(v),1); set(v,"abWE",t+rq,t); break;
+          case "anfahrt": case "hin": set(v,"aufES",t+rq,t); break;
+          case "aufES": set(v,"wartenES",null,t); break;
+          case "abES": set(v,"rueck",t+v.tR,t); break;
+          case "rueck": set(v,"aufWE",t+rq,t); break;
+          case "aufWE": set(v,"wartenWE",null,t); break;
+          case "abWE": set(v,"hin",t+v.tH,t); break;
+          default: v.until=null;
+        }
+      }
+    }
+    if(!es){ const w=V.filter(v=>v.st==="wartenES").sort((a,b)=>a.since-b.since)[0]; if(w){ es=w; set(w,"abgabe",null,t); } }
+    while(we.length<p.fs){ const w=V.filter(v=>v.st==="wartenWE").sort((a,b)=>a.since-b.since)[0]; if(!w) break; we.push(w); set(w,"fuellen",t+w.cap/w.fill,t); }
+    if(es && t0===null){ t0=t; tEnd=t0+p.dur; }
+    const dem=t0!==null? Q*dt : 0;
+    let sup=0; if(es) sup=Math.min(es.R*dt, es.vol);
+    const toD=Math.min(sup,dem); let rem=dem-toD;
+    const fromB=Math.min(rem,B); B-=fromB; rem-=fromB;
+    const toB=Math.min(sup-toD, cap-B); B+=toB;
+    if(es){ es.vol-=toD+toB; if(es.vol<=1e-6){ es.trips++; set(es,"abES",t+rq,t); es=null; } }
+    if(t0!==null){
+      delivered+=dem-rem; if(B<minB) minB=B;
+      if(rem>dem*0.02){ if(!gap) gap={s:t,e:t+dt}; else gap.e=t+dt; } else if(gap){ gaps.push(gap); gap=null; }
+    }
+    t+=dt;
+    if(t0===null && t>480) break;
+  }
+  if(gap) gaps.push(gap);
+  V.forEach(v=>{ if(tEnd-v.cur.s>1e-6) v.seg.push({k:v.cur.k,s:v.cur.s,e:tEnd}); });
+  const real=gaps.filter(g=>g.e-g.s>=0.2);
+  const short=real.reduce((a,g)=>a+g.e-g.s,0);
+  return {V,t0,tEnd,gaps:real,short,stable:t0!==null && short<0.25,minB:minB===Infinity?0:minB,avgQ:t0!==null?delivered/p.dur:0};
+}
+function pvTypes(lenH,lenR,p){
+  return p.veh.map(r=>{ const v=rowVeh(r), sp=Math.min(p.v, v.vmax||p.v), fill=v.fill||p.fill;
+    const tH=lenH/1000/sp*60, tR=lenR/1000/sp*60, tFill=v.vol/fill, tAb=v.vol/p.q, U=p.rust+tFill+tH+tR+tAb;
+    return {id:r.id,c:r.c,t:r.t,name:v.name,unit:v.unit||"",vol:v.vol,vmax:v.vmax||80,out:v.out||0,fill,sp,tH,tR,tFill,tAb,U,need:U/tAb}; });
+}
+function planPV(lenH,lenR,p){
+  const types=pvTypes(lenH,lenR,p);
+  const mk=(t,label,ti)=>({name:label,ti,cap:t.vol,eta:t.t,tH:t.tH,tR:t.tR,fill:t.fill,out:t.out});
+  const list=[]; types.forEach((t,ti)=>{ for(let k=0;k<t.c;k++) list.push(mk(t,(t.c>1?`${k+1}. `:"")+t.name+(t.unit?" "+t.unit:""),ti)); });
+  const sim=simPV(list,p);
+  let add=null;
+  if(!sim.stable && list.length){
+    // 1. freie Fahrzeuge aus dem Fuhrpark (früheste Anfahrt zuerst)
+    const used=new Set(p.veh.map(r=>r.id));
+    const free=fleet().filter(v=>!used.has(v.id)).map(v=>({id:v.id,c:1,t:v.arr!=null?v.arr:30}));
+    const ft=pvTypes(lenH,lenR,{...p,veh:free}).sort((a,b)=>a.t-b.t||b.vol/b.U-a.vol/a.U);
+    let l2=list.slice(), fl=[], ok=false;
+    for(const t of ft){ l2=l2.concat([mk(t,"+ "+t.name+(t.unit?" "+t.unit:""),-1)]); fl.push(t); if(simPV(l2,p).stable){ ok=true; break; } }
+    add={fleet:fl.map(t=>({name:t.name,unit:t.unit,t:t.t})),k:0,name:""};
+    // 2. reicht der Fuhrpark nicht: zusätzlich Standardfahrzeuge
+    if(!ok){
+      const ref=[...types].sort((a,b)=>b.vol/b.U-a.vol/a.U)[0], eta=Math.min(...types.map(t=>t.t));
+      add.k=null;
+      for(let k=1;k<=25;k++){
+        const l3=l2.concat(Array.from({length:k},(_,j)=>({...mk(ref,"+"+(j+1)+" "+ref.name,-1),eta})));
+        if(simPV(l3,p).stable){ add.k=k; add.name=ref.name; break; }
+      }
+    }
+    add.n=add.fleet.length+(add.k||0);
+    if(!add.fleet.length && !add.k) add=null;
+  }
+  const qmax=types.reduce((a,t)=>a+t.c*t.vol/t.U,0);
+  const v0=p.v, tF=lenH/1000/v0*60, tFR=lenR/1000/v0*60;
+  return {tF,tFR,lenH,lenR,types,sim,add,qmax,nVeh:list.length};
+}
+async function calcPV(){
+  readPV(); busy(true,"Berechne Fahrstrecke …");
+  try{
+    let osrm=null, osrmR=null;
+    if(S.road){
+      try{ const rt=await getRoad(S.pts,"car"); S.path=rt.path; osrm={dist:rt.dist,dur:rt.dur}; }
+      catch(e){ S.path=S.pts.slice(); toast("Straßenführung nicht verfügbar – gerade Linien verwendet"); }
+    } else S.path=S.pts.slice();
+    if(S.ring){
+      const rp=[S.pts[S.pts.length-1],...S.ret,S.pts[0]];
+      if(S.road){ try{ const rt=await getRoad(rp,"car"); S.retPath=rt.path; osrmR={dist:rt.dist,dur:rt.dur}; }catch(e){ S.retPath=rp; } }
+      else S.retPath=rp;
+    } else S.retPath=null;
+    drawLine(); updStats();
+    const lenH=pathLen(S.path), lenR=S.ring?pathLen(S.retPath):lenH;
+    let s=null;
+    try{ s=densify(S.path,Math.max(20,Math.ceil(lenH/300/5)*5)); await elevations(s); }catch(e){ s=null; }
+    busy(true,"Berechne Pendelverkehr …");
+    const res=planPV(lenH,lenR,PV); res.s=s; res.len=lenH; res.osrm=osrm; res.osrmR=osrmR; res.ring=!!S.ring; res.params=JSON.parse(JSON.stringify(PV));
+    res.overlap=S.ring? overlapLen(S.path,S.retPath) : lenH;
+    if(s){ let up=0,mx=0; for(let i=1;i<s.length;i++){ const d=s[i].h-s[i-1].h; if(d>0) up+=d; }
+      for(let i=0,j=0;i<s.length;i++){ while(j<s.length-1 && s[j].d-s[i].d<100) j++; if(s[j].d-s[i].d>=60) mx=Math.max(mx,Math.abs(s[j].h-s[i].h)/(s[j].d-s[i].d)*100); }
+      res.up=up; res.slope=mx; res.H=s[s.length-1].h-s[0].h; }
+    S.result=res; showAny(); drawPVOnMap(res); writeHash();
+    tab("ergebnis"); $("sheet").classList.remove("min");
+  }catch(e){ console.error(e); toast("Berechnung fehlgeschlagen – Eingaben prüfen"); }
+  finally{ busy(false); }
+}
+function along(path,fr){
+  const cum=[0]; for(let i=1;i<path.length;i++) cum.push(cum[i-1]+hav(path[i-1],path[i]));
+  const d=cum[cum.length-1]*fr; let k=1; while(k<cum.length-1 && cum[k]<d) k++;
+  const a=path[k-1], b=path[k], f=(d-cum[k-1])/((cum[k]-cum[k-1])||1);
+  return {pt:[a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f], a, b};
+}
+function mapArrows(path,col){
+  [0.2,0.5,0.8].forEach(fr=>{ const x=along(path,fr), p1=map.project(x.a), p2=map.project(x.b), deg=Math.atan2(p2.y-p1.y,p2.x-p1.x)*180/Math.PI;
+    L.marker(x.pt,{icon:L.divIcon({className:"",html:`<div class="arr" style="transform:translate(-50%,-50%) rotate(${deg}deg);border-left-color:${col}"></div>`,iconSize:null}),interactive:false,zIndexOffset:800}).addTo(gRes); });
+}
+function drawPVOnMap(r){
+  gRes.clearLayers();
+  const path=S.path||S.pts; if(path.length<2) return;
+  const lbl=(pt,txt,cls)=>L.marker(pt,{icon:L.divIcon({className:"",html:`<div class="pvlbl ${cls||""}">${txt}</div>`,iconSize:null}),interactive:false,zIndexOffset:900}).addTo(gRes);
+  const t0=r.types[0];
+  mapArrows(path,getVar("--vg-blue"));
+  lbl(along(path,r.ring?0.3:0.5).pt,`${r.ring?"Hin ":""}${fmt(r.lenH/1000,1)} km · ${fmt(r.tF)} min`);
+  if(r.ring && S.retPath && S.retPath.length>1){ mapArrows(S.retPath,"#e07a10"); lbl(along(S.retPath,0.65).pt,`Rück ${fmt(r.lenR/1000,1)} km · ${fmt(r.tFR)} min`,"ret"); }
+  const e=path[path.length-1];
+  L.marker(e,{icon:icon("es","ES",34),zIndexOffset:1000}).addTo(gRes)
+    .bindPopup(`<b>Einsatzstelle (Abgabe)</b><br>Bedarf ${fmt(r.params.q)} l/min<br>${r.params.buf?"Puffer "+fmt(r.params.buf)+" l":"ohne Puffer"}`);
+  L.marker(path[0],{icon:icon("we","WE",34),zIndexOffset:1000}).addTo(gRes)
+    .bindPopup(`<b>Wasserentnahmestelle</b><br>Füllstrom ${fmt(r.params.fill)} l/min · ${r.params.fs} Füllstelle${r.params.fs>1?"n":""}`);
+  const all=path.concat(r.ring&&S.retPath?S.retPath:[]);
+  map.fitBounds(L.latLngBounds(all),{padding:[50,50],paddingBottomRight:[0,Math.round(innerHeight*.45)]});
+}
+function addText(a,html){
+  const b=t=>html?`<b>${esc(t)}</b>`:t, parts=[];
+  if(a.fleet.length) parts.push("aus dem Fuhrpark "+a.fleet.map(f=>b(f.name+(f.unit?" ("+f.unit+")":""))).join(", "));
+  if(a.k) parts.push((a.fleet.length?"und zusätzlich ":"")+"etwa "+b(a.k+" × "+a.name));
+  return parts.join(" ");
+}
+function pvMessages(r){
+  const p=r.params, sim=r.sim, m=[];
+  if(!r.nVeh) return [["warn","Keine Fahrzeuge eingeplant. Unter „Daten“ Fahrzeuge aus dem Fuhrpark auswählen."]];
+  if(sim.stable) m.push(["ok",`<b>Pendelverkehr stabil.</b> Mit ${r.nVeh} Fahrzeugen ist die Einsatzstelle ab Minute ${fmt(sim.t0)} über ${fmt(p.dur)} min durchgehend mit ${fmt(p.q)} l/min versorgt. Rechnerisch möglich sind etwa ${fmt(Math.floor(r.qmax/10)*10)} l/min.`]);
+  else m.push(["warn",`<b>Nicht stabil.</b> In ${fmt(p.dur)} min fehlt an der Einsatzstelle ${sim.gaps.length}-mal Wasser, zusammen ${fmt(sim.short)} min. `+(r.add?`Nachalarmieren: ${addText(r.add,true)}${r.add.k===null?". Auch das reicht noch nicht: Förderstrom senken oder Puffer vergrößern":""}${p.buf?"":", oder einen Pufferbehälter einsetzen"}.`:"Förderstrom senken oder deutlich mehr Fahrzeuge einsetzen.")]);
+  if(sim.t0!=null && sim.t0>0) m.push(["ok",`Erstes Wasser an der Einsatzstelle nach ${fmt(sim.t0)} min (Eintreffen des ersten Fahrzeugs plus Ankuppeln).`]);
+  if(r.ring){
+    if(r.overlap>150) m.push(["warn",`Ringverkehr: Hin- und Rückweg nutzen etwa ${fmt(Math.round(r.overlap/50)*50)} m gemeinsam. Dort gibt es Gegenverkehr: Ausweichstellen oder Einweiser einplanen.`]);
+    else m.push(["ok",`Ringverkehr: Hinweg ${fmt(r.lenH/1000,1)} km und Rückweg ${fmt(r.lenR/1000,1)} km sind getrennt. Kein Gegenverkehr außer an Entnahme- und Einsatzstelle.`]);
+  } else if(r.nVeh>1) m.push(["warn","Hin- und Rückweg auf derselben Strecke: Beladene und leere Fahrzeuge begegnen sich. Auf engen Wegen unter „Strecke“ einen Ringverkehr planen."]);
+  const slow=r.types.filter(t=>t.sp<p.v);
+  if(slow.length) m.push(["warn",`Langsamere Fahrzeuge: ${slow.map(t=>`${esc(t.name)}${t.unit?" ("+esc(t.unit)+")":""} max. ${fmt(t.sp)} km/h, Umlauf ${fmt(t.U)} min`).join("; ")}. Auf engen Wegen ohne Überholmöglichkeit bremsen sie nachfolgende Fahrzeuge.`]);
+  if(r.types.some(t=>t.vol<2400)) m.push(["warn","Fahrzeuge unter 2.500 l sind für den Pendelverkehr nur eingeschränkt geeignet (HLFS)."]);
+  if(p.q>=500 && r.lenH<3000) m.push(["warn",`Bei ${fmt(p.q)} l/min und nur ${fmt(r.lenH/1000,1)} km ist eine Förderstrecke (lange Wegstrecke) meist leistungsfähiger.`]);
+  if(r.slope>10) m.push(["warn",`Steigungen bis etwa ${fmt(r.slope)} % auf dem Hinweg: Beladene Fahrzeuge fahren dort deutlich langsamer. Geschwindigkeit ggf. senken.`]);
+  if(r.osrm) m.push(["ok",`Routenplaner (Pkw): Hinweg ${fmt(r.osrm.dist/1000,1)} km, etwa ${fmt(r.osrm.dur/60)} min${r.osrmR?`, Rückweg ${fmt(r.osrmR.dist/1000,1)} km`:""}. Gerechnet wird mit Ø ${fmt(p.v)} km/h, bei langsameren Fahrzeugen mit deren Höchstgeschwindigkeit.`]);
+  return m;
+}
+function showPV(r){
+  if(!r) return;
+  const p=r.params, t0=r.types[0];
+  $("pvRn").textContent=r.nVeh? (r.sim.stable? r.nVeh : r.nVeh+(r.add?" +"+r.add.n:"")) : "–";
+  $("pvRnL").textContent=r.sim.stable?"Fahrzeuge reichen":"Fahrzeuge (zu wenig)";
+  $("pvRu").textContent=t0? fmt(t0.U)+" min":"–";
+  $("pvRd").textContent=r.ring? `${fmt(r.lenH/1000,1)} / ${fmt(r.lenR/1000,1)}`:fmt(r.lenH/1000,1)+" km";
+  $("pvRdL").textContent=r.ring?"Hin / Rück km":"Fahrstrecke";
+  $("pvMsgs").innerHTML=pvMessages(r).map(x=>`<div class="msg ${x[0]}">${x[1]}</div>`).join("");
+  $("pvTbl").innerHTML=r.types.map(t=>`<tr><td><b>${t.c} × ${esc(t.name)}</b><br><span class="note">${t.unit?esc(t.unit)+" · ":""}ab Min. ${fmt(t.t)}</span></td><td>${fmt(t.vol)} l<br><span class="note">reicht ${fmt(t.tAb,1)} min</span></td><td>${fmt(t.sp)}</td><td>${fmt(t.U)} min</td><td>${Math.ceil(t.need-1e-9)}</td></tr>`).join("");
+  $("pvForm").innerHTML=t0? pvFormulaHtml(r,t0) : "Keine Fahrzeuge eingeplant.";
+  $("pvProfBox").hidden=!r.s;
+  if(!$("tab-ergebnis").hidden) requestAnimationFrame(drawPVCharts);
+}
+function pvFormulaHtml(r,t){
+  const p=r.params;
+  return `Beispiel <b>${esc(vehLabel(t))}</b> (${fmt(t.vol)} l, ${fmt(t.sp)} km/h):<br>`+
+    `t<sub>Füll</sub> = ${fmt(t.vol)} / ${fmt(t.fill)} = ${fmt(t.tFill,1)} min<br>`+
+    `t<sub>Fahrt</sub> = ${fmt(r.lenH/1000,1)} km + ${fmt(r.lenR/1000,1)} km bei ${fmt(t.sp)} km/h = ${fmt(t.tH+t.tR,1)} min<br>`+
+    `t<sub>Rüst</sub> = ${fmt(p.rust,1)} min<br>`+
+    `t<sub>Abgabe</sub> = ${fmt(t.vol)} / ${fmt(p.q)} = ${fmt(t.tAb,1)} min<br>`+
+    `Umlaufzeit = <b>${fmt(t.U,1)} min</b><br>`+
+    `n = Umlaufzeit / t<sub>Abgabe</sub> = ${fmt(t.U,1)} / ${fmt(t.tAb,1)} = ${fmt(t.need,2)} → <b>${Math.ceil(t.need-1e-9)} Fahrzeuge</b><br>`+
+    `<span class="note">Die Formel gilt für einen Fahrzeugtyp, der sofort verfügbar ist. Der Zeitstrahl rechnet mit den tatsächlichen Fahrzeugen, ihren Geschwindigkeiten und Eintreffzeiten, Wartezeiten an Füll- und Abgabestelle und dem Puffer.</span>`;
+}
+function drawGantt(c,W,H,r,C){
+  const sim=r.sim, rows=sim.V, padL=Math.min(130,W*0.32), padR=8, padT=6, rowH=(H-padT-22)/(rows.length+1);
+  const tMax=sim.tEnd, X=t=>padL+t/tMax*(W-padL-padR);
+  c.font="10px "+C.font; c.textBaseline="middle";
+  const pxPerMin=(W-padL-padR)/tMax, step=[5,10,15,20,30,60,120].find(s=>s*pxPerMin>=30)||120;
+  c.strokeStyle=C.line; c.lineWidth=1; c.fillStyle=C.muted; c.textAlign="center";
+  for(let t=0;t<=tMax+0.01;t+=step){ const x=X(t); c.beginPath(); c.moveTo(x,padT); c.lineTo(x,H-18); c.stroke(); if(x<W-padR-24) c.fillText(String(t),x,H-8); }
+  c.textAlign="right"; c.fillText("min",W-padR,H-8);
+  const y0=padT+rowH*0.18, h0=rowH*0.64;
+  c.fillStyle=C.fg; c.textAlign="left"; c.font="600 10px "+C.font; c.fillText("Wasser an ES",4,padT+rowH/2);
+  if(sim.t0!=null){ c.fillStyle="#2f8a3e"; c.fillRect(X(sim.t0),y0,X(sim.tEnd)-X(sim.t0),h0);
+    c.fillStyle="#c8141e"; sim.gaps.forEach(g=>c.fillRect(X(g.s),y0,Math.max(1.5,X(g.e)-X(g.s)),h0)); }
+  const col=Object.fromEntries(GANTT_KEYS.map(k=>[k[0],k[2]]));
+  rows.forEach((v,i)=>{
+    const y=padT+rowH*(i+1), yy=y+rowH*0.18, hh=rowH*0.64;
+    c.fillStyle=C.fg; c.font="10px "+C.font; c.textAlign="left";
+    let lbl=v.name; while(c.measureText(lbl).width>padL-8 && lbl.length>4) lbl=lbl.slice(0,-2)+"…";
+    c.fillText(lbl,4,y+rowH/2);
+    v.seg.forEach(sg=>{ c.fillStyle=col[gKey(sg.k)]||"#999"; c.fillRect(X(sg.s),yy,Math.max(.8,X(sg.e)-X(sg.s)),hh); });
+  });
+  if(sim.t0!=null){ c.strokeStyle=C.fg; c.setLineDash([3,3]); c.beginPath(); c.moveTo(X(sim.t0),padT); c.lineTo(X(sim.t0),H-18); c.stroke(); c.setLineDash([]); }
+}
+function ganttHeight(r){ return 28+(r.sim.V.length+1)*22; }
+function drawPVCharts(){
+  const r=S.result; if(!r||S.mode!=="pv") return;
+  const cv=$("gantt"); cv.style.height=ganttHeight(r)+"px";
+  if(cv.offsetWidth){ const dpr=devicePixelRatio||1, W=cv.offsetWidth, H=cv.offsetHeight; cv.width=W*dpr; cv.height=H*dpr;
+    const c=cv.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+    drawGantt(c,W,H,r,{fg:getVar("--fg"),muted:getVar("--muted"),line:getVar("--line"),font:getVar("--f-body")}); }
+  const pc=$("pvProf"); if(r.s && pc.offsetWidth){ const dpr=devicePixelRatio||1, W=pc.offsetWidth, H=pc.offsetHeight; pc.width=W*dpr; pc.height=H*dpr;
+    const c=pc.getContext("2d"); c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,W,H);
+    drawProfile(c,W,H,pvProfR(r),{muted:getVar("--muted"),line:getVar("--line"),terrain:getVar("--terrain"),drop:getVar("--drop"),red:getVar("--red"),fg:getVar("--fg"),font:getVar("--f-body")}); }
+}
+function pvProfR(r){ return {s:r.s,hose:r.s.map(x=>x.d),L:r.lenH,pumps:[],params:{pstr:0},th:0,r:1}; }
+
+/* ---------- PDF Pendelverkehr ---------- */
+async function makePdfPV(){
+  const r=S.result; if(!r){ toast("Erst berechnen"); return; }
+  busy(true,"Erstelle PDF …");
+  try{
+    await loadScript(JSPDF_URL);
+    busy(true,"Lade Kartenausschnitt …");
+    const route=S.path||S.pts, ret=r.ring&&S.retPath?S.retPath:null;
+    const ov=(c,P)=>{
+      const arrows=(path,col)=>{ [0.2,0.5,0.8].forEach(fr=>{ const x=along(path,fr), p1=P(...x.a), p2=P(...x.b), pp=P(...x.pt), ang=Math.atan2(p2[1]-p1[1],p2[0]-p1[0]);
+        c.save(); c.translate(pp[0],pp[1]); c.rotate(ang); c.fillStyle=col; c.strokeStyle="#fff"; c.lineWidth=1.5;
+        c.beginPath(); c.moveTo(8,0); c.lineTo(-6,-6); c.lineTo(-3,0); c.lineTo(-6,6); c.closePath(); c.fill(); c.stroke(); c.restore(); }); };
+      const pill=(ll,t,col)=>{ const m=P(...ll); c.font="bold 9px Helvetica, Arial, sans-serif"; c.textAlign="center"; c.textBaseline="middle";
+        const tw=c.measureText(t).width+12; c.fillStyle="#fff"; c.strokeStyle=col; c.lineWidth=1.2; rr(c,m[0]-tw/2,m[1]-8,tw,16,8); c.fill(); c.stroke(); c.fillStyle="#07275C"; c.fillText(t,m[0],m[1]+.5); };
+      if(ret){ c.lineJoin=c.lineCap="round"; c.beginPath(); ret.forEach((q,i)=>{ const [x,y]=P(q[0],q[1]); i?c.lineTo(x,y):c.moveTo(x,y); });
+        c.strokeStyle="#fff"; c.lineWidth=7; c.stroke(); c.strokeStyle="#e07a10"; c.lineWidth=4; c.stroke(); arrows(ret,"#e07a10"); }
+      arrows(route,"#07275C");
+      pill(along(route,ret?0.3:0.5).pt,`${ret?"Hin ":""}${fmt(r.lenH/1000,1)} km · ${fmt(r.tF)} min`,"#0190b3");
+      if(ret) pill(along(ret,0.65).pt,`Rück ${fmt(r.lenR/1000,1)} km · ${fmt(r.tFR)} min`,"#e07a10");
+      const mk=(ll,txt,colr)=>{ const [x,y]=P(ll[0],ll[1]); c.font="bold 10px Helvetica, Arial, sans-serif"; const w=c.measureText(txt).width+12;
+        c.fillStyle=colr; c.strokeStyle="#fff"; c.lineWidth=2; rr(c,x-w/2,y-10,w,20,4); c.fill(); c.stroke(); c.fillStyle="#fff"; c.fillText(txt,x,y+.5); };
+      mk(route[0],"WE","#0190b3"); mk(route[route.length-1],"ES","#07275C");
+    };
+    const [mapImg,lion]=await Promise.all([staticMap(r,1820,1000,ov),lionPng()]);
+    const nav=await navQrs(navItems());
+    busy(true,"Erstelle PDF …");
+    const {jsPDF}=window.jspdf, doc=new jsPDF({unit:"mm",format:"a4",compress:true});
+    const p=r.params, sim=r.sim, name=$("planName").value.trim(), t0=r.types[0];
+    const BLUE=[7,39,92], GOLD=[216,173,20], CYAN=[1,160,198], INK=[11,31,69], MUT=[85,101,127], LINE=[213,220,230], GREEN=[29,91,41], WARN=[109,74,0];
+    const n0=(v,d=0)=>fmt(v,d);
+    const now=new Date(), stamp=now.toLocaleDateString("de-DE")+" "+now.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr";
+    const M=10, CW=190; let y;
+    const header=()=>{
+      doc.setFillColor(...BLUE); doc.rect(0,0,210,25,"F"); doc.setFillColor(...GOLD); doc.rect(0,25,210,1.2,"F");
+      if(lion) doc.addImage(lion,"PNG",M,3.5,18,18);
+      doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(15);
+      doc.text("Löschwasserversorgung im Pendelverkehr",M+22,11.5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(...CYAN);
+      doc.text("Planungshilfe Löschwasserversorgung",M+22,17.5);
+      doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.text(stamp,210-M,11.5,{align:"right"});
+    };
+    const footer=()=>{ const n=doc.getNumberOfPages();
+      for(let i=1;i<=n;i++){ doc.setPage(i); doc.setDrawColor(...LINE); doc.setLineWidth(.2); doc.line(M,287,210-M,287);
+        doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
+        doc.text("Planungshilfe nach HLFS-Lernunterlage Löschwasserförderung, Kap. 14 Pendelverkehr. Ersetzt nicht die Lagebeurteilung vor Ort.",M,291);
+        doc.text("Seite "+i+" von "+n,210-M,291,{align:"right"}); } };
+    const sect=t=>{ doc.setFillColor(...GOLD); doc.rect(M,y-3.2,1.2,4,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(10.5); doc.setTextColor(...INK); doc.text(t.toUpperCase(),M+3,y); y+=4; };
+    const need=h=>{ if(y+h>283){ doc.addPage(); header(); y=34; } };
+    const fit=(t,w)=>{ let s=String(t); while(doc.getTextWidth(s)>w && s.length>3) s=s.slice(0,-2)+"…"; return s; };
+
+    header(); y=34;
+    doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...INK); doc.text(name||"Pendelverkehr",M,y,{maxWidth:CW});
+    doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(...MUT);
+    doc.text(`Bedarf ${n0(p.q)} l/min · Ø ${n0(p.v)} km/h · ${r.ring?"Ringverkehr":"Rückweg gleiche Strecke"} · Rüstzeit ${n0(p.rust,1)} min · Füllstrom ${n0(p.fill)} l/min (${p.fs} Füllstelle${p.fs>1?"n":""}) · ${p.buf?"Puffer "+n0(p.buf)+" l":"ohne Puffer"} · ${n0(p.dur)} min`,M,y+5,{maxWidth:CW});
+    y+=10;
+    const tiles=[
+      ["Fahrzeuge",r.nVeh?`${r.nVeh}`:"–",sim.stable?"reichen aus":(r.add?`+ ${r.add.n} Fahrzeug${r.add.n>1?"e":""} nötig`:"reichen nicht"),true],
+      ["Löschwasser",`${n0(p.q)} l/min`,`möglich ca. ${n0(Math.floor(r.qmax/10)*10)} l/min`,false],
+      [r.ring?"Hin / Rückweg":"Fahrstrecke",r.ring?`${n0(r.lenH/1000,1)} / ${n0(r.lenR/1000,1)} km`:`${n0(r.lenH/1000,1)} km`,r.ring?"Ringverkehr":"einfache Strecke",false],
+      ["Fahrzeit",r.ring?`${n0(r.tF)} / ${n0(r.tFR)} min`:`${n0(r.tF)} min`,`${r.ring?"hin / zurück":"je Richtung"} bei ${n0(p.v)} km/h`,false],
+      ["Umlaufzeit",t0?`${n0(t0.U)} min`:"–",t0?t0.name:"",false]];
+    const tw=(CW-12)/5;
+    tiles.forEach((t,i)=>{ const x=M+i*(tw+3);
+      doc.setFillColor(...(t[3]?BLUE:[232,237,244])); doc.roundedRect(x,y,tw,17,1.5,1.5,"F");
+      if(t[3]){ doc.setFillColor(...GOLD); doc.rect(x,y+16,tw,1,"F"); }
+      doc.setTextColor(...(t[3]?[255,255,255]:MUT)); doc.setFont("helvetica","bold"); doc.setFontSize(6.5); doc.text(t[0].toUpperCase(),x+2.5,y+4.5);
+      doc.setTextColor(...(t[3]?[255,255,255]:INK)); doc.setFontSize(t[1].length>11?11:14); doc.text(String(t[1]),x+2.5,y+11);
+      doc.setFont("helvetica","normal"); doc.setFontSize(6.5); doc.setTextColor(...(t[3]?[200,215,235]:MUT)); doc.text(fit(t[2],tw-4),x+2.5,y+15); });
+    y+=21;
+    const st=sim.stable
+      ? `Stabil: Ab Minute ${n0(sim.t0)} ist die Einsatzstelle über ${n0(p.dur)} min durchgehend mit ${n0(p.q)} l/min versorgt.`
+      : `Nicht stabil: In ${n0(p.dur)} min fehlt ${sim.gaps.length}-mal Wasser, zusammen ${n0(sim.short)} min.`+(r.add?` Nachalarmieren: ${addText(r.add,false)}.`:"");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8.5); const stl=doc.splitTextToSize(st,CW-6), sth=4+stl.length*3.8;
+    doc.setFillColor(...(sim.stable?[225,242,228]:[255,242,214])); doc.roundedRect(M,y,CW,sth,1.5,1.5,"F");
+    doc.setTextColor(...(sim.stable?GREEN:WARN)); doc.text(stl,M+3,y+5.2);
+    y+=sth+4;
+    if(mapImg){ sect("Lageskizze"); const mh=CW*1000/1820*0.86;
+      doc.addImage(mapImg.img,"JPEG",M,y,CW,mh); doc.setDrawColor(...LINE); doc.setLineWidth(.3); doc.rect(M,y,CW,mh);
+      y+=mh+3; doc.setFontSize(6); doc.setTextColor(...MUT);
+      doc.text(mapImg.attr+" | WE = Wasserentnahme, ES = Einsatzstelle"+(r.ring?", blau = Hinweg beladen, orange = Rückweg leer":", Pfeil = Fahrtrichtung beladen"),M,y); y+=6; }
+    // Fahrzeuge
+    need(26); sect("Fahrzeuge");
+    const cols=[["Fahrzeug",34],["Einheit",30],["Anz.",11],["Inhalt",18],["km/h",13],["Eintreffen",18],["Umlauf",17],["Fahrten",17],["allein nötig",32]];
+    let x=M; doc.setFillColor(...BLUE); doc.rect(M,y,CW,6.5,"F"); doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(255,255,255);
+    cols.forEach(c=>{ doc.text(c[0],x+1.5,y+4.4); x+=c[1]; }); y+=6.5;
+    doc.setFontSize(8);
+    r.types.forEach((t,ri)=>{
+      need(6);
+      const trips=sim.V.filter(v=>v.ti===ri).reduce((a,v)=>a+v.trips,0);
+      const row=[t.name,t.unit||"–",`${t.c}`,`${n0(t.vol)} l`,`${n0(t.sp)}`,`Min. ${n0(t.t)}`,`${n0(t.U)} min`,`${trips}`,`${Math.ceil(t.need-1e-9)}`];
+      if(ri%2){ doc.setFillColor(243,246,250); doc.rect(M,y,CW,6,"F"); }
+      let xx=M; row.forEach((v,ci)=>{ doc.setFont("helvetica",ci===0?"bold":"normal"); doc.setTextColor(...INK); doc.text(fit(v,cols[ci][1]-3),xx+1.5,y+4.1); xx+=cols[ci][1]; }); y+=6; });
+    doc.setDrawColor(...LINE); doc.line(M,y,M+CW,y); y+=3;
+    doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
+    doc.text(`Eintreffen = gefüllt an der Einsatzstelle. km/h = gerechnete Geschwindigkeit (Ø Strecke, höchstens Fahrzeug-Höchstgeschwindigkeit). Fahrten = Abgaben im Zeitraum. Allein nötig = HLFS-Formel für diesen Typ.`,M,y+1,{maxWidth:CW});
+    y+=9;
+    // Zeitstrahl
+    const gh=ganttHeight(r), gW=1500, gH=Math.round(gh*2.3);
+    need(Math.min(120,CW*gH/gW)+14); sect(`Zeitstrahl (${n0(sim.tEnd)} min)`);
+    const cv=document.createElement("canvas"); cv.width=gW; cv.height=gH; const gc=cv.getContext("2d"); gc.fillStyle="#fff"; gc.fillRect(0,0,gW,gH); gc.setTransform(2.3,0,0,2.3,0,0);
+    drawGantt(gc,gW/2.3,gH/2.3,r,{fg:"#0b1f45",muted:"#55657f",line:"#d5dce6",font:"Helvetica, Arial, sans-serif"});
+    const gmh=CW*gH/gW; doc.addImage(cv.toDataURL("image/jpeg",.92),"JPEG",M,y,CW,gmh); y+=gmh+2;
+    let lx=M; doc.setFontSize(6.5);
+    GANTT_KEYS.concat([["kein","Kein Wasser","#c8141e"]]).forEach(k=>{ const rgb=k[2].match(/\w\w/g).map(h=>parseInt(h,16)); doc.setFillColor(...rgb); doc.rect(lx,y,4,2.5,"F"); doc.setTextColor(...MUT); doc.text(k[1],lx+5,y+2.2); lx+=doc.getTextWidth(k[1])+10; });
+    y+=7;
+    if(r.s){ need(50); sect("Höhenprofil des Hinwegs");
+      const pv=document.createElement("canvas"); pv.width=1500; pv.height=330; const pc=pv.getContext("2d"); pc.fillStyle="#fff"; pc.fillRect(0,0,1500,330); pc.setTransform(2,0,0,2,0,0);
+      drawProfile(pc,750,165,pvProfR(r),{muted:"#55657f",line:"#d5dce6",terrain:"#2f8a3e",drop:"#e07a10",red:"#c8141e",fg:"#0b1f45",font:"Helvetica, Arial, sans-serif"});
+      const ph=CW*330/1500; doc.addImage(pv.toDataURL("image/jpeg",.9),"JPEG",M,y,CW,ph); y+=ph+2;
+      doc.setFontSize(6.5); doc.setTextColor(...MUT); doc.text(`Höhenunterschied WE bis ES ${r.H>=0?"+":""}${n0(r.H)} m · Anstieg gesamt ${n0(r.up)} m · größte Steigung ca. ${n0(r.slope)} %`,M,y+1); y+=6; }
+    if(t0){ need(40); sect("Berechnung nach HLFS");
+      const L2=[
+        [`Füllzeit tFüll`,`${n0(t0.vol)} l / ${n0(t0.fill)} l/min`,`${n0(t0.tFill,1)} min`],
+        [`Fahrzeit tFahrt (hin und zurück)`,`${n0(r.lenH/1000,1)} km + ${n0(r.lenR/1000,1)} km bei ${n0(t0.sp)} km/h`,`${n0(t0.tH+t0.tR,1)} min`],
+        [`Rüstzeit tRüst`,`Auf- und Abbau an Entnahme und Abgabe`,`${n0(p.rust,1)} min`],
+        [`Abgabezeit tAbgabe`,`${n0(t0.vol)} l / ${n0(p.q)} l/min`,`${n0(t0.tAb,1)} min`],
+        [`Umlaufzeit`,`tRüst + tFüll + tFahrt + tAbgabe`,`${n0(t0.U,1)} min`],
+        [fit(`Anzahl n (${t0.name})`,60),`${n0(t0.U,1)} / ${n0(t0.tAb,1)} = ${n0(t0.need,2)}`,`${Math.ceil(t0.need-1e-9)} Fahrzeuge`]];
+      doc.setFontSize(8);
+      L2.forEach((l,i)=>{ doc.setFont("helvetica",i>=4?"bold":"normal"); doc.setTextColor(...INK); doc.text(l[0],M,y+1); doc.setTextColor(...MUT); doc.text(l[1],M+62,y+1); doc.setTextColor(...INK); doc.text(l[2],M+CW,y+1,{align:"right"}); y+=4.4; });
+      y+=3; }
+    need(60); sect("Hinweise zum Pendelverkehr");
+    const colW=CW;
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);
+    PV_HINTS.forEach(h=>{ const l=doc.splitTextToSize("• "+h,colW); if(y+l.length*3.7>283){ doc.addPage(); header(); y=34; } doc.text(l,M,y+1); y+=l.length*3.7+0.6; });
+    doc.setFontSize(7); doc.setTextColor(...MUT);
+    const crit=doc.splitTextToSize("Entscheidungshilfe HLFS: Pendelverkehr bei Förderstrom unter 500 l/min, Entfernung über 3 bis 4 km, zu Beginn des Einsatzes oder bei ausgedehnten Einsatzstellen.",colW);
+    if(y+crit.length*3.4+3>283){ doc.addPage(); header(); y=34; }
+    doc.text(crit,M,y+2); y+=crit.length*3.4+3;
+    if(nav){ y+=3; need(44); sect("Anfahrt mit dem Handy"); y+=pdfNav(doc,M,y,CW,nav,{line:LINE,ink:INK,mut:MUT})+2;
+      doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(...MUT);
+      doc.text(doc.splitTextToSize("Mit der Handy-Kamera scannen, die Navigation startet in Google Maps. Hinweg und Rückweg führen über die wichtigsten Abbiegepunkte der geplanten Strecke, damit Google Maps den Weg laut Lageskizze nimmt. Den Hinweg an der Entnahmestelle scannen, den Rückweg an der Einsatzstelle. Mit der Google-Maps-App werden bis zu 8 Zwischenpunkte übernommen, im Handy-Browser nur 3. Im Zweifel gelten Lageskizze und Einweiser.",CW),M,y+1); y+=12; }
+    footer();
+    const fname=`Pendelverkehr_${(name||"Plan").replace(/[^\wäöüÄÖÜß-]+/g,"_").slice(0,40)}_${now.toISOString().slice(0,10)}.pdf`;
+    const blob=doc.output("blob");
+    pdfFile={blob,file:new File([blob],fname,{type:"application/pdf"}),name:fname};
+    $("pdfInfo").textContent=`${fname} · ${doc.getNumberOfPages()} Seite(n)${mapImg?"":" · ohne Kartenausschnitt (Karte nicht erreichbar)"}`;
+    $("pdfShare").hidden=!(navigator.canShare && navigator.canShare({files:[pdfFile.file]}));
+    $("pdfReady").hidden=false;
+  }catch(err){ console.error(err); toast("PDF konnte nicht erstellt werden – Internetverbindung prüfen"); }
+  finally{ busy(false); }
+}
+
+/* ---------- Teilen & Speichern ---------- */
+function encode(){
+  const pts="p="+S.pts.map(p=>p[0].toFixed(5)+","+p[1].toFixed(5)).join(";");
+  if(S.mode==="pv") return pts+"&m=pv&r="+(+S.road)+(S.ring?"&ring=1&ret="+S.ret.map(p=>p[0].toFixed(5)+","+p[1].toFixed(5)).join(";"):"")+"&pv="+encodeURIComponent(JSON.stringify(PV));
+  return pts+
+  `&q=${P.q}&l=${P.lines}&o=${+P.open}&pa=${P.pa}&pe=${P.pe}&ps=${P.pstr}&a=${+P.addPe}&hl=${P.hoseLen}&z=${P.zus}&r=${+S.road}`; }
+function writeHash(){ history.replaceState(null,"","#"+encode()); }
+function decode(h){
+  const q=new URLSearchParams(h.replace(/^#/,"")); if(!q.get("p")) return false;
+  const m=q.get("m")==="pv"?"pv":"lw"; setPlanMode(m);
+  S.pts=q.get("p").split(";").map(s=>s.split(",").map(Number)).filter(a=>a.length===2&&a.every(isFinite));
+  const n=(k,d)=>q.has(k)?+q.get(k):d;
+  if(m==="pv"){
+    try{ const o=JSON.parse(q.get("pv")||"{}"); if(o&&typeof o==="object") Object.assign(PV,o); }catch(e){}
+    if(!Array.isArray(PV.veh)) PV.veh=[];
+    S.road=!!n("r",1); S.ring=!!n("ring",0); S.editRet=false;
+    S.ret=(q.get("ret")||"").split(";").filter(Boolean).map(s=>s.split(",").map(Number)).filter(a=>a.length===2&&a.every(isFinite));
+    writePV(); renderRingUI(); return S.pts.length>0;
+  }
+  Object.assign(P,{q:n("q",P.q),lines:n("l",P.lines),open:!!n("o",0),pa:n("pa",P.pa),pe:n("pe",P.pe),pstr:n("ps",P.pstr),addPe:!!n("a",0),hoseLen:n("hl",P.hoseLen),zus:n("z",P.zus)});
+  S.road=!!n("r",0); return S.pts.length>0;
+}
+$("shareBtn").onclick=async()=>{
+  const url=location.href.split("#")[0]+"#"+encode();
+  try{ await navigator.clipboard.writeText(url); toast("Link kopiert – z. B. per Messenger an Kameraden senden"); }
+  catch(e){ prompt("Link kopieren:",url); }
+};
+const saveBox={open:false};
+$("saveBtn").onclick=()=>{
+  const name=(prompt("Name des Plans (z. B. Objekt, Waldabschnitt):",$("planName").value)||"").trim(); if(!name) return;
+  const plans=store.get("lwf.plans",[]);
+  const R=S.result, pv=S.mode==="pv";
+  plans.unshift({name,hash:encode(),pv,fp:R&&!pv?R.pumps.length:null,nv:R&&pv?R.nVeh:null,len:R?Math.round(pv?R.len:R.L):null,t:Date.now()});
+  store.set("lwf.plans",plans.slice(0,50)); renderPlans(); toast("Plan gespeichert");
+};
+function renderPlans(){
+  const plans=store.get("lwf.plans",[]), box=$("plans");
+  if(!plans.length){ box.innerHTML='<p class="note" style="margin:0">Noch keine Pläne. Für Objekte mit schwieriger Wasserversorgung lohnt sich eine Vorplanung.</p>'; return; }
+  box.innerHTML=plans.map((p,i)=>`<div class="row"><button class="btn pl" data-i="${i}"><b>${esc(p.name)}</b><br><span class="note">${p.pv?"Pendelverkehr · "+(p.nv?p.nv+" Fz · ":""):(p.fp?p.fp+" FP · ":"")}${p.len?fmt(p.len)+" m · ":""}${new Date(p.t).toLocaleDateString("de-DE")}</span></button><button class="btn" data-del="${i}" aria-label="Plan löschen">✕</button></div>`).join("");
+  box.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{ const pl=plans[+b.dataset.i]; if(decode(pl.hash)){ writeP(); setMode(S.road); $("planName").value=pl.name; map.fitBounds(S.pts,{padding:[60,60]}); calc(); } });
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ if(b.dataset.armed){ plans.splice(+b.dataset.del,1); store.set("lwf.plans",plans); renderPlans(); } else { b.dataset.armed=1; b.textContent="Löschen?"; } });
+}
+renderPlans();
+
+/* ---------- Start ---------- */
+(function(){ const sp=$("splash"); const t0=Date.now(); let done=false;
+  const hide=()=>{ if(done) return; done=true; setTimeout(()=>sp.classList.add("gone"),Math.max(0,1100-(Date.now()-t0))); };
+  layers[layerIx][1].once("load",hide); setTimeout(hide,2500); sp.onclick=hide; })();
+setPlanMode(store.get("lwf.mode","lw"));
+if(location.hash && decode(location.hash)){
+  writeP(); setMode(S.road); map.fitBounds(S.pts.length>1?S.pts:[S.pts[0],S.pts[0]],{padding:[60,60],maxZoom:16}); calc();
+} else { const last=store.get("lwf.view",null); if(last) map.setView(last.c,last.z); updStats(); openPicker(); }
+map.on("moveend",()=>{ const c=map.getCenter(); store.set("lwf.view",{c:[c.lat,c.lng],z:map.getZoom()}); });
+if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
