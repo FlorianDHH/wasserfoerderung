@@ -574,7 +574,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <h3>Gespeicherte Pläne</h3>
     <div id="plans" class="plans" style="display:flex;flex-direction:column;gap:6px"></div>
     <div class="foot"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b>Löschwasser-Planung</b><span>Lange Wegstrecke · Pendelverkehr</span></div></div>
-    <p class="note" style="margin:0">Berechnung nach HLFS-Lernunterlage „Löschwasserförderung“ (2019) und LFS BW „Löschwasserversorgung F4“ (2026). Höhendaten: Copernicus-DEM ca. 30–90 m Raster über Open-Meteo. Ergebnis ist eine Planungshilfe und ersetzt nicht die Lagebeurteilung vor Ort.</p>
+    <p class="note" style="margin:0">Berechnung nach HLFS-Lernunterlage „Löschwasserförderung“ (2019) und LFS BW „Löschwasserversorgung F4“ (2026). Höhendaten: Copernicus-DEM ca. 30–90 m Raster über Open-Meteo; ist der Dienst überlastet, automatisch Terrain Tiles (AWS Open Data, EU-DEM/SRTM). Ergebnis ist eine Planungshilfe und ersetzt nicht die Lagebeurteilung vor Ort.</p>
   </div>
 </section>
 
@@ -1454,19 +1454,45 @@ function densify(path,step){
   const e=path[path.length-1]; out.push({lat:e[0],lng:e[1],d:tot});
   return out;
 }
-async function elevations(s){
+/* Höhendaten: zuerst Open-Meteo (Copernicus-DEM). Ist der Dienst überlastet (503) oder nicht erreichbar,
+   werden die Höhen aus den freien Terrain-Tiles (AWS Open Data, Terrarium-Format) gelesen. */
+let ELEV_SRC="Copernicus-DEM (Open-Meteo)";
+async function elevOpenMeteo(s){
   for(let i=0;i<s.length;i+=100){
     const part=s.slice(i,i+100);
     busy(true,`Lade Höhendaten … ${Math.min(100,Math.round((i+part.length)/s.length*100))} %`);
     const url="https://api.open-meteo.com/v1/elevation?latitude="+part.map(x=>x.lat.toFixed(5)).join(",")+"&longitude="+part.map(x=>x.lng.toFixed(5)).join(",");
     let js, tries=0;
     while(true){
-      const r=await fetch(url);
-      if(r.ok){ js=await r.json(); break; }
-      if(++tries>3) throw new Error("elev");
-      await new Promise(res=>setTimeout(res,1200*tries));
+      let r=null; try{ r=await fetch(url,{signal:AbortSignal.timeout?AbortSignal.timeout(12000):undefined}); }catch(_){}
+      if(r&&r.ok){ js=await r.json(); if(Array.isArray(js.elevation)) break; }
+      if(++tries>2) throw new Error("elev");
+      await new Promise(res=>setTimeout(res,1000*tries));
     }
     part.forEach((x,k)=>x.h=js.elevation[k]);
+  }
+}
+async function elevTiles(s){
+  const z=14, n=2**z, tiles=new Map();
+  const tile=(x,y)=>{ const k=x+"/"+y; if(!tiles.has(k)) tiles.set(k,new Promise((res,rej)=>{ const img=new Image(); img.crossOrigin="anonymous";
+      img.onload=()=>{ const c=document.createElement("canvas"); c.width=c.height=256; const g=c.getContext("2d",{willReadFrequently:true}); g.drawImage(img,0,0); res(g.getImageData(0,0,256,256).data); };
+      img.onerror=()=>rej(new Error("tile")); img.src=`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`; })); return tiles.get(k); };
+  const hAt=async(px,py)=>{ const x=Math.floor(px/256), y=Math.floor(py/256), d=await tile(((x%n)+n)%n,y), i=((Math.floor(py)-y*256)*256+(Math.floor(px)-x*256))*4; return d[i]*256+d[i+1]+d[i+2]/256-32768; };
+  let done=0;
+  for(const q of s){
+    const px=(q.lng+180)/360*n*256-.5, a=q.lat*Math.PI/180, py=(1-Math.log(Math.tan(a)+1/Math.cos(a))/Math.PI)/2*n*256-.5;
+    const x0=Math.floor(px), y0=Math.floor(py), fx=px-x0, fy=py-y0;   // bilinear zwischen 4 Pixeln
+    const [a00,a10,a01,a11]=await Promise.all([hAt(x0,y0),hAt(x0+1,y0),hAt(x0,y0+1),hAt(x0+1,y0+1)]);
+    q.h=(a00*(1-fx)+a10*fx)*(1-fy)+(a01*(1-fx)+a11*fx)*fy;
+    if(++done%50===0) busy(true,`Lade Höhendaten (Ersatzquelle) … ${Math.round(done/s.length*100)} %`);
+  }
+}
+async function elevations(s){
+  try{ await elevOpenMeteo(s); ELEV_SRC="Copernicus-DEM (Open-Meteo)"; }
+  catch(e){
+    busy(true,"Höhendienst überlastet – lade Ersatzquelle …");
+    await elevTiles(s); ELEV_SRC="Terrain Tiles (AWS Open Data: EU-DEM/SRTM)";
+    toast("Höhendienst Open-Meteo überlastet – Höhen aus Ersatzquelle (Terrain Tiles) geladen");
   }
   // leichte Glättung gegen Rasterrauschen (3er-Mittel), Endpunkte bleiben
   const h=s.map(x=>x.h);
@@ -1940,7 +1966,7 @@ async function makePdf(){
     // Höhenprofil
     need(62); sect("Höhenprofil mit Druckabfalllinien");
     const ph=CW*420/1500; doc.addImage(profilePng(r),"JPEG",M,y,CW,ph); y+=ph+2;
-    doc.setFontSize(6.5); doc.setTextColor(...MUT); doc.text("Grün: Gelände (Copernicus-DEM) · Orange gestrichelt: Druckabfalllinie · Rot: Pumpenstandort · x-Achse: Schlauchmeter",M,y+1); y+=7;
+    doc.setFontSize(6.5); doc.setTextColor(...MUT); doc.text(`Grün: Gelände (${ELEV_SRC}) · Orange gestrichelt: Druckabfalllinie · Rot: Pumpenstandort · x-Achse: Schlauchmeter`,M,y+1); y+=7;
 
     // Material
     need(34); sect("Material");

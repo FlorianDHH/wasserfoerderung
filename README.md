@@ -24,7 +24,7 @@ Karte ohne Planung mit Waldwegen, Schranken und Rettungspunkten. Antippen eines 
 ## Funktionen
 - Trasse auf der Karte antippen (Wasserentnahme → Zwischenpunkte → Verteiler), Punkte verschiebbar
 - Optional „Wegen folgen“: Trasse wird automatisch entlang von Wegen geführt
-- Höhenprofil wird automatisch geladen (Open-Meteo, Copernicus-DEM)
+- Höhenprofil wird automatisch geladen (Open-Meteo, Copernicus-DEM; bei Überlastung automatisch Ersatzquelle Terrain Tiles von AWS Open Data)
 - Pumpenstandorte nach dem grafischen Verfahren (Druckabfalllinie trifft Gelände), Anzeige auf Karte und im Profil
 - Einfach-/Doppelleitung, offene/geschlossene Schaltreihe, Pumpendruck, Eingangsdruck, Strahlrohrdruck, Verlegezuschlag
 - Ende der Förderstrecke: Brandstellenpumpe (Löschfahrzeug mit Tank, LFS BW) oder Verteiler direkt (HLFS). Die Brandstellenpumpe steht immer an der Brandstelle. Geprüft mit dem LFS-Beispiel „Eichelberg – Näherweg“ (5/4/4 Pumpen; bei offener Schaltreihe mit 10 bar 4 statt 3, weil LFS dort die Brandstellenpumpe nicht direkt am Objekt stehen lässt)
