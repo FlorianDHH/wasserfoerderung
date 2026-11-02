@@ -204,6 +204,22 @@ tr.go{cursor:pointer}
 .mp-in{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);width:min(440px,100%);padding:18px;display:flex;flex-direction:column;gap:12px;max-height:100%;overflow:auto}
 .mp-head{display:flex;gap:10px;align-items:center;padding-bottom:10px;border-bottom:3px solid var(--vg-gold)}
 .mp-head svg{width:40px;height:40px;flex:none}
+.mp-in.bd{width:min(560px,100%)}.mp-in.bd h3{margin:4px 0 0}
+.bdx{margin-left:auto;border:0;background:var(--surface-2);color:var(--fg);width:44px;height:44px;border-radius:10px;font-size:26px;line-height:1;cursor:pointer;flex:none}
+.bdrows{display:flex;flex-direction:column;gap:8px}
+.bdrow{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;background:var(--surface-2);border-radius:10px;padding:8px 10px}
+.bdrow .nm{font-weight:700;font-size:14px}.bdrow .nm small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.bdrow select,.bdrow input{font-size:16px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);width:100%}
+.bdstep{display:flex;align-items:center;gap:6px;grid-row:span 2}
+.bdstep button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:24px;font-weight:700;cursor:pointer}
+.bdstep b{min-width:28px;text-align:center;font-size:20px;font-variant-numeric:tabular-nums}
+.bdrow.on{outline:2px solid var(--vg-cyan)}
+.bdrow .dup{border:0;background:none;color:var(--vg-cyan);font-size:12px;text-align:left;padding:0;cursor:pointer;text-decoration:underline}
+.bdres{background:var(--vg-blue);color:#fff;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.bdres .big{display:flex;gap:10px}.bdres .big div{flex:1;background:rgba(255,255,255,.1);border-radius:10px;padding:8px}
+.bdres .big b{display:block;font:700 26px/1.05 var(--f-display)}.bdres .big span{font-size:12px;opacity:.85}
+.bdres .w{background:rgba(255,190,60,.18);border-left:4px solid #ffbe3c;padding:6px 8px;border-radius:6px}
+.bdres .g{background:rgba(80,200,120,.16);border-left:4px solid #50c878;padding:6px 8px;border-radius:6px}
 .mp-head b{display:block;font:700 22px/1.05 var(--f-display);letter-spacing:.03em;text-transform:uppercase}
 .mp-head span{font-size:13px;color:var(--muted)}
 .mp-card{display:flex;gap:14px;align-items:center;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:14px;cursor:pointer;min-height:84px}
@@ -228,6 +244,8 @@ tr.go{cursor:pointer}
 .check li{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:8px;padding:8px 10px}
 .check li span{flex:none;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-weight:700;color:#fff;font-size:13px}
 .check .ck-ok span{background:#2f8a3e}.check .ck-no span{background:#c8141e}.check .ck-q span{background:#e07a10}
+.check li.tick{cursor:pointer;-webkit-tap-highlight-color:rgba(1,144,179,.2)}.check li.tick span{width:28px;height:28px}
+.check .ck-done span{background:#0a62c9}.check .ck-done div{color:var(--muted)}.check li small{display:block;margin-top:2px;color:var(--muted);font-size:12px}
 canvas#gantt,canvas#pvProf{width:100%;display:block}
 .pvlbl{display:inline-block;transform:translate(-50%,-50%);background:var(--surface);color:var(--fg);border:2px solid var(--water);border-radius:999px;padding:3px 9px;font:700 12px/1.2 var(--f-body);white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .mk.es{background:var(--vg-blue);border-radius:6px}
@@ -275,11 +293,38 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 26V15h18v11M22 19h7l5 5v2" stroke="#fff" stroke-width="2.5"/><rect x="6" y="17" width="13" height="6" rx="1" fill="#01A0C6"/><circle cx="11" cy="28" r="3" fill="#D8AD14"/><circle cx="29" cy="28" r="3" fill="#D8AD14"/><path d="M8 35h24" stroke="#01A0C6" stroke-width="2" stroke-dasharray="3 3"/></svg></div>
       <div><b>Pendelverkehr</b><span>Wassertransport mit Tanklöschfahrzeugen. Anzahl Fahrzeuge, Umlaufzeit, Zeitstrahl.</span></div>
     </button>
+    <button class="mp-card" data-mode="bedarf">
+      <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6s-9 11-9 17a9 9 0 0 0 18 0c0-6-9-17-9-17Z" fill="#01A0C6"/><path d="M15 24h10M20 19v10" stroke="#fff" stroke-width="2.6"/></svg></div>
+      <div><b>Wasserbedarf</b><span>Wie viel Wasser braucht die Einsatzstelle? Strahlrohre zusammenstellen, l/min und Gesamtmenge, Fehlmenge.</span></div>
+    </button>
     <button class="mp-card" data-mode="map">
       <div class="ic"><svg viewBox="0 0 40 40" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 31c6-3 9-9 14-11s10 1 16-6" stroke="#2fb35a" stroke-width="3"/><path d="M5 18c8 1 12 6 20 6" stroke="#f08c00" stroke-width="2.5" stroke-dasharray="3 3"/><circle cx="27" cy="13" r="4.5" fill="#e30613" stroke="#fff" stroke-width="1.5"/></svg></div>
       <div><b>Nur Karte</b><span>Lagekarte mit Waldwegen, Schranken und Rettungspunkten. Ohne Planung, zum Nachschauen im Einsatz.</span></div>
     </button>
     <p class="note" style="margin:0">Faustregel nach HLFS: Pendelverkehr bei Förderstrom unter 500 l/min, Entfernung über 3 bis 4 km, zu Beginn des Einsatzes oder bei ausgedehnten Einsatzstellen.</p>
+  </div>
+</div>
+
+<div class="modepick" id="bdDlg" hidden>
+  <div class="mp-in bd" role="dialog" aria-labelledby="bdTitle">
+    <div class="mp-head"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b id="bdTitle">Wasserbedarf an der Einsatzstelle</b><span>Strahlrohre zusammenstellen – ergibt l/min und Gesamtmenge</span></div><button type="button" class="bdx" id="bdClose" aria-label="Schließen">×</button></div>
+    <h3>Eingesetzte und geplante Strahlrohre</h3>
+    <div id="bdRows" class="bdrows"></div>
+    <div class="grid2">
+      <label class="f">Reserve<select id="bdRes"><option value="0">keine</option><option value="rohr">+1 Rohr in Bereitstellung</option><option value="10">+10 %</option><option value="20">+20 %</option></select></label>
+      <label class="f">Einsatzdauer<select id="bdDur"><option value="30">30 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option><option value="180">3 Stunden</option><option value="240">4 Stunden</option></select></label>
+    </div>
+    <h3>Wasser vor Ort</h3>
+    <label class="f">Laufender Zufluss vor Ort [l/min] <span class="note">(Hydrant, Saugstelle – ohne Förderstrecke)</span><input id="bdZu" type="number" inputmode="numeric" min="0" step="50" value="0"></label>
+    <div class="chips" id="bdZuChips"></div>
+    <label class="f">Wasser in Fahrzeugtanks vor Ort [l]<input id="bdTank" type="number" inputmode="numeric" min="0" step="100" value="0"></label>
+    <div class="chips" id="bdFleet"></div>
+    <div class="bdres" id="bdOut"></div>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn" id="bdToLW" style="flex:1">→ Lange Wegstrecke</button>
+      <button type="button" class="btn" id="bdToPV" style="flex:1">→ Pendelverkehr</button>
+    </div>
+    <p class="note" style="margin:0">Durchflüsse: AWG Turbo-Spritze EVO laut Hersteller bei 6 bar, CM/BM-Strahlrohre Faustwerte bei 5 bar (HLFS). Bei weniger Druck am Strahlrohr fließt weniger. Trupps im Innenangriff reduzieren die Leistung lageangepasst (LFS BW).</p>
   </div>
 </div>
 
@@ -355,6 +400,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <h3>Förderstrom Q gesamt</h3>
     <div class="chips" id="qChips"></div>
     <label class="f">Eigener Wert [l/min]<input id="qIn" type="number" inputmode="numeric" min="100" max="4000" step="50" value="800"></label>
+    <button type="button" class="btn bdopen">Wasserbedarf berechnen …</button>
 
     <div id="weBoxLW" style="display:contents"></div>
     <h3>Leitung</h3>
@@ -408,6 +454,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <h3>Löschwasserbedarf an der Einsatzstelle</h3>
     <div class="chips" id="pvQChips"></div>
     <label class="f">Eigener Wert [l/min]<input id="pvQ" type="number" inputmode="numeric" min="50" max="4000" step="50" value="400"></label>
+    <button type="button" class="btn bdopen">Wasserbedarf berechnen …</button>
 
     <h3>Fahrzeuge im Pendelverkehr</h3>
     <p class="note" id="fleetUse" style="margin:0" hidden></p>
@@ -479,6 +526,9 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       <div class="formula" id="rMat"></div>
       <h3>Überschlag nach Formel</h3>
       <div class="formula" id="rForm"></div>
+      <h3>Checkliste lange Wegstrecke</h3>
+      <ul class="check" id="lwCheck"></ul>
+      <p class="note" id="lwCheckRes" style="margin:0"></p>
       <h3>Hinweise zur Förderstrecke</h3>
       <ul class="hints" id="lwHints"></ul>
     </div>
@@ -652,16 +702,15 @@ function planCore(s,p,endNeed){
   const pv=p.pa-th;
   return {pumps,press,hose,r,qL,warn,maxP,H,L,pges,pv,hl,bTotal,nForm:Math.max(1,Math.ceil(pges/pv-0.05)),paNext,th,endNeed};
 }
-/* Ende der Förderstrecke (LFS BW): Brandstellenpumpe = Löschfahrzeug mit Tank.
-   Variante A: letzte Pumpe erreicht den Verteiler mit Strahlrohrdruck und ist selbst die Brandstellenpumpe.
-   Variante B: Förderstrecke endet an einer zusätzlichen Brandstellenpumpe am Objekt (Eingangsdruck bzw. in den Tank).
-   Gewählt wird die Variante mit weniger Pumpen, bei Gleichstand B (Puffer direkt am Objekt). */
+/* Ende der Förderstrecke (LFS BW): Brandstellenpumpe = Löschfahrzeug mit Tank, steht immer an der Brandstelle.
+   Die Förderstrecke endet an ihr (Eingangsdruck bzw. in den Tank). Ohne Brandstellenpumpe (HLFS) muss der Verteiler den Strahlrohrdruck erhalten. */
 function plan(s,p){
   const A=planCore(s,p,p.pstr);
   if(p.em!=="bsp"){ A.bsp=null; A.nTot=A.pumps.length; return A; }
+  // Die Brandstellenpumpe steht immer an der Brandstelle (am Objekt): Die Förderstrecke muss dort
+  // mit dem Eingangsdruck (geschlossen) bzw. drucklos in den Tank (offen) ankommen.
   const B=planCore(s,p,p.open?0:p.pe);
-  if(B.pumps.length+1<=A.pumps.length){ B.bsp="end"; B.nTot=B.pumps.length+1; return B; }
-  A.bsp="last"; A.nTot=A.pumps.length; return A;
+  B.bsp="end"; B.nTot=B.pumps.length+1; return B;
 }
 
 
@@ -1124,7 +1173,7 @@ map.on("click",e=>{
   changed();
 });
 $("undoBtn").onclick=()=>{ if(S.mode==="pv" && S.ring && S.editRet) S.ret.pop(); else S.pts.pop(); changed(); };
-$("clearBtn").onclick=()=>{ S.pts=[]; S.ret=[]; S.editRet=false; changed(); if(S.mode==="pv") renderRingUI(); history.replaceState(null,"",location.pathname); };
+$("clearBtn").onclick=()=>{ store.set(ckKey(S.mode),{}); S.pts=[]; S.ret=[]; S.editRet=false; changed(); if(S.mode==="pv") renderRingUI(); history.replaceState(null,"",location.pathname); };
 function setMode(road){ S.road=road; $("modeFree").setAttribute("aria-pressed",!road); $("modeRoad").setAttribute("aria-pressed",road); changed(); }
 function updStatsPV(){
   const p=S.path||S.pts, len=pathLen(p), v=PV.v||30;
@@ -1146,6 +1195,77 @@ function updStatsPV(){
   else h.innerHTML='<b>3</b><span>Strecke fertig? <strong>Berechnen</strong> tippen. Der letzte Punkt ist immer die Einsatzstelle.</span>';
   $("calcBtn").disabled=S.pts.length<2; $("undoBtn").disabled=!S.pts.length;
 }
+
+/* ---------- Wasserbedarf an der Einsatzstelle ---------- */
+const BD_DEV={
+  evoC:{name:"Hohlstrahlrohr C",sub:"AWG Turbo-Spritze EVO 235 · bei 6 bar",st:[60,130,235],def:235},
+  evoB:{name:"Hohlstrahlrohr B",sub:"AWG Turbo-Spritze EVO 400 B · bei 6 bar",st:[130,235,400],def:400},
+  cm:{name:"CM-Strahlrohr",sub:"Faustwert bei 5 bar (HLFS)",st:[100,200],lbl:{100:"mit Mundstück · 100 l/min",200:"ohne Mundstück · 200 l/min"},def:200},
+  bm:{name:"BM-Strahlrohr",sub:"Faustwert bei 5 bar (HLFS)",st:[400,800],lbl:{400:"mit Mundstück · 400 l/min",800:"ohne Mundstück · 800 l/min"},def:800},
+  eigen:{name:"Werfer / eigenes Gerät",sub:"Durchfluss laut Gerät",custom:true,def:800}};
+const BD=(()=>{ const d=store.get("lwf.bedarf",null);
+  const def={rows:Object.keys(BD_DEV).map(k=>({d:k,q:BD_DEV[k].def,n:0})),res:"0",dur:120,zu:0,tank:0,veh:[]};
+  return d&&Array.isArray(d.rows)? {...def,...d} : def; })();
+const bdSave=()=>store.set("lwf.bedarf",BD);
+function bdCalc(){
+  const act=BD.rows.filter(r=>r.n>0&&r.q>0), base=act.reduce((a,r)=>a+r.q*r.n,0);
+  const res=BD.res==="rohr"? (act.length? Math.max(...act.map(r=>r.q)) : 0) : base*(+BD.res||0)/100;
+  const Q=Math.ceil((base+res)/10)*10, fleetVol=fleet().filter(v=>BD.veh.includes(v.id)).reduce((a,v)=>a+(+v.vol||0),0);
+  const T=(+BD.tank||0)+fleetVol, zu=+BD.zu||0, fehl=Math.max(0,Q-zu);
+  return {base,res,Q,V:Q*BD.dur/1000,T,zu,fehl,reach:fehl>0? T/fehl : Infinity,fehlV:Math.max(0,fehl*BD.dur-T)/1000,vor:Math.ceil(fehl/50)*50,act};
+}
+function bdRender(){
+  $("bdRows").innerHTML=BD.rows.map((r,i)=>{ const D=BD_DEV[r.d]||BD_DEV.eigen;
+    const sel=D.custom? `<input type="number" inputmode="numeric" min="0" step="50" data-q="${i}" value="${r.q}" aria-label="Durchfluss l/min">`
+      : `<select data-q="${i}" aria-label="Stufe">${D.st.map(v=>`<option value="${v}"${v===r.q?" selected":""}>${D.lbl?D.lbl[v]:v+" l/min"}</option>`).join("")}</select>`;
+    return `<div class="bdrow${r.n>0?" on":""}"><div class="nm">${D.name}<small>${D.sub}</small></div><div class="bdstep"><button type="button" data-m="${i}" aria-label="weniger">−</button><b>${r.n}</b><button type="button" data-p="${i}" aria-label="mehr">+</button></div>${sel}<button type="button" class="dup" data-dup="${i}">+ gleiches Rohr mit anderer Stufe</button></div>`; }).join("");
+  $("bdRows").querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{ BD.rows[+b.dataset.p].n++; bdUpd(); });
+  $("bdRows").querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ const r=BD.rows[+b.dataset.m]; r.n=Math.max(0,r.n-1); bdUpd(); });
+  $("bdRows").querySelectorAll("[data-q]").forEach(el=>el.onchange=()=>{ BD.rows[+el.dataset.q].q=Math.max(0,+el.value||0); bdUpd(); });
+  $("bdRows").querySelectorAll("[data-dup]").forEach(b=>b.onclick=()=>{ const r=BD.rows[+b.dataset.dup], D=BD_DEV[r.d]; const q=D.custom? r.q : (D.st.find(v=>v!==r.q)??r.q);
+    BD.rows.splice(+b.dataset.dup+1,0,{d:r.d,q,n:1}); bdUpd(); });
+  $("bdRes").value=BD.res; $("bdDur").value=String(BD.dur); $("bdZu").value=BD.zu; $("bdTank").value=BD.tank;
+  $("bdZuChips").innerHTML=[0,400,800,1200,1600].map(v=>`<button type="button" data-zu="${v}" aria-pressed="${v===+BD.zu}">${v?fmt(v)+" l/min":"kein Zufluss"}</button>`).join("");
+  $("bdZuChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{ BD.zu=+b.dataset.zu; bdUpd(); });
+  const fl=fleet().filter(v=>+v.vol>0);
+  $("bdFleet").innerHTML=fl.length? fl.map(v=>`<button type="button" data-v="${esc(v.id)}" aria-pressed="${BD.veh.includes(v.id)}">${esc(v.name)} ${fmt(+v.vol)} l</button>`).join("") : `<span class="note">Tipp: Fahrzeuge aus dem Fuhrpark erscheinen hier zum Antippen.</span>`;
+  $("bdFleet").querySelectorAll("button").forEach(b=>b.onclick=()=>{ const id=b.dataset.v; BD.veh=BD.veh.includes(id)? BD.veh.filter(x=>x!==id) : [...BD.veh,id]; bdUpd(); });
+  const c=bdCalc(), mm=m=>m>=600? fmt(m/60,1)+" h" : fmt(m)+" min";
+  let o=`<div class="big"><div><b>${fmt(c.Q)} l/min</b><span>Wasserbedarf${c.res?` inkl. ${fmt(Math.round(c.res))} l/min Reserve`:""}</span></div><div><b>${fmt(c.V,c.V<10?1:0)} m³</b><span>Gesamtmenge für ${mm(BD.dur)}</span></div></div>`;
+  if(!c.Q) o+=`<div>Strahlrohre mit + hinzufügen.</div>`;
+  else if(c.fehl===0) o+=`<div class="g">Der Zufluss vor Ort (${fmt(c.zu)} l/min) deckt den Bedarf. Keine Förderstrecke nötig.</div>`;
+  else{
+    o+=`<div>Fehlmenge: <b>${fmt(c.fehl)} l/min</b>${c.zu?` (Bedarf ${fmt(c.Q)} − Zufluss ${fmt(c.zu)})`:""}.</div>`;
+    if(c.T>0) o+= c.reach>=BD.dur? `<div class="g">Die Tanks vor Ort (${fmt(c.T)} l) reichen für die ganze Einsatzdauer.</div>`
+      : `<div class="w">Die Tanks vor Ort (${fmt(c.T)} l) reichen nur etwa <b>${mm(Math.floor(c.reach))}</b>. Bis dahin muss die Wasserversorgung mit <b>${fmt(c.vor)} l/min</b> stehen.</div>`;
+    else o+=`<div class="w">Kein Wasser in Tanks eingetragen: Die Versorgung mit <b>${fmt(c.vor)} l/min</b> muss sofort stehen.</div>`;
+    if(c.fehlV>0) o+=`<div>Fehlende Wassermenge über ${mm(BD.dur)}: <b>${fmt(c.fehlV,c.fehlV<10?1:0)} m³</b>.</div>`;
+    o+=`<div>${c.vor<500? "Bei unter 500 l/min kommt auch Pendelverkehr in Frage (HLFS)." : c.vor>800? "Über 800 l/min: Förderstrecke mit Doppelleitung oder mehrere Strecken planen." : "Förderstrecke (lange Wegstrecke) oder Pendelverkehr."}</div>`;
+  }
+  $("bdOut").innerHTML=o;
+  $("bdToLW").disabled=$("bdToPV").disabled=!c.fehl;
+  $("bdToLW").textContent=`${fmt(c.vor||0)} l/min → Lange Wegstrecke`; $("bdToPV").textContent=`${fmt(c.vor||0)} l/min → Pendelverkehr`;
+}
+function bdUpd(){ bdSave(); bdRender(); }
+function bdOpen(){ bdRender(); $("bdDlg").hidden=false; }
+function bdClose(){ $("bdDlg").hidden=true; }
+$("bdClose").onclick=bdClose;
+$("bdDlg").addEventListener("click",e=>{ if(e.target.id==="bdDlg") bdClose(); });
+$("bdRes").onchange=e=>{ BD.res=e.target.value; bdUpd(); };
+$("bdDur").onchange=e=>{ BD.dur=+e.target.value||120; bdUpd(); };
+$("bdZu").onchange=e=>{ BD.zu=Math.max(0,+e.target.value||0); bdUpd(); };
+$("bdTank").onchange=e=>{ BD.tank=Math.max(0,+e.target.value||0); bdUpd(); };
+document.querySelectorAll(".bdopen").forEach(b=>b.onclick=bdOpen);
+function bdTake(mode){
+  const c=bdCalc(); if(!c.fehl) return;
+  bdClose(); if(MAPONLY) setMapOnly(false);
+  setPlanMode(mode);
+  if(mode==="lw"){ P.q=c.vor; writeP(); readP(); }
+  else { PV.q=c.vor; PV.dur=[60,90,120,180,240].includes(BD.dur)? BD.dur : 120; writePV(); readPV(); }
+  if(S.result) changed();
+  tab("daten"); toast(`${fmt(c.vor)} l/min übernommen in ${mode==="lw"?"Lange Wegstrecke":"Pendelverkehr"}`);
+}
+$("bdToLW").onclick=()=>bdTake("lw"); $("bdToPV").onclick=()=>bdTake("pv");
 
 /* ---------- Art der Planung ---------- */
 const MODE_TXT={
@@ -1198,6 +1318,7 @@ $("mapPlan").onclick=openPicker;
 $("brandBtn").onclick=openPicker;
 document.querySelectorAll(".mp-card").forEach(b=>b.onclick=()=>{ $("modePick").hidden=true;
   if(b.dataset.mode==="map"){ setMapOnly(true); return; }
+  if(b.dataset.mode==="bedarf"){ bdOpen(); return; }
   if(MAPONLY) setMapOnly(false); setPlanMode(b.dataset.mode); tab("strecke"); });
 $("modePick").addEventListener("click",e=>{ if(e.target.id==="modePick") $("modePick").hidden=true; });
 $("modeFree").onclick=()=>setMode(false); $("modeRoad").onclick=()=>setMode(true);
@@ -1282,7 +1403,7 @@ function writeP(){
   $("srG").setAttribute("aria-pressed",!P.open); $("srO").setAttribute("aria-pressed",P.open);
   $("emBsp").setAttribute("aria-pressed",P.em==="bsp"); $("emV").setAttribute("aria-pressed",P.em!=="bsp");
   $("emNote").textContent=P.em==="bsp"
-    ? "LFS BW: Zur Absicherung des Innenangriffs muss die Brandstellenpumpe ein Löschfahrzeug mit Tank sein (Puffer). Die App prüft, ob die letzte Pumpe als Brandstellenpumpe den Verteiler erreicht. Sonst endet die Förderstrecke an einer eigenen Brandstellenpumpe am Objekt."
+    ? "LFS BW: Zur Absicherung des Innenangriffs muss die Brandstellenpumpe ein Löschfahrzeug mit Tank sein (Puffer). Die Brandstellenpumpe steht immer an der Brandstelle. Die Förderstrecke wird so geplant, dass sie dort mit dem Eingangsdruck (geschlossene Schaltreihe) bzw. in den Tank (offene Schaltreihe) ankommt; die Brandstellenpumpe versorgt den Verteiler."
     : "Die letzte Pumpe speist den Verteiler direkt mit dem Strahlrohrdruck (Rechenweg der HLFS-Lernunterlage).";
   if(typeof weUpdLW==="function") weUpdLW();
   document.querySelectorAll("#qChips button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.q===P.q));
@@ -1425,10 +1546,48 @@ function showResult(r){
     `p<sub>ges</sub> = p<sub>geo</sub> + p<sub>R</sub> + p<sub>Str</sub> = ${fmt(r.H/10,1)} + ${fmt(r.r*r.L/100,1)} + ${fmt(p.pstr,1)} = <b>${fmt(r.pges,1)} bar</b><br>`+
     `n<sub>FP</sub> = p<sub>ges</sub> / p<sub>v</sub> = ${fmt(r.pges,1)} / ${fmt(r.pv,1)} ≈ <b>${r.nForm} Pumpen</b><br>`+
     `<span class="note">Die Formel nimmt nur Start- und Endhöhe. Die Pumpenzahl oben berücksichtigt den Geländeverlauf dazwischen.</span>`;
+  renderCheck("lwCheck","lwCheckRes",lwChecklist(r),"lw","Vor dem Fördern alle Punkte klären.");
   $("lwHints").innerHTML=lwHints(p).map(h=>`<li>${h}</li>`).join("");
   if(!$("tab-ergebnis").hidden) requestAnimationFrame(drawChart);
 }
 
+/* ---------- Checklisten: automatisch bewertet, Punkte „vor Ort prüfen“ lassen sich abhaken ---------- */
+const ckKey=m=>"lwf.ck."+m;
+const ckGet=m=>{ const v=store.get(ckKey(m),{}); return v&&typeof v==="object"?v:{}; };
+function ckState(items,mode){ const d=ckGet(mode); return items.map(([ok,t,id],i)=>({ok,t,id:id||"i"+i,done:ok===null&&!!d[id||"i"+i]})); }
+function renderCheck(listId,resId,items,mode,tail){
+  const st=ckState(items,mode);
+  $(listId).innerHTML=st.map(c=>`<li class="${c.done?"ck-done":c.ok===true?"ck-ok":c.ok===false?"ck-no":"ck-q"}${c.ok===null?" tick":""}" data-id="${c.id}"${c.ok===null?' role="checkbox" aria-checked="'+c.done+'" tabindex="0"':""}><span aria-hidden="true">${c.done||c.ok===true?"✓":c.ok===false?"✗":"?"}</span><div>${esc(c.t)}${c.ok===null?`<small>${c.done?"vor Ort erledigt – antippen zum Zurücknehmen":"vor Ort prüfen – antippen zum Abhaken"}</small>`:""}</div></li>`).join("");
+  $(listId).querySelectorAll("li.tick").forEach(li=>{ const tg=()=>{ const d=ckGet(mode); d[li.dataset.id]=!d[li.dataset.id]; store.set(ckKey(mode),d); renderCheck(listId,resId,items,mode,tail); };
+    li.onclick=tg; li.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); tg(); } }; });
+  const no=st.filter(c=>c.ok===false).length, open=st.filter(c=>c.ok===null&&!c.done).length;
+  $(resId).textContent=!no&&!open? "Alle Punkte erfüllt bzw. vor Ort erledigt." : `${no} Punkt(e) nicht erfüllt, ${open} noch vor Ort zu prüfen. ${tail}`;
+}
+function lwChecklist(r){
+  const p=r.params, nFP=r.pumps.length, nTot=r.nTot||nFP, perLine=Math.ceil(r.L/p.hoseLen), hoses=perLine*p.lines, resH=Math.ceil(r.L*p.lines/100), resFP=Math.ceil(nTot/4);
+  const cap=weCap(p.we), ep=r.pumps[nFP-1].endP, need=r.bsp==="end"? (p.open?0:p.pe) : p.pstr;
+  const beh=p.we&&p.we.t==="beh"&&+p.we.vol>0? +p.we.vol*1000/p.q : null;
+  const L=[
+    [r.warn.includes("steep")||ep==null? false : ep>=need-0.05, ep==null||r.warn.includes("steep")? "Die Förderstrecke ist mit dem gewählten Pumpendruck nicht realisierbar (zu steiler Abschnitt). Trasse, Förderstrom oder Pumpendruck ändern."
+      : `Der Förderstrom von ${fmt(p.q)} l/min kommt an: ${r.bsp==="end"?"an der Brandstellenpumpe":"am Verteiler"} rechnerisch ${fmt(ep,1)} bar (benötigt ${fmt(need,1)} bar).`,"druck"],
+    [isFinite(cap)? cap>=p.q : beh!=null? null : true, isFinite(cap)? `Die Wasserentnahmestelle liefert ${p.we.t==="eigen"?"gemessen":"nach Faustformel"} ca. ${fmt(cap)} l/min für ${fmt(p.q)} l/min Förderstrom${cap<p.q?" – zu wenig":""}.`
+      : beh!=null? `Löschwasserbehälter ${fmt(+p.we.vol)} m³ reicht bei ${fmt(p.q)} l/min etwa ${fmt(beh)} min. Reicht das für die Einsatzdauer, oder wird nachgespeist?` : `Wasserentnahmestelle: ${weLabel(p.we)} (unerschöpflich).`,"we"],
+    [r.qL<=800? true : r.qL<=1000? null : false, `${fmt(r.qL)} l/min je B-Leitung${r.qL>1000?": über 1.000 l/min – Doppelleitung verlegen.":r.qL>800?": über 800 l/min steigen die Reibungsverluste stark – Doppelleitung anstreben.":" (bis 800 l/min zweckmäßig)."}`,"ql"],
+    [p.pa>=8 && p.pa<=10? (p.pa>8? null : true) : false, p.pa<8? `Pumpenausgangsdruck ${fmt(p.pa,1)} bar: LFS BW empfiehlt mindestens 8 bar.` : p.pa>10? `Pumpenausgangsdruck ${fmt(p.pa,1)} bar: über 10 bar ist für die Förderstrecke nicht vorgesehen.` : p.pa>8? `Pumpenausgangsdruck ${fmt(p.pa,1)} bar: über 8 bar nur, wenn alle Pumpen Feuerlöschkreiselpumpen nach DIN EN 1028 sind (z. B. FPN 10-1000/2000).` : "Pumpenausgangsdruck 8 bar (LFS BW).","pa"],
+    [p.open? true : p.pe>=1.5, p.open? "Offene Schaltreihe: Pufferbehälter an jeder Verstärkerpumpe, Füllstände überwachen." : `Geschlossene Schaltreihe: Eingangsdruck an jeder Verstärkerpumpe ${fmt(p.pe,1)} bar (mind. 1,5 bar).`,"pe"],
+    [r.maxP<=16, r.maxP<=16? `Höchster Leitungsdruck ca. ${fmt(r.maxP,1)} bar (B-Schläuche bis 16 bar Betriebsdruck).` : `Durch Gefälle bis ${fmt(r.maxP,1)} bar Leitungsdruck – über 16 bar: Druck reduzieren oder Druckbegrenzungsventil einbauen.`,"pmax"],
+    [p.q<500&&r.L>3000? false : null, p.q<500&&r.L>3000? `Kleiner Förderstrom (${fmt(p.q)} l/min) über ${fmt(r.L/1000,1)} km: Pendelverkehr ist vermutlich einfacher.` : "Es gibt keine einfachere Alternative (näheres Gewässer, Hydrant, Pendelverkehr).","alt"],
+    [null, `Material verfügbar: ${nTot} Pumpen + ${resFP} Reserve, ${hoses} B-Schläuche + ${resH} Reserve${p.open?`, ${Math.max(0,nFP-1)} Pufferbehälter`:""}. Schlauchwagen/Rollschläuche alarmiert?`,"mat"],
+    [p.lines===2? true : null, p.lines===2? "Doppelleitung geplant (weniger Reibung, Redundanz)." : "Doppelleitung möglich? Weniger Reibungsverlust und Redundanz, falls eine Leitung platzt.","dl"],
+    [null, "Stärkste Pumpe an der Wasserentnahmestelle. Die schwächste Pumpe bestimmt den Förderdruck.","starke"],
+    [null, "Pumpenstandorte sind anfahrbar, liegen auf der gleichen Straßenseite, Schlauchleitung am Straßenrand.","stand"],
+    [null, "Funkverbindung zwischen allen Pumpen und zur Einsatzleitung steht, Schlauchaufsicht (Streifentrupp) eingeteilt.","funk"],
+    [null, "Schlauchbrücken an Straßenquerungen gesetzt, abgesichert und ausgeleuchtet. Verkehrsregelung durch die Polizei angefordert.","bruecke"],
+    [null, "Leitung gefüllt und entlüftet, Schieber und Strahlrohre werden langsam bedient (Druckstöße).","fuell"],
+    [null, "Reservepumpen, Treibstoff, Brandschutz an den Pumpen, Ablösung und Verpflegung organisiert.","log"]];
+  if(isHydrant(p.we)) L.push([null,"Trinkwasserschutz: Systemtrenner B-FW am Standrohr, Netzdruck nicht unter 1,5 bar.","tw"]);
+  return L;
+}
 function lwHints(p){
   const h=[
     "Stärkste Pumpe an die Wasserentnahmestelle. Die schwächste Pumpe der Strecke bestimmt den Förderdruck.",
@@ -1597,6 +1756,18 @@ async function staticMap(r,W,H,ov){
     }catch(err){ console.warn("Kartenausschnitt",src.url,err); }
   }
   return null;
+}
+// Checkliste ins PDF: grün erfüllt, rot nicht erfüllt, orange vor Ort prüfen, blau vor Ort erledigt (abgehakt)
+function pdfCheck(doc,y,items,mode,o){
+  doc.setFontSize(8);
+  ckState(items,mode).forEach(c=>{
+    const t=c.t+(c.done?" (vor Ort erledigt)":""), l=doc.splitTextToSize(t,o.CW-9); if(y+l.length*3.7+1>283){ doc.addPage(); o.header(); y=34; }
+    const col=c.done?[10,98,201]:c.ok===true?[47,138,62]:c.ok===false?[200,20,30]:[224,122,16], M=o.M;
+    doc.setDrawColor(...col); doc.setLineWidth(.5); doc.rect(M,y-1.6,3.6,3.6);
+    if(c.ok===true||c.done){ doc.line(M+0.7,y+0.3,M+1.5,y+1.2); doc.line(M+1.5,y+1.2,M+3,y-0.9); }
+    else if(c.ok===false){ doc.line(M+0.8,y-0.8,M+2.8,y+1.2); doc.line(M+2.8,y-0.8,M+0.8,y+1.2); }
+    doc.setFont("helvetica","normal"); doc.setTextColor(...o.INK); doc.text(l,M+6,y+1); y+=l.length*3.7+1.4; });
+  return y;
 }
 function rr(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
 function lionPng(){
@@ -1780,6 +1951,11 @@ async function makePdf(){
     doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);
     mat.forEach(t=>{ const l=doc.splitTextToSize("• "+t,CW); doc.text(l,M,y+1); y+=l.length*3.8; });
     y+=4;
+    // Checkliste
+    need(50); sect("Checkliste lange Wegstrecke");
+    y=pdfCheck(doc,y,lwChecklist(r),"lw",{M,CW,INK,header});
+    doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(...MUT);
+    doc.text(doc.splitTextToSize("Grün = erfüllt, Rot = nicht erfüllt, Orange = vor Ort prüfen, Blau = vor Ort erledigt. Grundlage: Grundsätze der Wasserförderung (LFS BW) und HLFS-Lernunterlage.",CW),M,y+1); y+=12;
     // Hinweise
     need(30); sect("Hinweise zur Förderstrecke");
     doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);
@@ -2295,9 +2471,7 @@ function showPV(r){
   $("pvMsgs").innerHTML=pvMessages(r).map(x=>`<div class="msg ${x[0]}">${x[1]}</div>`).join("");
   $("pvTbl").innerHTML=r.types.map(t=>`<tr><td><b>${t.c} × ${esc(t.name)}</b><br><span class="note">${t.unit?esc(t.unit)+" · ":""}ab Min. ${fmt(t.t)}</span></td><td>${fmt(t.vol)} l<br><span class="note">reicht ${fmt(t.tAb,1)} min</span></td><td>${fmt(t.sp)}</td><td>${fmt(t.U)} min</td><td>${Math.ceil(t.need-1e-9)}</td></tr>`).join("");
   $("pvForm").innerHTML=t0? pvFormulaHtml(r,t0) : "Keine Fahrzeuge eingeplant.";
-  const ck=pvChecklist(r);
-  $("pvCheck").innerHTML=ck.map(([ok,t])=>`<li class="${ok===true?"ck-ok":ok===false?"ck-no":"ck-q"}"><span aria-hidden="true">${ok===true?"✓":ok===false?"✗":"?"}</span><div>${esc(t)}</div></li>`).join("");
-  $("pvCheckRes").textContent=ck.every(c=>c[0]===true)?"Alle Punkte erfüllt.":`${ck.filter(c=>c[0]===false).length} Punkt(e) nicht erfüllt, ${ck.filter(c=>c[0]===null).length} vor Ort zu prüfen. Der Pendelverkehr kommt nur in Betracht, wenn alle Anforderungen erfüllt sind (LFS BW).`;
+  renderCheck("pvCheck","pvCheckRes",pvChecklist(r),"pv","Der Pendelverkehr kommt nur in Betracht, wenn alle Anforderungen erfüllt sind (LFS BW).");
   $("pvProfBox").hidden=!r.s;
   $("pvHints").innerHTML=PV_HINTS.concat(isHydrant(p.we)?TW_HINTS:[]).map(h=>`<li>${h}</li>`).join("");
   if(!$("tab-ergebnis").hidden) requestAnimationFrame(drawPVCharts);
@@ -2472,16 +2646,9 @@ async function makePdfPV(){
     // Checkliste (LFS BW)
     need(50); sect("Checkliste Pendelverkehr");
     doc.setFontSize(8);
-    pvChecklist(r).forEach(([ok,t])=>{
-      const l=doc.splitTextToSize(t,CW-9); if(y+l.length*3.7+1>283){ doc.addPage(); header(); y=34; }
-      const col=ok===true?[47,138,62]:ok===false?[200,20,30]:[224,122,16];
-      doc.setDrawColor(...col); doc.setLineWidth(.5); doc.rect(M,y-1.6,3.6,3.6);
-      if(ok===true){ doc.line(M+0.7,y+0.3,M+1.5,y+1.2); doc.line(M+1.5,y+1.2,M+3,y-0.9); }
-      else if(ok===false){ doc.line(M+0.8,y-0.8,M+2.8,y+1.2); doc.line(M+2.8,y-0.8,M+0.8,y+1.2); }
-      else { doc.setFont("helvetica","bold"); doc.setTextColor(...col); doc.text("?",M+1.1,y+1.1); }
-      doc.setFont("helvetica","normal"); doc.setTextColor(...INK); doc.text(l,M+6,y+1); y+=l.length*3.7+1.4; });
+    y=pdfCheck(doc,y,pvChecklist(r),"pv",{M,CW,INK,header});
     doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(...MUT);
-    doc.text(doc.splitTextToSize("Der Pendelverkehr kommt nur in Betracht, wenn alle Anforderungen der Checkliste vollständig erfüllt sind (LFS BW). Grün = erfüllt, Rot = nicht erfüllt, Orange = vor Ort prüfen.",CW),M,y+1); y+=9;
+    doc.text(doc.splitTextToSize("Der Pendelverkehr kommt nur in Betracht, wenn alle Anforderungen der Checkliste vollständig erfüllt sind (LFS BW). Grün = erfüllt, Rot = nicht erfüllt, Orange = vor Ort prüfen, Blau = vor Ort erledigt.",CW),M,y+1); y+=9;
     need(60); sect("Hinweise zum Pendelverkehr");
     const colW=CW;
     doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(...INK);

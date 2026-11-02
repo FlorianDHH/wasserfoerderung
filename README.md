@@ -2,6 +2,9 @@
 
 Handy-Web-App zur Planung der Löschwasserversorgung nach der HLFS-Lernunterlage „Löschwasserförderung“ (2019) und dem Skript „Löschwasserversorgung F4 Zugführer“ der Landesfeuerwehrschule Baden-Württemberg (2026). Beim Start wird gewählt: **Lange Wegstrecke**, **Pendelverkehr** oder **Nur Karte** (später über das Logo oben links umschaltbar).
 
+## Wasserbedarf an der Einsatzstelle
+Startauswahl „Wasserbedarf“ oder Knopf „Wasserbedarf berechnen …“ in den Daten. Strahlrohre mit + / − zusammenstellen: Hohlstrahlrohr C (AWG Turbo-Spritze EVO 235: 60/130/235 l/min bei 6 bar), Hohlstrahlrohr B (AWG Turbo-Spritze EVO 400 B: 130/235/400 l/min bei 6 bar), CM-Strahlrohr (100/200 l/min), BM-Strahlrohr (400/800 l/min, Faustwerte bei 5 bar nach HLFS), Werfer/eigenes Gerät. Dazu Reserve (+1 Rohr oder %), Einsatzdauer, laufender Zufluss vor Ort und Wasser in Fahrzeugtanks (Fuhrpark-Fahrzeuge antippen). Ergebnis: Bedarf in l/min, Gesamtmenge in m³, Fehlmenge, wie lange die Tanks überbrücken. Die Fehlmenge lässt sich direkt als Förderstrom in die Lange Wegstrecke oder als Bedarf in den Pendelverkehr übernehmen.
+
 ## Nur Karte (Lagekarte)
 Karte ohne Planung mit Waldwegen, Schranken und Rettungspunkten. Antippen eines Weges, einer Schranke oder eines Rettungspunkts zeigt die Details. „Nächster Rettungspunkt“ sucht den nächstgelegenen Rettungspunkt zum eigenen Standort (vorher Standort-Knopf antippen) oder zur Kartenmitte. Die App startet beim nächsten Mal wieder als Lagekarte. Die Legende lässt sich über ihre Überschrift einklappen.
 
@@ -24,9 +27,10 @@ Karte ohne Planung mit Waldwegen, Schranken und Rettungspunkten. Antippen eines 
 - Höhenprofil wird automatisch geladen (Open-Meteo, Copernicus-DEM)
 - Pumpenstandorte nach dem grafischen Verfahren (Druckabfalllinie trifft Gelände), Anzeige auf Karte und im Profil
 - Einfach-/Doppelleitung, offene/geschlossene Schaltreihe, Pumpendruck, Eingangsdruck, Strahlrohrdruck, Verlegezuschlag
-- Ende der Förderstrecke: Brandstellenpumpe (Löschfahrzeug mit Tank, LFS BW) oder Verteiler direkt (HLFS). Geprüft mit dem LFS-Beispiel „Eichelberg – Näherweg“ (5/4/4/3 Pumpen)
+- Ende der Förderstrecke: Brandstellenpumpe (Löschfahrzeug mit Tank, LFS BW) oder Verteiler direkt (HLFS). Die Brandstellenpumpe steht immer an der Brandstelle. Geprüft mit dem LFS-Beispiel „Eichelberg – Näherweg“ (5/4/4 Pumpen; bei offener Schaltreihe mit 10 bar 4 statt 3, weil LFS dort die Brandstellenpumpe nicht direkt am Objekt stehen lässt)
 - Wasserentnahmestelle mit Hydranten-Faustformel, Behälterinhalt, Trinkwasserschutz-Hinweisen
 - Grundsätze der Wasserförderung (LFS BW) als Hinweisliste in App und PDF
+- **Checkliste lange Wegstrecke** (wie beim Pendelverkehr): Rechenbare Punkte werden automatisch bewertet (Druck am Verteiler, Entnahmestelle, l/min je Leitung, Pumpendruck, Eingangsdruck, Leitungsdruck ≤ 16 bar, Alternative Pendelverkehr). Punkte „vor Ort prüfen“ lassen sich antippen und abhaken (z. B. Funk, Schlauchbrücken, Material, Logistik); das gilt jetzt auch für die Checkliste Pendelverkehr. Abgehakte Punkte erscheinen blau im PDF. „Neu“ setzt die Haken zurück.
 - Material: Pumpen + Reserve (1 je 4), B-Schläuche + Reserve (1 je 100 m)
 - Warnungen: > 800 und > 1.000 l/min je Leitung, > 16 bar durch Gefälle, Pendelverkehr-Hinweis
 - Plan per Link teilen, Pläne auf dem Gerät speichern
