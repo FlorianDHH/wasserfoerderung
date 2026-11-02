@@ -324,7 +324,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
       <button type="button" class="btn" id="bdToLW" style="flex:1">→ Lange Wegstrecke</button>
       <button type="button" class="btn" id="bdToPV" style="flex:1">→ Pendelverkehr</button>
     </div>
-    <p class="note" style="margin:0">Durchflüsse: AWG Turbo-Spritze EVO laut Hersteller bei 6 bar, CM/BM-Strahlrohre Faustwerte bei 5 bar (HLFS). Bei weniger Druck am Strahlrohr fließt weniger. Trupps im Innenangriff reduzieren die Leistung lageangepasst (LFS BW).</p>
+    <p class="note" style="margin:0">Durchflüsse: AWG Turbo-Spritze EVO und HS 7 laut Hersteller bei 6 bar, CM/BM-Strahlrohre Faustwerte bei 5 bar (HLFS). DM-Strahlrohr: Hersteller nennt nur die Düse (6 mm, Mundstück 4 mm); Durchfluss berechnet mit Q ≈ 0,67 · d² · √p bei 5 bar. Bei weniger Druck am Strahlrohr fließt weniger. Trupps im Innenangriff reduzieren die Leistung lageangepasst (LFS BW).</p>
   </div>
 </div>
 
@@ -1200,12 +1200,18 @@ function updStatsPV(){
 const BD_DEV={
   evoC:{name:"Hohlstrahlrohr C",sub:"AWG Turbo-Spritze EVO 235 · bei 6 bar",st:[60,130,235],def:235},
   evoB:{name:"Hohlstrahlrohr B",sub:"AWG Turbo-Spritze EVO 400 B · bei 6 bar",st:[130,235,400],def:400},
+  hs7:{name:"Hohlstrahlrohr D",sub:"AWG HS 7 Storz D · bei 6 bar",st:[80],lbl:{80:"80 l/min"},def:80},
+  dm:{name:"DM-Strahlrohr",sub:"AWG, Storz D · bei 5 bar, aus Düse 4/6 mm berechnet",st:[25,50],lbl:{25:"mit Mundstück (4 mm) · 25 l/min",50:"ohne Mundstück (6 mm) · 50 l/min"},def:50},
   cm:{name:"CM-Strahlrohr",sub:"Faustwert bei 5 bar (HLFS)",st:[100,200],lbl:{100:"mit Mundstück · 100 l/min",200:"ohne Mundstück · 200 l/min"},def:200},
   bm:{name:"BM-Strahlrohr",sub:"Faustwert bei 5 bar (HLFS)",st:[400,800],lbl:{400:"mit Mundstück · 400 l/min",800:"ohne Mundstück · 800 l/min"},def:800},
   eigen:{name:"Werfer / eigenes Gerät",sub:"Durchfluss laut Gerät",custom:true,def:800}};
 const BD=(()=>{ const d=store.get("lwf.bedarf",null);
   const def={rows:Object.keys(BD_DEV).map(k=>({d:k,q:BD_DEV[k].def,n:0})),res:"0",dur:120,zu:0,tank:0,veh:[]};
-  return d&&Array.isArray(d.rows)? {...def,...d} : def; })();
+  if(!(d&&Array.isArray(d.rows))) return def;
+  const m={...def,...d}; const order=Object.keys(BD_DEV);
+  order.forEach(k=>{ if(!m.rows.some(r=>r.d===k)) m.rows.push({d:k,q:BD_DEV[k].def,n:0}); });
+  m.rows=m.rows.filter(r=>BD_DEV[r.d]).sort((a,b)=>order.indexOf(a.d)-order.indexOf(b.d));
+  return m; })();
 const bdSave=()=>store.set("lwf.bedarf",BD);
 function bdCalc(){
   const act=BD.rows.filter(r=>r.n>0&&r.q>0), base=act.reduce((a,r)=>a+r.q*r.n,0);
@@ -1218,7 +1224,7 @@ function bdRender(){
   $("bdRows").innerHTML=BD.rows.map((r,i)=>{ const D=BD_DEV[r.d]||BD_DEV.eigen;
     const sel=D.custom? `<input type="number" inputmode="numeric" min="0" step="50" data-q="${i}" value="${r.q}" aria-label="Durchfluss l/min">`
       : `<select data-q="${i}" aria-label="Stufe">${D.st.map(v=>`<option value="${v}"${v===r.q?" selected":""}>${D.lbl?D.lbl[v]:v+" l/min"}</option>`).join("")}</select>`;
-    return `<div class="bdrow${r.n>0?" on":""}"><div class="nm">${D.name}<small>${D.sub}</small></div><div class="bdstep"><button type="button" data-m="${i}" aria-label="weniger">−</button><b>${r.n}</b><button type="button" data-p="${i}" aria-label="mehr">+</button></div>${sel}<button type="button" class="dup" data-dup="${i}">+ gleiches Rohr mit anderer Stufe</button></div>`; }).join("");
+    return `<div class="bdrow${r.n>0?" on":""}"><div class="nm">${D.name}<small>${D.sub}</small></div><div class="bdstep"><button type="button" data-m="${i}" aria-label="weniger">−</button><b>${r.n}</b><button type="button" data-p="${i}" aria-label="mehr">+</button></div>${sel}${D.custom||D.st.length>1?`<button type="button" class="dup" data-dup="${i}">+ gleiches ${D.custom?"Gerät":"Rohr"} mit anderer ${D.custom?"Menge":"Stufe"}</button>`:"<span></span>"}</div>`; }).join("");
   $("bdRows").querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{ BD.rows[+b.dataset.p].n++; bdUpd(); });
   $("bdRows").querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ const r=BD.rows[+b.dataset.m]; r.n=Math.max(0,r.n-1); bdUpd(); });
   $("bdRows").querySelectorAll("[data-q]").forEach(el=>el.onchange=()=>{ BD.rows[+el.dataset.q].q=Math.max(0,+el.value||0); bdUpd(); });
