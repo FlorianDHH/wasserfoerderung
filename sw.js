@@ -1,7 +1,7 @@
 // Hält die App-Oberfläche offline verfügbar. Karten und Höhendaten brauchen weiterhin Netz.
 // Gespeicherte Waldwege (Cache "lwf-trk-…") bleiben bei Updates erhalten.
 // Bei jeder neuen Version die Nummer in CACHE erhöhen, damit alle Geräte das Update laden.
-const CACHE = "lwf-v27";
+const CACHE = "lwf-v30";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png",
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css",
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"];

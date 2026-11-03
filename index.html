@@ -101,8 +101,23 @@ button,input,select{font:inherit;color:inherit}
 .navbox .nr a{flex:1;text-align:center;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--fg);font-weight:700;text-decoration:none}
 .navbox .nr button{border:0;border-radius:8px;background:var(--surface-2);color:var(--fg);font-weight:700;padding:8px 12px;cursor:pointer}
 body.nav .trkleg{top:calc(env(safe-area-inset-top,0px) + 230px)} body.nav.maponly .trkleg{top:auto}
+.coords{margin:6px 0;display:flex;flex-direction:column;gap:3px;font-size:12px}
+.coords div{display:grid;grid-template-columns:52px 1fr 34px;align-items:center;gap:4px;background:var(--surface-2);border-radius:6px;padding:3px 4px 3px 6px}
+.coords span{color:var(--muted);font-size:11px;font-weight:700}.coords b{font:700 13px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em}
+.coords details{display:flex;flex-direction:column;gap:3px}.coords details[open]{display:flex}.coords details>div{margin-top:3px}
+.coords summary{cursor:pointer;color:var(--vg-cyan);font-size:12px;padding:2px 0;list-style-position:inside}
+.coords .cp{width:32px;height:30px;border:0;border-radius:6px;background:var(--surface);color:var(--fg);cursor:pointer;font-size:15px}
+.trkpop .cp0{border:0;background:none;color:var(--muted);text-decoration:underline;padding:4px 0;cursor:pointer;font-size:12px}
+.xmk{width:34px;height:34px;position:relative}.xmk:before,.xmk:after{content:"";position:absolute;background:#e30613;box-shadow:0 0 0 1.5px #fff}
+.xmk:before{left:16px;top:2px;width:2.5px;height:30px}.xmk:after{top:16px;left:2px;height:2.5px;width:30px}
+.ctrx{position:absolute;z-index:650;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none}
+.ctrx:before,.ctrx:after{content:"";position:absolute;background:#111;box-shadow:0 0 0 1px #fff}.ctrx:before{left:12px;top:0;width:2px;height:26px}.ctrx:after{top:12px;left:0;height:2px;width:26px}
+.ctrcoord{position:fixed;z-index:520;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 96px);background:rgba(255,255,255,.92);color:#111;border:0;border-radius:8px;box-shadow:var(--shadow);padding:5px 9px;text-align:left;cursor:pointer}
+.ctrcoord span{display:block;font-size:10px;color:#555;font-weight:700}.ctrcoord b{font:700 14px/1.2 ui-monospace,Menlo,Consolas,monospace}
+body.nav .ctrcoord{top:calc(env(safe-area-inset-top,0px) + 230px)}
 .trkpop .btnws{display:block;width:100%;margin-top:6px;min-height:38px;border:0;border-radius:8px;background:#0a62c9;color:#fff;font-weight:700;cursor:pointer}
 body.maponly .sheet{display:none}
+body.popopen .trkleg,body.popopen .ctrx{display:none}
 .leaflet-top.leaflet-left{top:calc(env(safe-area-inset-top,0px) + 60px);left:max(0px,env(safe-area-inset-left,0px))}
 .leaflet-top.leaflet-left .leaflet-control-attribution{margin:0 0 0 10px;border-radius:6px;font-size:10px;line-height:1.35;max-width:calc(100vw - 84px);background:rgba(255,255,255,.78);color:#333}
 body.maponly .trkleg{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 142px);max-height:calc(100vh - 330px);overflow:auto}
@@ -219,6 +234,9 @@ tr.go{cursor:pointer}
 .bdres .big{display:flex;gap:10px}.bdres .big div{flex:1;background:rgba(255,255,255,.1);border-radius:10px;padding:8px}
 .bdres .big b{display:block;font:700 26px/1.05 var(--f-display)}.bdres .big span{font-size:12px;opacity:.85}
 .bdres .w{background:rgba(255,190,60,.18);border-left:4px solid #ffbe3c;padding:6px 8px;border-radius:6px}
+.bdw label.f small{display:block;text-transform:none;letter-spacing:0;color:var(--muted);font-size:12px;margin-top:3px}
+.bdws{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.bdws li{display:flex;justify-content:space-between;gap:8px;background:rgba(255,255,255,.1);border-radius:6px;padding:4px 8px}
 .bdres .g{background:rgba(80,200,120,.16);border-left:4px solid #50c878;padding:6px 8px;border-radius:6px}
 .mp-head b{display:block;font:700 22px/1.05 var(--f-display);letter-spacing:.03em;text-transform:uppercase}
 .mp-head span{font-size:13px;color:var(--muted)}
@@ -307,7 +325,10 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
 
 <div class="modepick" id="bdDlg" hidden>
   <div class="mp-in bd" role="dialog" aria-labelledby="bdTitle">
-    <div class="mp-head"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b id="bdTitle">Wasserbedarf an der Einsatzstelle</b><span>Strahlrohre zusammenstellen – ergibt l/min und Gesamtmenge</span></div><button type="button" class="bdx" id="bdClose" aria-label="Schließen">×</button></div>
+    <div class="mp-head"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><b id="bdTitle">Wasserbedarf an der Einsatzstelle</b><span>Nach Strahlrohren oder Grundschutz – ergibt l/min und Gesamtmenge</span></div><button type="button" class="bdx" id="bdClose" aria-label="Schließen">×</button></div>
+    <div class="seg" role="tablist"><button type="button" id="bdTabR" aria-pressed="true">Nach Strahlrohren (Einsatz)</button><button type="button" id="bdTabW" aria-pressed="false">Grundschutz W 405 (Vorplanung)</button></div>
+    <div id="bdW" hidden style="display:contents"></div>
+    <div id="bdR" style="display:contents">
     <h3>Eingesetzte und geplante Strahlrohre</h3>
     <div id="bdRows" class="bdrows"></div>
     <div class="grid2">
@@ -320,11 +341,12 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
     <label class="f">Wasser in Fahrzeugtanks vor Ort [l]<input id="bdTank" type="number" inputmode="numeric" min="0" step="100" value="0"></label>
     <div class="chips" id="bdFleet"></div>
     <div class="bdres" id="bdOut"></div>
+    </div>
     <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
       <button type="button" class="btn" id="bdToLW" style="flex:1">→ Lange Wegstrecke</button>
       <button type="button" class="btn" id="bdToPV" style="flex:1">→ Pendelverkehr</button>
     </div>
-    <p class="note" style="margin:0">Durchflüsse: AWG Turbo-Spritze EVO und HS 7 laut Hersteller bei 6 bar, CM/BM-Strahlrohre Faustwerte bei 5 bar (HLFS). DM-Strahlrohr: Hersteller nennt nur die Düse (6 mm, Mundstück 4 mm); Durchfluss berechnet mit Q ≈ 0,67 · d² · √p bei 5 bar. Bei weniger Druck am Strahlrohr fließt weniger. Trupps im Innenangriff reduzieren die Leistung lageangepasst (LFS BW).</p>
+    <p class="note" style="margin:0" id="bdNoteR">Durchflüsse: AWG Turbo-Spritze EVO und HS 7 laut Hersteller bei 6 bar, CM/BM-Strahlrohre Faustwerte bei 5 bar (HLFS). DM-Strahlrohr: Hersteller nennt nur die Düse (6 mm, Mundstück 4 mm); Durchfluss berechnet mit Q ≈ 0,67 · d² · √p bei 5 bar. Bei weniger Druck am Strahlrohr fließt weniger. Trupps im Innenangriff reduzieren die Leistung lageangepasst (LFS BW).</p>
   </div>
 </div>
 
@@ -333,7 +355,7 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
 <header class="top">
   <button class="brand" id="brandBtn" type="button" aria-label="Art der Planung wechseln"><svg viewBox="0 0 67 67" aria-hidden="true"><use href="#lion"/></svg><div><span class="t1" id="brandT1">Lange Wegstrecke</span><span class="t2">Löschwasser-Planung</span></div></button>
   <form class="search" id="searchForm" role="search">
-    <input id="q" type="search" placeholder="Ort oder Rettungspunkt-Nr." autocomplete="off" enterkeyhint="search">
+    <input id="q" type="search" placeholder="Ort, Rettungspunkt-Nr. oder UTM" autocomplete="off" enterkeyhint="search">
     <button type="submit" aria-label="Suchen">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     </button>
@@ -343,6 +365,8 @@ label.f textarea{text-transform:none;letter-spacing:0;font-size:16px;color:var(-
 <div class="layermenu" id="layerMenu" hidden role="menu"></div>
 <div class="trkleg" id="trkLeg" hidden></div>
 <div class="navbox" id="navBox" hidden></div>
+<div class="ctrx" id="ctrX" hidden aria-hidden="true"></div>
+<button type="button" class="ctrcoord" id="ctrCoord" hidden title="Kartenmitte – antippen für alle Koordinaten"><span>UTMREF Kartenmitte</span><b>–</b></button>
 <div class="mapbar" id="mapBar" hidden>
   <span>Weg, Schranke, Rettungspunkt oder Wasserstelle antippen für Details</span>
   <div><button type="button" id="rpNear">Nächster Rettungs&shy;punkt</button><button type="button" id="wsNear">Nächste Wasser&shy;stelle</button><button type="button" id="mapPlan">Planen</button></div>
@@ -800,17 +824,21 @@ async function probeMap(id){
 }
 function renderLayerMenu(){
   $("layerMenu").innerHTML=`<b>Kartenart</b>`+MAPS.map(m=>`<button type="button" data-id="${m.id}" aria-pressed="${m.id===mapId}"><span>${m.name}</span><small>${m.blocked?"⚠ hier gesperrt (Kartendienst lehnt Zugriff ab)":m.sub}</small></button>`).join("")
+    +`<b>Anzeige</b><button type="button" data-ov="utm" aria-pressed="${UTMC}"><span>${UTMC?"✓ ":""}Koordinaten Kartenmitte (UTMREF)</span><small>Fadenkreuz mit UTMREF · lange drücken auf die Karte zeigt UTM/UTMREF jeder Stelle</small></button>`
     +`<b>Zusatz-Ebenen</b><button type="button" data-ov="trk" aria-pressed="${TRK.on}"><span>${TRK.on?"✓ ":""}Waldwege (OSM)</span><small>nach Befahrbarkeit eingefärbt, Schranken · ab Zoom ${TRK_MINZ}</small></button>`
     +`<button type="button" data-ov="ws" aria-pressed="${WS.on}"><span>${WS.on?"✓ ":""}Wasserentnahmestellen (eigene)</span><small>${WS.list.length? WS.list.length+" Stellen geladen"+(WS.srv?" (Server-Datei)":" (auf diesem Gerät)") : "noch keine Daten – Datei laden"}</small></button>`
     +`<label class="lmfile">Wasserstellen-Datei laden (JSON/CSV) …<input type="file" id="wsImport" accept=".json,.csv,.txt,.geojson,application/json,text/csv" hidden></label>`
     +`<button type="button" data-ov="rp" aria-pressed="${TRK.rp}"><span>${TRK.rp?"✓ ":""}Rettungspunkte Forst (OSM)</span><small>Anfahrpunkte für Rettungsfahrzeuge mit Nummer · ab Zoom ${TRK_MINZ}</small></button>`;
   $("layerMenu").querySelectorAll("button[data-id]").forEach(b=>b.onclick=()=>{ setMap(b.dataset.id); $("layerMenu").hidden=true; });
   $("layerMenu").querySelector("button[data-ov=trk]").onclick=()=>{ trkToggle(!TRK.on); $("layerMenu").hidden=true; };
+  $("layerMenu").querySelector("button[data-ov=utm]").onclick=()=>{ utmToggle(!UTMC); $("layerMenu").hidden=true; };
   $("layerMenu").querySelector("button[data-ov=rp]").onclick=()=>{ rpToggle(!TRK.rp); $("layerMenu").hidden=true; };
   $("layerMenu").querySelector("button[data-ov=ws]").onclick=()=>{ if(!WS.list.length){ $("wsImport").click(); return; } wsToggle(!WS.on); $("layerMenu").hidden=true; };
   $("wsImport").onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(f) wsImportFile(f); $("layerMenu").hidden=true; };
 }
 
+var UTMC=store.get("lwf.utm",false)===true;
+function utmToggle(on){ UTMC=on; store.set("lwf.utm",on); if(typeof setPopPad==="function") setPopPad(); $("ctrCoord").hidden=!on; $("ctrX").hidden=!on; updCenterCoord(); renderLayerMenu(); }
 /* ---------- Zusatz-Ebene Waldwege (OpenStreetMap über Overpass) ---------- */
 const TRK_MINZ=13, TRK_CELL=0.04;
 const TRK_CLS={1:{c:"#1a9850",t:"befestigt (Asphalt, Schotter)"},2:{c:"#d9b800",t:"überwiegend fest"},3:{c:"#f08c00",t:"gemischt"},4:{c:"#d7191c",t:"unbefestigt (Erde, Gras)"},0:{c:"#6b7480",t:"Zustand nicht erfasst",dash:"6 5"}};
@@ -827,7 +855,7 @@ function rpHtml(el){ const t=el.tags, ll=`${el.lat.toFixed(5)},${el.lon.toFixed(
   return `<div class="trkpop"><b>Rettungspunkt ${esc(t.ref||"ohne Nummer")}</b>`
     +(t.name||t.description?`<br>${esc(t.name||t.description)}`:"")
     +(t.note?`<br><small>${esc(t.note)}</small>`:"")+(t.check_date?`<br><small>Vor Ort geprüft: ${esc(t.check_date.split("-").reverse().join("."))}</small>`:"")
-    +`<br><small>Koordinaten (WGS84): ${ll}</small>`
+    +coordHtml(el.lat,el.lon)
     +`<button type="button" class="btnroute" data-lat="${el.lat}" data-lon="${el.lon}" data-label="${esc("Rettungspunkt "+(t.ref||""))}">Route in der App berechnen</button>`
     +`<a href="https://www.google.com/maps/dir/?api=1&destination=${ll}" target="_blank" rel="noopener">Navigation in Google Maps</a>`
     +`<br><small>Bei Notruf 112 die Nummer des Rettungspunkts nennen. Daten aus OpenStreetMap, Lage vor Ort prüfen.</small></div>`; }
@@ -1036,7 +1064,7 @@ function getPos(){ return new Promise(res=>{
   navigator.geolocation.getCurrentPosition(p=>{ const ll=L.latLng(p.coords.latitude,p.coords.longitude);
     locM=L.circleMarker(ll,{radius:8,color:"#fff",weight:3,fillColor:getVar("--water"),fillOpacity:1}).addTo(map); res(ll); },
     ()=>res(null),{enableHighAccuracy:true,timeout:9000,maximumAge:60000}); }); }
-function navShow(html){ const el=$("navBox"); el.innerHTML=html; el.hidden=!html; document.body.classList.toggle("nav",!!html);
+function navShow(html){ const el=$("navBox"); el.innerHTML=html; el.hidden=!html; document.body.classList.toggle("nav",!!html); setPopPad();
   const x=$("navX"); if(x) x.onclick=navClear; L.DomEvent.disableClickPropagation(el); }
 function navClear(){ navSeq++; gNav.clearLayers(); navShow(""); }
 let navSeq=0;
@@ -1078,7 +1106,7 @@ function wsHtml(w){
     +row("Ganzjährig",w.ganz)+row("Frostsicher",w.frost)+row("Status",w.status)+row("Anspeisung",w.speis)+row("Saughöhe",w.saugh?fmt(w.saugh,1)+" m":"")
     +row("Zufahrt",w.zufahrt)+row("Geprüft",w.gepr)+`</table>`
     +(w.note?`<small>${esc(w.note)}</small><br>`:"")
-    +`<small>Koordinaten: ${ll}</small>`+`<button type="button" class="btnroute" data-lat="${w.lat}" data-lon="${w.lon}" data-label="${esc(w.typ+" "+w.id)}">Route in der App berechnen</button>`+`<a href="https://www.google.com/maps/dir/?api=1&destination=${ll}" target="_blank" rel="noopener">Navigation in Google Maps</a>`
+    +coordHtml(w.lat,w.lon)+`<button type="button" class="btnroute" data-lat="${w.lat}" data-lon="${w.lon}" data-label="${esc(w.typ+" "+w.id)}">Route in der App berechnen</button>`+`<a href="https://www.google.com/maps/dir/?api=1&destination=${ll}" target="_blank" rel="noopener">Navigation in Google Maps</a>`
     +(MAPONLY?"":`<button type="button" class="btnws" data-id="${esc(w.id)}">Als Wasserentnahme übernehmen</button>`)+`</div>`;
 }
 function wsWeOf(w){
@@ -1122,6 +1150,8 @@ async function wsNear(){
 })();
 renderLayerMenu();
 if(ovAny()) trkRefresh();
+map.getContainer().appendChild($("ctrX"));
+$("ctrCoord").onclick=()=>{ const c=map.getCenter(); showCoordAt(c.lat,c.lng,"Kartenmitte"); };
 try{ window.caches && caches.delete("lwf-trk-1"); }catch(_){}
 probeMap(mapId);
 $("layerBtn").onclick=e=>{ e.stopPropagation(); $("layerMenu").hidden=!$("layerMenu").hidden; };
@@ -1249,11 +1279,58 @@ function bdRender(){
     o+=`<div>${c.vor<500? "Bei unter 500 l/min kommt auch Pendelverkehr in Frage (HLFS)." : c.vor>800? "Über 800 l/min: Förderstrecke mit Doppelleitung oder mehrere Strecken planen." : "Förderstrecke (lange Wegstrecke) oder Pendelverkehr."}</div>`;
   }
   $("bdOut").innerHTML=o;
-  $("bdToLW").disabled=$("bdToPV").disabled=!c.fehl;
-  $("bdToLW").textContent=`${fmt(c.vor||0)} l/min → Lange Wegstrecke`; $("bdToPV").textContent=`${fmt(c.vor||0)} l/min → Pendelverkehr`;
+
 }
-function bdUpd(){ bdSave(); bdRender(); }
-function bdOpen(){ bdRender(); $("bdDlg").hidden=false; }
+/* Grundschutz nach DVGW W 405:2008-02, Anhang 1 der Fachempfehlung AGBF/DFV 2018-4 */
+const W405_NUTZ=[
+  {k:"w1",t:"Wohn-, Misch-, Dorfgebiet · bis 3 Vollgeschosse (GFZ 0,3–0,7)",v:[800,1600,1600]},
+  {k:"w2",t:"Wohn-, Misch-, Dorfgebiet · mehr als 3 Vollgeschosse (GFZ 0,7–1,2)",v:[1600,1600,3200]},
+  {k:"g1",t:"Gewerbegebiet · bis 3 Vollgeschosse (GFZ 0,3–0,7)",v:[800,1600,1600]},
+  {k:"g2",t:"Gewerbe-/Kerngebiet · 1 Vollgeschoss (GFZ 0,7–1)",v:[1600,1600,3200]},
+  {k:"g3",t:"Gewerbe-/Kerngebiet · mehr als 1 Vollgeschoss (GFZ 1–2,4)",v:[1600,3200,3200]},
+  {k:"gi",t:"Industriegebiet (BMZ bis 9)",v:[1600,3200,3200]}];
+const W405_GEF=[
+  {t:"Klein",d:"feuerbeständige, hochfeuerhemmende oder feuerhemmende Umfassungen, harte Bedachung"},
+  {t:"Mittel",d:"Umfassungen nicht feuerbeständig/-hemmend mit harter Bedachung, oder feuerbeständig/-hemmend mit weicher Bedachung"},
+  {t:"Groß",d:"nicht feuerbeständig/-hemmend, weiche Bedachung, Holzfachwerk, stark behinderte Zugänglichkeit, Feuerbrücken"}];
+if(!BD.w) BD.w={n:"w1",g:0};
+function wsLmin(w){ // Leistung einer eigenen Wasserstelle über 2 h in l/min
+  if(w.zufluss) return {q:w.zufluss,how:"gemessen"};
+  if((w.k==="uf"||w.k==="ue")&&w.dn) return {q:Math.min(w.dn*(w.k==="ue"?15:10),w.k==="ue"?3200:2000),how:"Faustformel"};
+  if(w.k==="beh"&&w.kap) return {q:Math.round(w.kap*1000/120),how:`${fmt(w.kap)} m³ / 2 h`};
+  if(w.k==="off") return {q:Infinity,how:"unerschöpflich"};
+  return {q:0,how:"unbekannt"};
+}
+function bdRenderW(){
+  const N=W405_NUTZ.find(x=>x.k===BD.w.n)||W405_NUTZ[0], g=+BD.w.g||0, q=N.v[g];
+  let o=`<div class="bdw" style="display:contents">
+    <label class="f">Bauliche Nutzung<select id="bdWn">${W405_NUTZ.map(x=>`<option value="${x.k}"${x.k===N.k?" selected":""}>${x.t}</option>`).join("")}</select></label>
+    <label class="f">Gefahr der Brandausbreitung (überwiegende Bauart)<select id="bdWg">${W405_GEF.map((x,i)=>`<option value="${i}"${i===g?" selected":""}>${x.t}</option>`).join("")}</select><small>${W405_GEF[g].d}</small></label></div>`;
+  o+=`<div class="bdres"><div class="big"><div><b>${fmt(q)} l/min</b><span>Löschwasserbedarf Grundschutz (${fmt(q*60/1000)} m³/h)</span></div><div><b>${fmt(q*120/1000)} m³</b><span>über mindestens 2 Stunden</span></div></div>`;
+  // Abgleich mit eigenen Wasserstellen im Umkreis 300 m
+  if(WS.list.length){
+    const c=map.getCenter(), near=WS.list.map(w=>({w,d:map.distance(c,[w.lat,w.lon]),...wsLmin(w)})).filter(x=>x.d<=300).sort((a,b)=>a.d-b.d);
+    const sum=near.reduce((a,x)=>a+x.q,0), first=near[0], top2=near.map(x=>x.q).sort((a,b)=>b-a).slice(0,2).reduce((a,b)=>a+b,0);
+    o+=`<div>Eigene Wasserstellen im Umkreis 300 m um die <b>Kartenmitte</b>: ${near.length}</div>`;
+    if(near.length) o+=`<ul class="bdws">${near.slice(0,8).map(x=>`<li><span>${esc(x.w.typ)} ${esc(x.w.id)} · ${fmt(Math.round(x.d/5)*5)} m</span><span>${isFinite(x.q)?fmt(x.q)+" l/min":"∞"} <small>(${x.how})</small></span></li>`).join("")}</ul>`;
+    o+= !near.length? `<div class="w">Keine eigene Wasserstelle im Umkreis 300 m. Karte auf das Objekt schieben oder Löschwasser anders sicherstellen.</div>`
+      : `<div class="${sum>=q?"g":"w"}">Summe der Einzelleistungen ca. ${isFinite(sum)?fmt(sum)+" l/min":"unerschöpflich"} – ${sum>=q?"reicht rechnerisch":"reicht nicht"} für ${fmt(q)} l/min.${isFinite(sum)&&near.filter(x=>x.w.k==="uf"||x.w.k==="ue").length>1?" Hydranten am selben Netz liefern gemeinsam oft deutlich weniger – Netzleistung beim Wasserversorger erfragen.":""}</div>`
+        +(isFinite(top2)&&top2<q&&near.length>2? `<div class="w">Mit höchstens 2 Entnahmestellen (Regel bei 400 l/min-Stellen) nur ${fmt(top2)} l/min.</div>`:"")
+        +`<div class="${first.d<=75?"g":"w"}">Nächste Wasserstelle ${fmt(Math.round(first.d/5)*5)} m Luftlinie${first.d<=75?"":" – mehr als 75 m"} (Anforderung: erste Entnahmestelle max. 75 m Lauflinie bis zum Grundstück).</div>`;
+  } else o+=`<div>Tipp: Mit geladenen eigenen Wasserstellen prüft die App hier, ob im Umkreis 300 m um die Kartenmitte genug Wasser ist.</div>`;
+  o+=`</div><p class="note" style="margin:0">Richtwerte für den Normalfall nach DVGW W 405:2008-02 (Anhang 1 der Fachempfehlung AGBF/DFV 2018-4), nicht für kleine ländliche Ansiedlungen mit 2–10 Anwesen und nicht für Objektschutz. Der Bedarf ist im Umkreis von 300 m nachzuweisen, der Betriebsdruck darf 1,5 bar nicht unterschreiten, Hydrantenabstand höchstens 150 m. Entfernungen hier als Luftlinie.</p>`;
+  $("bdW").innerHTML=o;
+  $("bdWn").onchange=e=>{ BD.w.n=e.target.value; bdSave(); bdRenderW(); bdBtns(); };
+  $("bdWg").onchange=e=>{ BD.w.g=+e.target.value; bdSave(); bdRenderW(); bdBtns(); };
+}
+function bdQ(){ if(BD.tab==="w"){ const N=W405_NUTZ.find(x=>x.k===BD.w.n)||W405_NUTZ[0]; return {q:N.v[+BD.w.g||0],dur:120}; } const c=bdCalc(); return {q:c.vor,dur:BD.dur}; }
+function bdBtns(){ const {q}=bdQ(); $("bdToLW").disabled=$("bdToPV").disabled=!q; $("bdToLW").textContent=`${fmt(q||0)} l/min → Lange Wegstrecke`; $("bdToPV").textContent=`${fmt(q||0)} l/min → Pendelverkehr`; }
+function bdTabSet(t){ BD.tab=t; bdSave(); $("bdTabR").setAttribute("aria-pressed",t!=="w"); $("bdTabW").setAttribute("aria-pressed",t==="w");
+  $("bdR").hidden=t==="w"; $("bdR").style.display=t==="w"?"none":"contents"; $("bdW").hidden=t!=="w"; $("bdW").style.display=t==="w"?"contents":"none"; $("bdNoteR").hidden=t==="w";
+  if(t==="w") bdRenderW(); else bdRender(); bdBtns(); }
+$("bdTabR").onclick=()=>bdTabSet("r"); $("bdTabW").onclick=()=>bdTabSet("w");
+function bdUpd(){ bdSave(); bdRender(); bdBtns(); }
+function bdOpen(){ bdTabSet(BD.tab==="w"?"w":"r"); $("bdDlg").hidden=false; }
 function bdClose(){ $("bdDlg").hidden=true; }
 $("bdClose").onclick=bdClose;
 $("bdDlg").addEventListener("click",e=>{ if(e.target.id==="bdDlg") bdClose(); });
@@ -1263,11 +1340,11 @@ $("bdZu").onchange=e=>{ BD.zu=Math.max(0,+e.target.value||0); bdUpd(); };
 $("bdTank").onchange=e=>{ BD.tank=Math.max(0,+e.target.value||0); bdUpd(); };
 document.querySelectorAll(".bdopen").forEach(b=>b.onclick=bdOpen);
 function bdTake(mode){
-  const c=bdCalc(); if(!c.fehl) return;
+  const {q,dur}=bdQ(); if(!q) return; const c={vor:q};
   bdClose(); if(MAPONLY) setMapOnly(false);
   setPlanMode(mode);
   if(mode==="lw"){ P.q=c.vor; writeP(); readP(); }
-  else { PV.q=c.vor; PV.dur=[60,90,120,180,240].includes(BD.dur)? BD.dur : 120; writePV(); readPV(); }
+  else { PV.q=c.vor; PV.dur=[60,90,120,180,240].includes(dur)? dur : 120; writePV(); readPV(); }
   if(S.result) changed();
   tab("daten"); toast(`${fmt(c.vor)} l/min übernommen in ${mode==="lw"?"Lange Wegstrecke":"Pendelverkehr"}`);
 }
@@ -1300,7 +1377,7 @@ function openPicker(){ document.querySelectorAll(".mp-card").forEach(b=>b.setAtt
 /* ---------- Nur Karte (Lagekarte ohne Planung) ---------- */
 var MAPONLY=false;
 function setMapOnly(on){
-  MAPONLY=on; document.body.classList.toggle("maponly",on); $("mapBar").hidden=!on; store.set("lwf.maponly",on);
+  MAPONLY=on; document.body.classList.toggle("maponly",on); setPopPad(); $("mapBar").hidden=!on; store.set("lwf.maponly",on);
   [gLine,gPts,gRes].forEach(g=>{ if(on) map.removeLayer(g); else if(!map.hasLayer(g)) g.addTo(map); });
   if(on){ $("brandT1").textContent="Lagekarte"; TRK.info=false;
     if(!TRK.on) trkToggle(true); if(!TRK.rp) rpToggle(true); if(!WS.on&&WS.list.length) wsToggle(true);
@@ -1329,6 +1406,102 @@ document.querySelectorAll(".mp-card").forEach(b=>b.onclick=()=>{ $("modePick").h
 $("modePick").addEventListener("click",e=>{ if(e.target.id==="modePick") $("modePick").hidden=true; });
 $("modeFree").onclick=()=>setMode(false); $("modeRoad").onclick=()=>setMode(true);
 
+/* ---------- Koordinaten: UTM (ETRS89/WGS84) und UTMREF (MGRS) ---------- */
+const UTM_A=6378137, UTM_F=1/298.257223563, UTM_K0=0.9996, UTM_E2=UTM_F*(2-UTM_F), UTM_EP2=UTM_E2/(1-UTM_E2);
+const UTM_BANDS="CDEFGHJKLMNPQRSTUVWX";
+function toUTM(lat,lon,zf){
+  let z=zf||Math.floor((lon+180)/6)+1;
+  if(!zf){ if(lat>=56&&lat<64&&lon>=3&&lon<12) z=32; if(lat>=72) z= lon<9?31: lon<21?33: lon<33?35: 37; }
+  const l0=((z-1)*6-180+3)*Math.PI/180, f=lat*Math.PI/180, l=lon*Math.PI/180;
+  const N=UTM_A/Math.sqrt(1-UTM_E2*Math.sin(f)**2), T=Math.tan(f)**2, C=UTM_EP2*Math.cos(f)**2, A=Math.cos(f)*(l-l0), e=UTM_E2;
+  const M=UTM_A*((1-e/4-3*e*e/64-5*e**3/256)*f-(3*e/8+3*e*e/32+45*e**3/1024)*Math.sin(2*f)+(15*e*e/256+45*e**3/1024)*Math.sin(4*f)-(35*e**3/3072)*Math.sin(6*f));
+  const E=UTM_K0*N*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*UTM_EP2)*A**5/120)+500000;
+  let No=UTM_K0*(M+N*Math.tan(f)*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*UTM_EP2)*A**6/720));
+  if(lat<0) No+=10000000;
+  return {z, band:UTM_BANDS[Math.max(0,Math.min(19,Math.floor((lat+80)/8)))], E, N:No};
+}
+function fromUTM(z,E,No,south){
+  const e=UTM_E2, e1=(1-Math.sqrt(1-e))/(1+Math.sqrt(1-e)), x=E-500000, y=south? No-10000000 : No;
+  const mu=y/UTM_K0/(UTM_A*(1-e/4-3*e*e/64-5*e**3/256));
+  const f1=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1*e1/16-55*e1**4/32)*Math.sin(4*mu)+(151*e1**3/96)*Math.sin(6*mu)+(1097*e1**4/512)*Math.sin(8*mu);
+  const N1=UTM_A/Math.sqrt(1-e*Math.sin(f1)**2), T1=Math.tan(f1)**2, C1=UTM_EP2*Math.cos(f1)**2, R1=UTM_A*(1-e)/(1-e*Math.sin(f1)**2)**1.5, D=x/(N1*UTM_K0);
+  const lat=f1-(N1*Math.tan(f1)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*UTM_EP2)*D**4/24+(61+90*T1+298*C1+45*T1*T1-252*UTM_EP2-3*C1*C1)*D**6/720);
+  const lon=((z-1)*6-180+3)*Math.PI/180+(D-(1+2*T1+C1)*D**3/6+(5-2*C1+28*T1-3*C1*C1+8*UTM_EP2+24*T1*T1)*D**5/120)/Math.cos(f1);
+  return {lat:lat*180/Math.PI, lon:lon*180/Math.PI};
+}
+const MG_COL=["ABCDEFGH","JKLMNPQR","STUVWXYZ"], MG_ROW="ABCDEFGHJKLMNPQRSTUV";
+function toMGRS(lat,lon,digits=5){
+  const u=toUTM(lat,lon), set=(u.z-1)%3, col=MG_COL[set][Math.floor(u.E/100000)-1];
+  const row=MG_ROW[(Math.floor(u.N/100000)+(u.z%2===0?5:0))%20], d=10**(5-digits);
+  const e=String(Math.floor(u.E%100000/d)).padStart(digits,"0"), n=String(Math.floor(u.N%100000/d)).padStart(digits,"0");
+  return {txt:`${u.z}${u.band} ${col}${row} ${e} ${n}`, u};
+}
+function fromMGRS(z,band,col,row,es,ns){
+  const set=(z-1)%3, ci=MG_COL[set].indexOf(col), ri=MG_ROW.indexOf(row); if(ci<0||ri<0) return null;
+  const k=es.length, E=(ci+1)*100000+(+es)*10**(5-k)+10**(5-k)/2;
+  let n100=(ri-(z%2===0?5:0)+20)%20;
+  const bi=UTM_BANDS.indexOf(band); if(bi<0) return null;
+  const latMin=-80+bi*8, nMin=toUTM(Math.max(-79.9,latMin),((z-1)*6-180+3),z).N; // Mindest-Nordwert des Bandes
+  let N=n100*100000+(+ns)*10**(5-k)+10**(5-k)/2;
+  while(N<nMin-100000) N+=2000000;
+  return fromUTM(z,E,N,bi<10);
+}
+const utmTxt=(lat,lon)=>{ const u=toUTM(lat,lon); return `${u.z}${u.band} ${Math.floor(u.E)} ${Math.floor(u.N)}`; };
+function coordHtml(lat,lon,open){
+  const m=toMGRS(lat,lon).txt, u=utmTxt(lat,lon), g=`${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  const row=(k,v)=>`<div><span>${k}</span><b>${v}</b><button type="button" class="cp" data-cp="${v}" aria-label="${k} kopieren">⧉</button></div>`;
+  return `<div class="coords">${row("UTMREF",m)}<details${open?" open":""}><summary>UTM / WGS84</summary>${row("UTM",u)}${row("WGS84",g)}</details></div>`;
+}
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest(".cp"); if(!b) return; e.stopPropagation();
+  const t=b.dataset.cp; (navigator.clipboard? navigator.clipboard.writeText(t) : Promise.reject()).then(()=>toast("Kopiert: "+t),()=>{ prompt("Koordinate:",t); }); },true);
+// Suche: UTMREF „32U MB 12345 67890“, UTM „32U 412345 5571234“ oder „412345 5571234“ (Zone 32), WGS84 „50.27, 7.79“
+function parseCoord(q){
+  const s=q.trim().toUpperCase().replace(/,(?=\d{3}\b)/g,"").replace(/\s+/g," ");
+  let m=s.match(/^(\d{1,2})\s?([C-HJ-NP-X])\s?([A-HJ-NP-Z])\s?([A-HJ-NP-V])\s?(\d+)\s?(\d*)$/);
+  if(m){ let es=m[5], ns=m[6]; if(!ns){ if(es.length%2) return null; ns=es.slice(es.length/2); es=es.slice(0,es.length/2); }
+    if(es.length!==ns.length||es.length<1||es.length>5) return null;
+    const r=fromMGRS(+m[1],m[2],m[3],m[4],es,ns); return r&&{...r,lbl:`UTMREF ${m[1]}${m[2]} ${m[3]}${m[4]} ${es} ${ns}`}; }
+  m=s.match(/^(?:(\d{1,2})\s?([C-HJ-NP-X])?\s)?(?:E\s?)?(\d{6})(?:[.,]\d+)?\s(?:N\s?)?(\d{7})(?:[.,]\d+)?$/);
+  if(m){ const z=m[1]?+m[1]:32, band=m[2]||"U"; const r=fromUTM(z,+m[3],+m[4],UTM_BANDS.indexOf(band)<10); return {...r,lbl:`UTM ${z}${band} ${m[3]} ${m[4]}`}; }
+  m=q.trim().match(/^(-?\d{1,2}[.,]\d+)[\s;,]+(-?\d{1,3}[.,]\d+)$/);
+  if(m){ const lat=+m[1].replace(",","."), lon=+m[2].replace(",","."); if(Math.abs(lat)<=90&&Math.abs(lon)<=180) return {lat,lon,lbl:"WGS84 "+lat+", "+lon}; }
+  return null;
+}
+// Popups so verschieben, dass Kopfzeile, Quellenangabe und Koordinaten-Anzeige sie nicht verdecken
+function setPopPad(){ const o=L.Popup.prototype.options, top=(UTMC?175:130)+(document.body.classList.contains("nav")?120:0);
+  const sh=$("sheet"), mo=typeof MAPONLY!=="undefined"&&MAPONLY, sTop=!mo&&sh? sh.getBoundingClientRect().top : innerHeight;
+  const bot=mo? 165 : Math.max(40,innerHeight-sTop+12);
+  o.autoPanPaddingTopLeft=L.point(12,top); o.autoPanPaddingBottomRight=L.point(60,bot);
+  o.maxHeight=Math.max(160,innerHeight-top-bot-30); }
+// In der Planung: Bedienblatt beim Öffnen eines Infofensters einklappen, damit es nicht verdeckt wird; beim Schließen zurück
+let popSheetMin=false;
+map.on("popupopen",e=>{
+  const sh=$("sheet");
+  if(!MAPONLY && sh && !sh.classList.contains("min")){ sh.classList.add("min"); sh.classList.remove("big"); popSheetMin=true; }
+  setTimeout(()=>{ setPopPad(); const o=L.Popup.prototype.options, pp=e.popup;
+    pp.options.maxHeight=o.maxHeight; pp.options.autoPanPaddingTopLeft=o.autoPanPaddingTopLeft; pp.options.autoPanPaddingBottomRight=o.autoPanPaddingBottomRight;
+    if(pp.isOpen()){ pp.update(); pp._adjustPan&&pp._adjustPan(); } },320);
+});
+map.on("popupclose",()=>{ if(popSheetMin && !MAPONLY){ $("sheet").classList.remove("min"); } popSheetMin=false; });
+setPopPad();
+// Solange ein Infofenster offen ist, Legende ausblenden, damit sie es nicht verdeckt
+map.on("popupopen",()=>document.body.classList.add("popopen")); map.on("popupclose",()=>document.body.classList.remove("popopen"));
+const gCoord=L.layerGroup().addTo(map);
+function showCoordAt(lat,lon,title){
+  gCoord.clearLayers();
+  const mk=L.marker([lat,lon],{icon:L.divIcon({className:"",html:'<div class="xmk"></div>',iconSize:[34,34],iconAnchor:[17,17]}),keyboard:false}).addTo(gCoord);
+  mk.bindPopup(`<div class="trkpop"><b>${esc(title||"Punkt")}</b>${coordHtml(lat,lon,true)}`
+    +`<button type="button" class="btnroute" data-lat="${lat}" data-lon="${lon}" data-label="${esc(title||"Koordinate")}">Route in der App berechnen</button>`
+    +`<a href="https://www.google.com/maps/dir/?api=1&destination=${lat.toFixed(6)},${lon.toFixed(6)}" target="_blank" rel="noopener">Navigation in Google Maps</a>`
+    +`<br><button type="button" class="cp0" onclick="gCoord.clearLayers()">Markierung entfernen</button></div>`,{maxWidth:300}).openPopup();
+  mk.on("click",ev=>L.DomEvent.stopPropagation(ev));
+}
+// Lange drücken (Handy) bzw. Rechtsklick (PC): Koordinaten der Stelle anzeigen
+map.on("contextmenu",e=>showCoordAt(e.latlng.lat,e.latlng.lng,"Koordinaten dieser Stelle"));
+// Fadenkreuz-Anzeige der Kartenmitte
+function updCenterCoord(){ const el=$("ctrCoord"); if(!el||el.hidden) return; const c=map.getCenter(); el.querySelector("b").textContent=toMGRS(c.lat,c.lng).txt; }
+map.on("move",updCenterCoord);
+
 /* Standort */
 let locM;
 $("locBtn").onclick=()=>{
@@ -1337,13 +1510,17 @@ $("locBtn").onclick=()=>{
     const ll=[pos.coords.latitude,pos.coords.longitude];
     if(locM) map.removeLayer(locM);
     locM=L.circleMarker(ll,{radius:8,color:"#fff",weight:3,fillColor:getVar("--water"),fillOpacity:1}).addTo(map);
-    map.setView(ll,16);
+    locM.bindPopup(()=>`<div class="trkpop"><b>Mein Standort</b> <small>(± ${Math.round(pos.coords.accuracy)} m)</small>${coordHtml(ll[0],ll[1],true)}</div>`,{maxWidth:300});
+    locM.on("click",ev=>L.DomEvent.stopPropagation(ev));
+    map.setView(ll,16); setTimeout(()=>locM.openPopup(),400);
   },()=>toast("Standort nicht verfügbar – Freigabe im Browser prüfen (HTTPS nötig)"),{enableHighAccuracy:true,timeout:10000});
 };
 
 /* Suche (Nominatim) */
 $("searchForm").onsubmit=async e=>{
   e.preventDefault(); const q=$("q").value.trim(); if(!q) return;
+  const co=parseCoord(q);
+  if(co){ $("results").hidden=true; $("q").blur(); map.setView([co.lat,co.lon],Math.max(map.getZoom(),16)); setTimeout(()=>showCoordAt(co.lat,co.lon,co.lbl),300); return; }
   // Rettungspunkt-Nummer wie „5612-123“ oder „RP 5612-123“
   const rpm=q.replace(/\s+/g," ").match(/^(?:rp|rettungspunkt)?\s*(\d{4})\s*[-–/ ]\s*(\d{1,3})$/i);
   if(rpm){ const ref=`${rpm[1]}-${rpm[2].padStart(3,"0")}`;
@@ -2756,6 +2933,7 @@ renderPlans();
 (function(){ const sp=$("splash"); const t0=Date.now(); let done=false;
   const hide=()=>{ if(done) return; done=true; setTimeout(()=>sp.classList.add("gone"),Math.max(0,1100-(Date.now()-t0))); };
   const base=curMap().layer; (base.getLayers? base.getLayers() : [base]).forEach(l=>l.once("load",hide)); setTimeout(hide,2500); sp.onclick=hide; })();
+if(UTMC) utmToggle(true);
 setPlanMode(store.get("lwf.mode","lw"));
 if(location.hash && decode(location.hash)){
   writeP(); setMode(S.road); map.fitBounds(S.pts.length>1?S.pts:[S.pts[0],S.pts[0]],{padding:[60,60],maxZoom:16}); calc();
